@@ -1,16 +1,22 @@
 "use client";
 
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
-import { dateFormat, isoToDate } from "@/app/components/format";
 import { ui } from "@/app/components/ui";
 import { matchesName } from "@/logic/rules/client-list";
+import { flagEmoji } from "@/logic/rules/country";
+import { formatIsoDate } from "@/logic/rules/dates";
 import type { ClientSummary } from "@/logic/usecases/clients";
 
-export function ClientList({ clients }: { clients: ClientSummary[] }) {
+type Props = {
+  clients: ClientSummary[];
+  /** Country names by ISO code, built on the server (browser ICU data may differ). */
+  countryNames: Record<string, string>;
+};
+
+export function ClientList({ clients, countryNames }: Props) {
   const t = useTranslations("clients");
-  const format = useFormatter();
   const [query, setQuery] = useState("");
   const shown = clients.filter((c) => matchesName(c.fullName, query));
 
@@ -33,8 +39,14 @@ export function ClientList({ clients }: { clients: ClientSummary[] }) {
             <Link href={`/clients/${c.id}`} className="flex flex-col gap-0.5 py-3">
               <span className="truncate text-base font-semibold">{c.fullName}</span>
               <span className="flex gap-2 text-sm text-neutral-500 dark:text-neutral-400">
-                <span className="shrink-0">{format.dateTime(isoToDate(c.date), dateFormat)}</span>
+                <span className="shrink-0">{formatIsoDate(c.date)}</span>
                 {c.age !== null && <span className="shrink-0">{t("age", { age: c.age })}</span>}
+                {/* PR5: country of residence. */}
+                {c.residenceCountry && (
+                  <span className="shrink-0">
+                    {flagEmoji(c.residenceCountry)} {countryNames[c.residenceCountry]}
+                  </span>
+                )}
                 <span className="truncate">{c.excerpt}</span>
               </span>
             </Link>

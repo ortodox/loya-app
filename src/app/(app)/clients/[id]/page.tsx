@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { practiceTimeZone } from "@/config/time";
-import { clientRepository } from "@/data/repositories";
+import { clientRepository } from "@/data/repositories/server";
 import { todayIn } from "@/logic/rules/dates";
 import { getClientCard } from "@/logic/usecases/clients";
 import { ClientCardView } from "./ClientCardView";

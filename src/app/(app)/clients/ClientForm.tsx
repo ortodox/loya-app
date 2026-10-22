@@ -3,26 +3,32 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { card, ui } from "@/app/components/ui";
+import { card, sectionSummary, sectionTitle, ui } from "@/app/components/ui";
 import { locales } from "@/config/locales";
-import type { ClientForm as ClientFormValues } from "@/logic/rules/client-input";
+import type { CountryOption } from "@/logic/rules/country";
+import { AnamnesisFields } from "./AnamnesisFields";
+import type { ClientForm as ClientFormValues, ClientFormField } from "@/logic/rules/client-input";
 import type { ClientFormState } from "./actions";
 
 type Props = {
   title: string;
+  /** Country list built on the server, so names match between server and browser ICU data. */
+  countries: { common: CountryOption[]; other: CountryOption[] };
+  /** Open clinical sections that already have content (edit), or keep them closed (new). */
+  openFilled?: boolean;
   initial: ClientFormValues;
   cancelHref: string;
   action: (state: ClientFormState, formData: FormData) => Promise<ClientFormState>;
 };
 
-export function ClientForm({ title, initial, cancelHref, action }: Props) {
+export function ClientForm({ title, initial, cancelHref, action, countries, openFilled = false }: Props) {
   const t = useTranslations();
   const [state, formAction, pending] = useActionState(action, { values: initial });
   const [ageMode, setAgeMode] = useState<"age" | "birthDate">(
     initial.birthDate ? "birthDate" : "age",
   );
   const v = state.values;
-  const error = (field: keyof ClientFormValues) => {
+  const error = (field: ClientFormField) => {
     const key = state.errors?.[field];
     return key ? <p className={ui.error}>{t(`form.errors.${key}`)}</p> : null;
   };
@@ -39,6 +45,9 @@ export function ClientForm({ title, initial, cancelHref, action }: Props) {
         </button>
       </header>
 
+      <details open className="group flex flex-col">
+        <summary className={sectionSummary}>{t("karta.sections.generalData")}</summary>
+        <div className="flex flex-col gap-5 pt-3">
       <label className="flex flex-col gap-2">
         <span className={card.label}>
           {t("form.fullName")} <span className="text-xs">({t("form.required")})</span>
@@ -99,6 +108,55 @@ export function ClientForm({ title, initial, cancelHref, action }: Props) {
       </label>
 
       <label className="flex flex-col gap-2">
+        <span className={card.label}>{t("form.email")}</span>
+        <input
+          name="email"
+          type="email"
+          inputMode="email"
+          autoComplete="off"
+          autoCapitalize="none"
+          defaultValue={v.email}
+          className={ui.input}
+        />
+        {error("email")}
+      </label>
+
+      <fieldset className="flex flex-col gap-2">
+        <legend className={`${card.label} mb-2`}>{t("card.fields.residence")}</legend>
+        <select
+          name="residenceCountry"
+          aria-label={t("form.residenceCountry")}
+          defaultValue={v.residenceCountry ?? ""}
+          className={ui.input}
+        >
+          <option value="">{t("form.countryNone")}</option>
+          <optgroup label={t("form.countryCommon")}>
+            {countries.common.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.flag} {c.name}
+              </option>
+            ))}
+          </optgroup>
+          <optgroup label={t("form.countryOther")}>
+            {countries.other.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.flag} {c.name}
+              </option>
+            ))}
+          </optgroup>
+        </select>
+        {error("residenceCountry")}
+        <input
+          name="residenceCity"
+          placeholder={t("form.residenceCity")}
+          aria-label={t("form.residenceCity")}
+          autoComplete="off"
+          defaultValue={v.residenceCity}
+          className={ui.input}
+        />
+      </fieldset>
+
+      <label className="flex flex-col gap-2">
         <span className={card.label}>{t("form.language")}</span>
         <select name="language" defaultValue={v.language || "ru"} className={ui.input}>
           {locales.map((l) => (
@@ -108,9 +166,13 @@ export function ClientForm({ title, initial, cancelHref, action }: Props) {
           ))}
         </select>
       </label>
+        </div>
+      </details>
+
+      <AnamnesisFields values={v.anamnesis ?? {}} openFilled={openFilled} />
 
       <label className="flex flex-col gap-2">
-        <span className={card.label}>{t("form.notes")}</span>
+        <span className={sectionTitle}>{t("form.notes")}</span>
         <textarea name="notes" rows={8} defaultValue={v.notes} className={ui.input} />
       </label>
 

@@ -47,7 +47,6 @@
     "en": "English"
   },
   "card": {
-    "title": "Карта клиента",
     "edit": "Изменить",
     "back": "Клиенты",
     "notes": "Заметки",
@@ -58,8 +57,9 @@
       "fullName": "Ф.И.О",
       "age": "Возраст",
       "phone": "Телефон",
+      "email": "E-mail",
+      "residence": "Место постоянного проживания",
       "language": "Язык",
-      "complaints": "Жалобы",
       "allergies": "Аллергоанамнез",
       "medications": "Принимаемые препараты"
     }
@@ -84,7 +84,100 @@
       "dateInvalid": "Неверная дата.",
       "ageInvalid": "Возраст – целое число от 0 до 130.",
       "birthDateInvalid": "Неверная дата рождения.",
-      "ageAndBirthDate": "Укажите возраст или дату рождения, не оба."
-    }
+      "ageAndBirthDate": "Укажите возраст или дату рождения, не оба.",
+      "emailInvalid": "Неверный формат e-mail.",
+      "countryInvalid": "Выберите страну из списка."
+    },
+    "email": "E-mail",
+    "residenceCountry": "Страна",
+    "residenceCity": "Город",
+    "countryNone": "Не указано",
+    "countryCommon": "Чаще всего",
+    "countryOther": "Все страны"
+  },
+  "karta": {
+    "sections": {
+      "generalData": "Общие данные",
+      "complaints": "Жалобы",
+      "health": "Состояние здоровья",
+      "skin": "Состояние кожи",
+      "aging": "Возрастные изменения",
+      "previousProcedures": "Ранее проведённые процедуры"
+    },
+    "fields": {
+      "complaints": "Жалобы",
+      "bloodPressure": "Артериальное давление",
+      "endocrine": "Эндокринная система",
+      "gastro": "Желудочно-кишечный тракт",
+      "cardiovascular": "Сердце и сосуды",
+      "genitourinary": "Мочеполовая система",
+      "respiratory": "Дыхательная система",
+      "injuriesSurgeries": "Травмы и операции",
+      "allergies": "Аллергоанамнез",
+      "medications": "Принимаемые препараты (БАДы, витамины, лекарства, контрацептивы)",
+      "skinType": "Тип кожи",
+      "skinFeatures": "Особенности кожи",
+      "skinDiseases": "Болезни кожи",
+      "agingType": "Типы старения кожи",
+      "wrinkleTypes": "Виды морщин",
+      "salon": "В салоне",
+      "injections": "Инъекционные вмешательства"
+    },
+    "options": {
+      "complaints": {
+        "skinTone": "тон кожи",
+        "redness": "покраснение",
+        "acne": "акне",
+        "subcutaneousInflammation": "подкожные воспаления",
+        "pigmentation": "пигментация",
+        "wrinkles": "морщины",
+        "dryness": "сухость",
+        "enlargedPores": "расширенные поры",
+        "gooseSkin": "«гусиная кожа»"
+      },
+      "skinType": {
+        "dry": "сухая",
+        "oily": "жирная",
+        "combination": "комбинированная",
+        "normal": "нормальная",
+        "sensitive": "чувствительная"
+      },
+      "skinFeatures": {
+        "pigmentation": "пигментация",
+        "flaking": "шелушения",
+        "rashes": "высыпания",
+        "scars": "рубчики"
+      },
+      "skinDiseases": {
+        "acne": "акне",
+        "couperose": "купероз",
+        "postAcne": "постакне",
+        "rosacea": "розацеа"
+      },
+      "agingType": {
+        "photo": "фотостарение",
+        "chrono": "хроностарение",
+        "muscular": "мышечный",
+        "fineWrinkled": "мелкоморщинистый",
+        "edematousDeformational": "отёчно-деформационный"
+      },
+      "wrinkleTypes": {
+        "static": "статические",
+        "dynamic": "динамические",
+        "mimic": "мимические",
+        "gravitational": "гравитационные"
+      },
+      "salon": {
+        "cleansing": "чистка",
+        "peeling": "пилинг",
+        "smas": "SMAS",
+        "biorevitalization": "биоревитализация",
+        "botox": "ботокс",
+        "lipFillers": "филлеры губ",
+        "polylacticAcid": "полимолочная кислота"
+      }
+    },
+    "freeText": "Свой текст, можно «?»",
+    "emptyCount": "не заполнено"
   }
 }

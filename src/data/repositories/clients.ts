@@ -1,6 +1,6 @@
 import type { Client, ClientInput } from "@/logic/client";
 
-/** Port for client storage; implemented in src/data, faked in tests. */
+/** Client storage interface; Supabase implementation in ./clients-supabase, faked in tests. */
 export interface ClientRepository {
   list(): Promise<Client[]>;
   get(id: string): Promise<Client | null>;

@@ -32,6 +32,7 @@ npm run lint && npm run typecheck
    lim inn hele filen → **Run**.
    1. `supabase/migrations/20261022000000_clients_visits.sql` (oppgave 1)
    2. `supabase/migrations/20261023000000_client_card.sql` (oppgave 2: alder, fødselsdato, `anamnesis`)
+   3. `supabase/migrations/20261024000000_karta_template.sql` (oppgave 3: e-post, bosted, kliniske seksjoner i `anamnesis`)
 
    Kontroller under *Table Editor* at `clients` og `visits` finnes og at RLS står som *enabled*.
 3. **Opprett legens bruker:** *Authentication → Users → Add user* (e-post). Appen oppretter

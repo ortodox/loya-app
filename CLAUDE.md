@@ -19,7 +19,7 @@ Appen er **ikke** lovpålagt medisinsk journal (EDM). Den er et verktøy for opp
 
 Historier: L1, UI1, PR1, AG1, PR2, PR5, JA1, AN1, AN2, SK1, VI1, PH1, PR3, VS1, AL2 (se `roadmap_ru.md`).
 
-Status: oppgave 1 (innlogging) og oppgave 2 (klientliste, PR #2) er ferdige. Oppgave 3 skal i tillegg legge til e-post og bosted (PR1/PR5) og flytte Жалобы ut av «Общие данные» (Loyas tilbakemelding 22.10.2026).
+Status: oppgave 1 (innlogging), 2 (klientliste) og 3 (resten av malen, e-post og bosted, Жалобы flyttet ut av «Общие данные») er ferdige. Gjenstår: oppgave 4, besøk (VS1).
 
 **Ferdig når:** Loya kan opprette klienter, fylle ut hele malen, legge til besøk og finne klienter med søk – på iPhone – uten å trenge Notater.
 
@@ -43,7 +43,7 @@ src/
     rules/          DOMENEREGLER – rene funksjoner uten I/O (f.eks. beregnAlder)
     usecases/       BRUKSTILFELLER – orkestrerer: tilgang, hente, regler, lagre
   data/
-    repositories/   DATALAG – grensesnitt + Supabase-implementasjon
+    repositories/   DATALAG – grensesnitt (clients.ts) + Supabase-implementasjon (clients-supabase.ts)
   config/
     kartaTemplate.ts  Malen for «Карта клиента» beskrevet som data
 messages/           ru.json, uk.json, pl.json, en.json
@@ -57,7 +57,7 @@ Regler:
 
 ## Datamodell (MVP 1a)
 
-- `clients` – id, `doctor_id` (= auth.uid()), navn (påkrevd), telefon, `email`, `residence_country` (ISO 3166-1 alpha-2, f.eks. `PL`), `residence_city`, språk, første besøk-dato, `age_at_registration`, `registered_at`, `birth_date` (valgfri), `anamnesis` (jsonb, nøkler fra malen), `notes`, timestamps
+- `clients` – id, `doctor_id` (= auth.uid()), `full_name` (påkrevd), `phone`, `email`, `residence_country` (ISO 3166-1 alpha-2, f.eks. `PL`), `residence_city`, `language`, `card_date` (første besøk = registreringsdato, brukes i AG1), `age_at_registration`, `birth_date` (valgfri), `anamnesis` (jsonb, flate feltnøkler fra `kartaTemplate.ts`: `{ choices: [...], text }`), `notes`, timestamps
 - `visits` – id, `client_id`, `doctor_id`, dato, `home_care_recommendations`, `procedure_plan`, timestamps
 
 **Alle tabeller har `doctor_id`** og **Row Level Security**: en lege ser kun sine egne rader (`doctor_id = auth.uid()`). Forbered for flere leger senere.

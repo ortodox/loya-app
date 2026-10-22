@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Client, ClientInput, FieldValue } from "@/logic/client";
-import type { ClientRepository } from "@/logic/usecases/client-repository";
+import type { Anamnesis, Client, ClientInput } from "@/logic/client";
+import type { ClientRepository } from "./clients";
 import { isLocale } from "@/logic/locale";
 
 type ClientRow = {
@@ -10,16 +10,18 @@ type ClientRow = {
   age_at_registration: number | null;
   birth_date: string | null;
   phone: string | null;
+  email: string | null;
+  residence_country: string | null;
+  residence_city: string | null;
   language: string | null;
-  complaints: FieldValue;
-  anamnesis: Record<string, FieldValue> | null;
+  anamnesis: Anamnesis | null;
   notes: string | null;
   updated_at: string;
   visits?: { visit_date: string }[];
 };
 
 const columns =
-  "id, full_name, card_date, age_at_registration, birth_date, phone, language, complaints, anamnesis, notes, updated_at";
+  "id, full_name, card_date, age_at_registration, birth_date, phone, email, residence_country, residence_city, language, anamnesis, notes, updated_at";
 
 function toClient(row: ClientRow): Client {
   return {
@@ -29,8 +31,10 @@ function toClient(row: ClientRow): Client {
     ageAtRegistration: row.age_at_registration,
     birthDate: row.birth_date,
     phone: row.phone,
+    email: row.email,
+    residenceCountry: row.residence_country,
+    residenceCity: row.residence_city,
     language: isLocale(row.language) ? row.language : null,
-    complaints: row.complaints,
     anamnesis: row.anamnesis ?? {},
     notes: row.notes,
     lastVisitDate: row.visits?.[0]?.visit_date ?? null,
@@ -45,7 +49,11 @@ function toRow(input: ClientInput) {
     age_at_registration: input.ageAtRegistration,
     birth_date: input.birthDate,
     phone: input.phone,
+    email: input.email,
+    residence_country: input.residenceCountry,
+    residence_city: input.residenceCity,
     language: input.language,
+    anamnesis: input.anamnesis,
     notes: input.notes,
   };
 }

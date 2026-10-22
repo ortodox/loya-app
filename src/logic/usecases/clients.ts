@@ -1,9 +1,9 @@
 import type { Client, IsoDate } from "@/logic/client";
 import { currentAge } from "@/logic/rules/age";
-import { parseClientForm, type ClientForm, type ParsedClientInput } from "@/logic/rules/client-input";
+import { parseClientForm, type ClientForm, type ClientInputErrors } from "@/logic/rules/client-input";
 import { lastActivityDate, notesExcerpt, sortNewestFirst } from "@/logic/rules/client-list";
 import { safetyAlerts, type SafetyAlert } from "@/logic/rules/safety-alert";
-import type { ClientRepository } from "./client-repository";
+import type { ClientRepository } from "@/data/repositories/clients";
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -12,6 +12,8 @@ export type ClientSummary = {
   fullName: string;
   date: IsoDate;
   age: number | null;
+  /** PR5: ISO code of the country of residence. */
+  residenceCountry: string | null;
   excerpt: string;
 };
 
@@ -22,6 +24,7 @@ export async function listClients(repo: ClientRepository, today: IsoDate): Promi
     fullName: c.fullName,
     date: lastActivityDate(c),
     age: currentAge(c, today),
+    residenceCountry: c.residenceCountry,
     excerpt: notesExcerpt(c.notes),
   }));
 }
@@ -46,7 +49,7 @@ export async function getClientCard(
 
 export type SaveClientResult =
   | { ok: true; id: string }
-  | { ok: false; errors: Extract<ParsedClientInput, { ok: false }>["errors"] }
+  | { ok: false; errors: ClientInputErrors }
   | { ok: false; notFound: true };
 
 /** PR1: create a client from the form. */
@@ -61,7 +64,7 @@ export async function createClient(
   return { ok: true, id };
 }
 
-/** PR1/PR3: edit a client, including the free notes. */
+/** PR1/PR3/JA1/AN1…: edit a client, including the clinical sections and free notes. */
 export async function updateClient(
   repo: ClientRepository,
   id: string,
@@ -69,7 +72,9 @@ export async function updateClient(
   today: IsoDate,
 ): Promise<SaveClientResult> {
   if (!uuid.test(id)) return { ok: false, notFound: true };
-  const parsed = parseClientForm(form, today);
+  const existing = await repo.get(id);
+  if (!existing) return { ok: false, notFound: true };
+  const parsed = parseClientForm(form, today, existing.anamnesis);
   if (!parsed.ok) return parsed;
   return (await repo.update(id, parsed.input)) ? { ok: true, id } : { ok: false, notFound: true };
 }
