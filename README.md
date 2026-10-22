@@ -8,8 +8,9 @@ Se `roadmap_ru.md` for innhold og prioritering.
 | Mappe | Innhold |
 |---|---|
 | `src/app` | Sider og UI (App Router) |
-| `src/logic` | Ren logikk uten I/O, med Vitest-tester |
-| `src/data` | Supabase-klienter og datatilgang |
+| `src/logic/rules` | Rene domeneregler (f.eks. AG1 alder), med Vitest-tester |
+| `src/logic/usecases` | Brukstilfeller og repository-porter; ingen Supabase her |
+| `src/data` | Supabase-klienter og repository-implementasjoner |
 | `src/config` | Språk, ruter, miljøvariabler, next-intl-oppsett |
 | `messages/*.json` | Alle tekster (`ru` standard, `uk`, `pl`, `en`) |
 | `supabase/migrations` | SQL-migreringer |
@@ -27,8 +28,11 @@ npm run lint && npm run typecheck
 ## Supabase – engangsoppsett
 
 1. Opprett prosjekt i **EU-region** (f.eks. Frankfurt).
-2. **Kjør migreringen:** Dashboard → **SQL Editor** → *New query* → lim inn hele innholdet i
-   `supabase/migrations/20261022000000_clients_visits.sql` → **Run**.
+2. **Kjør migreringene** i rekkefølge, én gang hver: Dashboard → **SQL Editor** → *New query* →
+   lim inn hele filen → **Run**.
+   1. `supabase/migrations/20261022000000_clients_visits.sql` (oppgave 1)
+   2. `supabase/migrations/20261023000000_client_card.sql` (oppgave 2: alder, fødselsdato, `anamnesis`)
+
    Kontroller under *Table Editor* at `clients` og `visits` finnes og at RLS står som *enabled*.
 3. **Opprett legens bruker:** *Authentication → Users → Add user* (e-post). Appen oppretter
    ikke brukere selv (`shouldCreateUser: false`).
