@@ -1,0 +1,44 @@
+{
+  "app": {
+    "name": "Loya",
+    "description": "Client card for the doctor"
+  },
+  "common": {
+    "signOut": "Sign out",
+    "loading": "Loading…",
+    "error": "Something went wrong. Please try again.",
+    "language": "Language"
+  },
+  "login": {
+    "title": "Sign in",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "sendCode": "Send code",
+    "codeSent": "We sent a code to {email}.",
+    "codeLabel": "Code from the email",
+    "verify": "Sign in",
+    "changeEmail": "Use another email",
+    "invalidCode": "Invalid or expired code.",
+    "sendFailed": "Could not send the code. Check the email address."
+  },
+  "mfa": {
+    "enrollTitle": "Set up two-factor authentication",
+    "enrollIntro": "Scan the QR code with an authenticator app (e.g. Google Authenticator or Passwords on iPhone) and enter the 6-digit code.",
+    "secretLabel": "Or enter the key manually:",
+    "verifyTitle": "Two-factor verification",
+    "verifyIntro": "Enter the 6-digit code from your authenticator app.",
+    "codeLabel": "Code",
+    "confirm": "Confirm",
+    "invalidCode": "Invalid code. Please try again."
+  },
+  "clients": {
+    "title": "Clients",
+    "empty": "The client list will appear here."
+  },
+  "language": {
+    "ru": "Русский",
+    "uk": "Українська",
+    "pl": "Polski",
+    "en": "English"
+  }
+}

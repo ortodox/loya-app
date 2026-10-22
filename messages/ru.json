@@ -1,0 +1,44 @@
+{
+  "app": {
+    "name": "Loya",
+    "description": "Карта клиента для врача"
+  },
+  "common": {
+    "signOut": "Выйти",
+    "loading": "Загрузка…",
+    "error": "Что-то пошло не так. Попробуйте ещё раз.",
+    "language": "Язык"
+  },
+  "login": {
+    "title": "Вход",
+    "emailLabel": "E-mail",
+    "emailPlaceholder": "you@example.com",
+    "sendCode": "Получить код",
+    "codeSent": "Мы отправили код на {email}.",
+    "codeLabel": "Код из письма",
+    "verify": "Войти",
+    "changeEmail": "Другой e-mail",
+    "invalidCode": "Неверный или просроченный код.",
+    "sendFailed": "Не удалось отправить код. Проверьте e-mail."
+  },
+  "mfa": {
+    "enrollTitle": "Настройка двухфакторной защиты",
+    "enrollIntro": "Отсканируйте QR-код в приложении-аутентификаторе (например, Google Authenticator или «Пароли» на iPhone) и введите 6-значный код.",
+    "secretLabel": "Или введите ключ вручную:",
+    "verifyTitle": "Двухфакторная проверка",
+    "verifyIntro": "Введите 6-значный код из приложения-аутентификатора.",
+    "codeLabel": "Код",
+    "confirm": "Подтвердить",
+    "invalidCode": "Неверный код. Попробуйте ещё раз."
+  },
+  "clients": {
+    "title": "Клиенты",
+    "empty": "Здесь появится список клиентов."
+  },
+  "language": {
+    "ru": "Русский",
+    "uk": "Українська",
+    "pl": "Polski",
+    "en": "English"
+  }
+}
