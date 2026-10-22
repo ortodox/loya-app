@@ -47,7 +47,6 @@
     "en": "English"
   },
   "card": {
-    "title": "Karta klienta",
     "edit": "Edytuj",
     "back": "Klienci",
     "notes": "Notatki",
@@ -58,8 +57,9 @@
       "fullName": "Imię i nazwisko",
       "age": "Wiek",
       "phone": "Telefon",
+      "email": "E-mail",
+      "residence": "Miejsce stałego zamieszkania",
       "language": "Język",
-      "complaints": "Dolegliwości",
       "allergies": "Alergie",
       "medications": "Przyjmowane leki"
     }
@@ -84,7 +84,100 @@
       "dateInvalid": "Nieprawidłowa data.",
       "ageInvalid": "Wiek – liczba całkowita od 0 do 130.",
       "birthDateInvalid": "Nieprawidłowa data urodzenia.",
-      "ageAndBirthDate": "Podaj wiek albo datę urodzenia, nie oba."
-    }
+      "ageAndBirthDate": "Podaj wiek albo datę urodzenia, nie oba.",
+      "emailInvalid": "Nieprawidłowy format e-mail.",
+      "countryInvalid": "Wybierz kraj z listy."
+    },
+    "email": "E-mail",
+    "residenceCountry": "Kraj",
+    "residenceCity": "Miasto",
+    "countryNone": "Nie podano",
+    "countryCommon": "Najczęściej",
+    "countryOther": "Wszystkie kraje"
+  },
+  "karta": {
+    "sections": {
+      "generalData": "Dane ogólne",
+      "complaints": "Dolegliwości",
+      "health": "Stan zdrowia",
+      "skin": "Stan skóry",
+      "aging": "Zmiany związane z wiekiem",
+      "previousProcedures": "Wcześniejsze zabiegi"
+    },
+    "fields": {
+      "complaints": "Dolegliwości",
+      "bloodPressure": "Ciśnienie tętnicze",
+      "endocrine": "Układ hormonalny",
+      "gastro": "Przewód pokarmowy",
+      "cardiovascular": "Serce i naczynia",
+      "genitourinary": "Układ moczowo-płciowy",
+      "respiratory": "Układ oddechowy",
+      "injuriesSurgeries": "Urazy i operacje",
+      "allergies": "Alergie",
+      "medications": "Przyjmowane leki (suplementy, witaminy, leki, antykoncepcja)",
+      "skinType": "Typ skóry",
+      "skinFeatures": "Cechy skóry",
+      "skinDiseases": "Choroby skóry",
+      "agingType": "Typy starzenia się skóry",
+      "wrinkleTypes": "Rodzaje zmarszczek",
+      "salon": "W salonie",
+      "injections": "Zabiegi iniekcyjne"
+    },
+    "options": {
+      "complaints": {
+        "skinTone": "koloryt skóry",
+        "redness": "zaczerwienienie",
+        "acne": "trądzik",
+        "subcutaneousInflammation": "stany zapalne podskórne",
+        "pigmentation": "przebarwienia",
+        "wrinkles": "zmarszczki",
+        "dryness": "suchość",
+        "enlargedPores": "rozszerzone pory",
+        "gooseSkin": "„gęsia skórka”"
+      },
+      "skinType": {
+        "dry": "sucha",
+        "oily": "tłusta",
+        "combination": "mieszana",
+        "normal": "normalna",
+        "sensitive": "wrażliwa"
+      },
+      "skinFeatures": {
+        "pigmentation": "przebarwienia",
+        "flaking": "łuszczenie",
+        "rashes": "wysypki",
+        "scars": "blizny"
+      },
+      "skinDiseases": {
+        "acne": "trądzik",
+        "couperose": "kuperoza",
+        "postAcne": "potrądzikowe",
+        "rosacea": "trądzik różowaty"
+      },
+      "agingType": {
+        "photo": "fotostarzenie",
+        "chrono": "chronostarzenie",
+        "muscular": "mięśniowy",
+        "fineWrinkled": "drobnozmarszczkowy",
+        "edematousDeformational": "obrzękowo-deformacyjny"
+      },
+      "wrinkleTypes": {
+        "static": "statyczne",
+        "dynamic": "dynamiczne",
+        "mimic": "mimiczne",
+        "gravitational": "grawitacyjne"
+      },
+      "salon": {
+        "cleansing": "oczyszczanie",
+        "peeling": "peeling",
+        "smas": "SMAS",
+        "biorevitalization": "biorewitalizacja",
+        "botox": "botoks",
+        "lipFillers": "wypełniacze ust",
+        "polylacticAcid": "kwas polimlekowy"
+      }
+    },
+    "freeText": "Własny tekst, można „?”",
+    "emptyCount": "nie wypełniono"
   }
 }

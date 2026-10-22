@@ -47,7 +47,6 @@
     "en": "English"
   },
   "card": {
-    "title": "Картка клієнта",
     "edit": "Змінити",
     "back": "Клієнти",
     "notes": "Нотатки",
@@ -58,8 +57,9 @@
       "fullName": "П.І.Б.",
       "age": "Вік",
       "phone": "Телефон",
+      "email": "E-mail",
+      "residence": "Місце постійного проживання",
       "language": "Мова",
-      "complaints": "Скарги",
       "allergies": "Алергоанамнез",
       "medications": "Препарати, що приймає"
     }
@@ -84,7 +84,100 @@
       "dateInvalid": "Невірна дата.",
       "ageInvalid": "Вік – ціле число від 0 до 130.",
       "birthDateInvalid": "Невірна дата народження.",
-      "ageAndBirthDate": "Вкажіть вік або дату народження, не обидва."
-    }
+      "ageAndBirthDate": "Вкажіть вік або дату народження, не обидва.",
+      "emailInvalid": "Невірний формат e-mail.",
+      "countryInvalid": "Виберіть країну зі списку."
+    },
+    "email": "E-mail",
+    "residenceCountry": "Країна",
+    "residenceCity": "Місто",
+    "countryNone": "Не вказано",
+    "countryCommon": "Найчастіше",
+    "countryOther": "Усі країни"
+  },
+  "karta": {
+    "sections": {
+      "generalData": "Загальні дані",
+      "complaints": "Скарги",
+      "health": "Стан здоров'я",
+      "skin": "Стан шкіри",
+      "aging": "Вікові зміни",
+      "previousProcedures": "Раніше проведені процедури"
+    },
+    "fields": {
+      "complaints": "Скарги",
+      "bloodPressure": "Артеріальний тиск",
+      "endocrine": "Ендокринна система",
+      "gastro": "Шлунково-кишковий тракт",
+      "cardiovascular": "Серце та судини",
+      "genitourinary": "Сечостатева система",
+      "respiratory": "Дихальна система",
+      "injuriesSurgeries": "Травми та операції",
+      "allergies": "Алергоанамнез",
+      "medications": "Препарати, що приймає (БАДи, вітаміни, ліки, контрацептиви)",
+      "skinType": "Тип шкіри",
+      "skinFeatures": "Особливості шкіри",
+      "skinDiseases": "Хвороби шкіри",
+      "agingType": "Типи старіння шкіри",
+      "wrinkleTypes": "Види зморшок",
+      "salon": "У салоні",
+      "injections": "Ін'єкційні втручання"
+    },
+    "options": {
+      "complaints": {
+        "skinTone": "тон шкіри",
+        "redness": "почервоніння",
+        "acne": "акне",
+        "subcutaneousInflammation": "підшкірні запалення",
+        "pigmentation": "пігментація",
+        "wrinkles": "зморшки",
+        "dryness": "сухість",
+        "enlargedPores": "розширені пори",
+        "gooseSkin": "«гусяча шкіра»"
+      },
+      "skinType": {
+        "dry": "суха",
+        "oily": "жирна",
+        "combination": "комбінована",
+        "normal": "нормальна",
+        "sensitive": "чутлива"
+      },
+      "skinFeatures": {
+        "pigmentation": "пігментація",
+        "flaking": "лущення",
+        "rashes": "висипання",
+        "scars": "рубчики"
+      },
+      "skinDiseases": {
+        "acne": "акне",
+        "couperose": "купероз",
+        "postAcne": "постакне",
+        "rosacea": "розацеа"
+      },
+      "agingType": {
+        "photo": "фотостаріння",
+        "chrono": "хроностаріння",
+        "muscular": "м'язовий",
+        "fineWrinkled": "дрібнозморшкуватий",
+        "edematousDeformational": "набряково-деформаційний"
+      },
+      "wrinkleTypes": {
+        "static": "статичні",
+        "dynamic": "динамічні",
+        "mimic": "мімічні",
+        "gravitational": "гравітаційні"
+      },
+      "salon": {
+        "cleansing": "чистка",
+        "peeling": "пілінг",
+        "smas": "SMAS",
+        "biorevitalization": "біоревіталізація",
+        "botox": "ботокс",
+        "lipFillers": "філери губ",
+        "polylacticAcid": "полімолочна кислота"
+      }
+    },
+    "freeText": "Свій текст, можна «?»",
+    "emptyCount": "не заповнено"
   }
 }

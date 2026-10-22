@@ -14,3 +14,7 @@ export const card = {
   section: "rounded-2xl bg-neutral-100 dark:bg-neutral-900",
   row: "flex flex-col gap-0.5 px-4 py-3 border-b border-neutral-200 last:border-b-0 dark:border-neutral-800",
 } as const;
+
+/** Collapsible section headings (<details>/<summary>) in the card and the form. */
+export const sectionTitle = "text-lg font-semibold";
+export const sectionSummary = `${sectionTitle} flex cursor-pointer list-none items-center justify-between gap-3 py-1 after:text-xl after:font-normal after:text-neutral-400 after:content-['+'] group-open:after:content-['−'] [&::-webkit-details-marker]:hidden`;

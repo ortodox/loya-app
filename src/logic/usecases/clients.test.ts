@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Client, ClientInput } from "@/logic/client";
-import type { ClientRepository } from "./client-repository";
+import type { ClientRepository } from "@/data/repositories/clients";
 import { createClient, getClientCard, listClients, updateClient } from "./clients";
 
 const today = "2026-10-22";
@@ -15,8 +15,10 @@ function client(overrides: Partial<Client>): Client {
     ageAtRegistration: null,
     birthDate: null,
     phone: null,
+    email: null,
+    residenceCountry: null,
+    residenceCity: null,
     language: "ru",
-    complaints: {},
     anamnesis: {},
     notes: null,
     lastVisitDate: null,
@@ -52,17 +54,30 @@ describe("client use cases", () => {
   it("PR2: lists newest first with date, current age and excerpt", async () => {
     const repo = memoryRepo([
       client({ id: id1, fullName: "Старая", cardDate: "2024-03-01", ageAtRegistration: 30 }),
-      client({ id: id2, fullName: "Новая", cardDate: "2026-10-01", notes: "Чувствительная кожа" }),
+      client({
+        id: id2,
+        fullName: "Новая",
+        cardDate: "2026-10-01",
+        residenceCountry: "NO",
+        notes: "Чувствительная кожа",
+      }),
     ]);
     expect(await listClients(repo, today)).toEqual([
-      { id: id2, fullName: "Новая", date: "2026-10-01", age: null, excerpt: "Чувствительная кожа" },
-      { id: id1, fullName: "Старая", date: "2024-03-01", age: 32, excerpt: "" },
+      {
+        id: id2,
+        fullName: "Новая",
+        date: "2026-10-01",
+        age: null,
+        residenceCountry: "NO",
+        excerpt: "Чувствительная кожа",
+      },
+      { id: id1, fullName: "Старая", date: "2024-03-01", age: 32, residenceCountry: null, excerpt: "" },
     ]);
   });
 
   it("AG1/AL2: the card carries the current age and safety alerts", async () => {
     const repo = memoryRepo([
-      client({ birthDate: "1990-06-01", anamnesis: { allergies: "Лидокаин" } }),
+      client({ birthDate: "1990-06-01", anamnesis: { allergies: { text: "Лидокаин" } } }),
     ]);
     const card = await getClientCard(repo, id1, today);
     expect(card?.age).toBe(36);
@@ -86,6 +101,26 @@ describe("client use cases", () => {
       errors: { fullName: "nameRequired" },
     });
     expect(repo.rows).toHaveLength(1);
+  });
+
+  it("JA1/AN1: saves the clinical sections and keeps unknown anamnesis keys", async () => {
+    const repo = memoryRepo([client({ anamnesis: { legacy: "x", allergies: { text: "старое" } } })]);
+    await updateClient(
+      repo,
+      id1,
+      {
+        fullName: "Тестовая",
+        anamnesis: { complaints: { choices: ["acne"] }, allergies: { text: "Пыльца ?" } },
+      },
+      today,
+    );
+    expect(repo.rows[0].anamnesis).toEqual({
+      legacy: "x",
+      complaints: { choices: ["acne"], text: "" },
+      allergies: { text: "Пыльца ?" },
+    });
+    const card = await getClientCard(repo, id1, today);
+    expect(card?.alerts).toEqual([{ field: "allergies", text: "Пыльца ?" }]);
   });
 
   it("PR3: updates notes and reports missing clients", async () => {

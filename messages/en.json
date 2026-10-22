@@ -47,7 +47,6 @@
     "en": "English"
   },
   "card": {
-    "title": "Client card",
     "edit": "Edit",
     "back": "Clients",
     "notes": "Notes",
@@ -58,8 +57,9 @@
       "fullName": "Full name",
       "age": "Age",
       "phone": "Phone",
+      "email": "Email",
+      "residence": "Place of permanent residence",
       "language": "Language",
-      "complaints": "Complaints",
       "allergies": "Allergies",
       "medications": "Medications"
     }
@@ -84,7 +84,100 @@
       "dateInvalid": "Invalid date.",
       "ageInvalid": "Age must be a whole number from 0 to 130.",
       "birthDateInvalid": "Invalid date of birth.",
-      "ageAndBirthDate": "Enter an age or a date of birth, not both."
-    }
+      "ageAndBirthDate": "Enter an age or a date of birth, not both.",
+      "emailInvalid": "Invalid email format.",
+      "countryInvalid": "Choose a country from the list."
+    },
+    "email": "Email",
+    "residenceCountry": "Country",
+    "residenceCity": "City",
+    "countryNone": "Not specified",
+    "countryCommon": "Most common",
+    "countryOther": "All countries"
+  },
+  "karta": {
+    "sections": {
+      "generalData": "General data",
+      "complaints": "Complaints",
+      "health": "Health",
+      "skin": "Skin condition",
+      "aging": "Age-related changes",
+      "previousProcedures": "Previous procedures"
+    },
+    "fields": {
+      "complaints": "Complaints",
+      "bloodPressure": "Blood pressure",
+      "endocrine": "Endocrine system",
+      "gastro": "Gastrointestinal tract",
+      "cardiovascular": "Heart and vessels",
+      "genitourinary": "Genitourinary system",
+      "respiratory": "Respiratory system",
+      "injuriesSurgeries": "Injuries and surgeries",
+      "allergies": "Allergies",
+      "medications": "Medications (supplements, vitamins, drugs, contraceptives)",
+      "skinType": "Skin type",
+      "skinFeatures": "Skin features",
+      "skinDiseases": "Skin diseases",
+      "agingType": "Skin aging types",
+      "wrinkleTypes": "Wrinkle types",
+      "salon": "In a salon",
+      "injections": "Injection treatments"
+    },
+    "options": {
+      "complaints": {
+        "skinTone": "skin tone",
+        "redness": "redness",
+        "acne": "acne",
+        "subcutaneousInflammation": "subcutaneous inflammation",
+        "pigmentation": "pigmentation",
+        "wrinkles": "wrinkles",
+        "dryness": "dryness",
+        "enlargedPores": "enlarged pores",
+        "gooseSkin": "“goose skin”"
+      },
+      "skinType": {
+        "dry": "dry",
+        "oily": "oily",
+        "combination": "combination",
+        "normal": "normal",
+        "sensitive": "sensitive"
+      },
+      "skinFeatures": {
+        "pigmentation": "pigmentation",
+        "flaking": "flaking",
+        "rashes": "rashes",
+        "scars": "scars"
+      },
+      "skinDiseases": {
+        "acne": "acne",
+        "couperose": "couperose",
+        "postAcne": "post-acne",
+        "rosacea": "rosacea"
+      },
+      "agingType": {
+        "photo": "photoaging",
+        "chrono": "chronoaging",
+        "muscular": "muscular",
+        "fineWrinkled": "fine-wrinkled",
+        "edematousDeformational": "edematous-deformational"
+      },
+      "wrinkleTypes": {
+        "static": "static",
+        "dynamic": "dynamic",
+        "mimic": "expression",
+        "gravitational": "gravitational"
+      },
+      "salon": {
+        "cleansing": "cleansing",
+        "peeling": "peeling",
+        "smas": "SMAS",
+        "biorevitalization": "biorevitalization",
+        "botox": "botox",
+        "lipFillers": "lip fillers",
+        "polylacticAcid": "poly-L-lactic acid"
+      }
+    },
+    "freeText": "Own text, “?” is fine",
+    "emptyCount": "not filled in"
   }
 }

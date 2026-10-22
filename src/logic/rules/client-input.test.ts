@@ -14,7 +14,11 @@ describe("PR1: create client", () => {
         ageAtRegistration: null,
         birthDate: null,
         phone: null,
+        email: null,
+        residenceCountry: null,
+        residenceCity: null,
         language: "ru",
+        anamnesis: {},
         notes: null,
       },
     });
@@ -67,6 +71,35 @@ describe("PR1: create client", () => {
     expect(parseClientForm({ fullName: "Анна", birthDate: "2030-01-01" }, today)).toEqual({
       ok: false,
       errors: { birthDate: "birthDateInvalid" },
+    });
+  });
+
+  it("PR1: keeps e-mail and residence (country as ISO code + optional city)", () => {
+    const result = parseClientForm(
+      { fullName: "Мария Придуманная", email: " maria@example.com ", residenceCountry: "UA", residenceCity: "Львов" },
+      today,
+    );
+    expect(result.ok && result.input).toMatchObject({
+      email: "maria@example.com",
+      residenceCountry: "UA",
+      residenceCity: "Львов",
+    });
+  });
+
+  it("PR1: validates the e-mail format only when filled in", () => {
+    expect(parseClientForm({ fullName: "Анна", email: "" }, today).ok).toBe(true);
+    for (const email of ["anna", "anna@", "anna@example", "an na@example.com"]) {
+      expect(parseClientForm({ fullName: "Анна", email }, today)).toEqual({
+        ok: false,
+        errors: { email: "emailInvalid" },
+      });
+    }
+  });
+
+  it("PR1: rejects a country that is not an ISO code", () => {
+    expect(parseClientForm({ fullName: "Анна", residenceCountry: "Польша" }, today)).toEqual({
+      ok: false,
+      errors: { residenceCountry: "countryInvalid" },
     });
   });
 });

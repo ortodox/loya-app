@@ -38,3 +38,10 @@ export function todayIn(timeZone: string, now: Date = new Date()): IsoDate {
     day: "2-digit",
   }).format(now);
 }
+
+/** CLAUDE.md: dates are shown as DD.MM.YYYY in every language. */
+export function formatIsoDate(iso: IsoDate): string {
+  const p = parseIsoDate(iso);
+  if (!p) return iso;
+  return `${String(p.d).padStart(2, "0")}.${String(p.m).padStart(2, "0")}.${p.y}`;
+}

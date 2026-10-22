@@ -1,19 +1,24 @@
-import { getFormatter, getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import Link from "next/link";
-import { dateFormat, isoToDate } from "@/app/components/format";
-import { card as cardUi } from "@/app/components/ui";
-import { cardSection1, type CardSection1Field } from "@/config/card-template";
-import { fieldText } from "@/logic/rules/safety-alert";
+import { card as cardUi, sectionSummary } from "@/app/components/ui";
+import { clinicalSections, generalDataFields, type GeneralDataField } from "@/config/kartaTemplate";
+import { fieldText, sectionHasContent } from "@/logic/rules/anamnesis";
+import { countryName, flagEmoji } from "@/logic/rules/country";
+import { formatIsoDate } from "@/logic/rules/dates";
 import type { ClientCard } from "@/logic/usecases/clients";
 
 export async function ClientCardView({ data }: { data: ClientCard }) {
   const t = await getTranslations();
-  const format = await getFormatter();
+  const locale = await getLocale();
   const { client, age, alerts } = data;
   const id = client.id;
+  const country = client.residenceCountry
+    ? `${flagEmoji(client.residenceCountry)} ${countryName(client.residenceCountry, locale)}`
+    : null;
+  const residence = [country, client.residenceCity].filter(Boolean).join(", ") || null;
 
-  const values: Record<CardSection1Field, React.ReactNode> = {
-    date: format.dateTime(isoToDate(client.cardDate), dateFormat),
+  const general: Record<GeneralDataField, React.ReactNode> = {
+    date: formatIsoDate(client.cardDate),
     fullName: client.fullName,
     age: age !== null ? t("clients.age", { age }) : null,
     phone: client.phone ? (
@@ -21,8 +26,13 @@ export async function ClientCardView({ data }: { data: ClientCard }) {
         {client.phone}
       </a>
     ) : null,
+    email: client.email ? (
+      <a href={`mailto:${client.email}`} className="break-all underline">
+        {client.email}
+      </a>
+    ) : null,
+    residence,
     language: client.language ? t(`language.${client.language}`) : null,
-    complaints: fieldText(client.complaints) || null,
   };
 
   return (
@@ -36,9 +46,13 @@ export async function ClientCardView({ data }: { data: ClientCard }) {
         </Link>
       </nav>
 
-      <h1 className="text-2xl font-bold">{client.fullName}</h1>
+      <header className="flex flex-col gap-1">
+        <h1 className="text-2xl font-bold">{client.fullName}</h1>
+        {/* PR5: country of residence right under the name. */}
+        {residence && <p className="text-base text-neutral-600 dark:text-neutral-300">{residence}</p>}
+      </header>
 
-      {/* AL2: allergies and medications first, only when recorded. */}
+      {/* AL2: «Аллергоанамнез» and «Принимаемые препараты» first, only when filled in. */}
       {alerts.length > 0 && (
         <section
           role="alert"
@@ -46,32 +60,86 @@ export async function ClientCardView({ data }: { data: ClientCard }) {
         >
           <h2 className="text-sm font-semibold tracking-wide uppercase">⚠ {t("card.alertTitle")}</h2>
           {alerts.map((a) => (
-            <p key={a.field}>
+            <p key={a.field} className="whitespace-pre-wrap">
               <span className="font-semibold">{t(`card.fields.${a.field}`)}:</span> {a.text}
             </p>
           ))}
         </section>
       )}
 
-      <section className="flex flex-col gap-2">
-        <h2 className={`${cardUi.label} px-1 font-semibold`}>{t("card.title")}</h2>
+      <Section title={t("karta.sections.generalData")} open>
         <dl className={cardUi.section}>
-          {cardSection1.map((field) => (
-            <div key={field} className={cardUi.row}>
-              <dt className={cardUi.label}>{t(`card.fields.${field}`)}</dt>
-              <dd className="text-base">{values[field] ?? "—"}</dd>
-            </div>
+          {generalDataFields.map((field) => (
+            <Row key={field} label={t(`card.fields.${field}`)} value={general[field]} />
           ))}
         </dl>
-      </section>
+      </Section>
+
+      {clinicalSections.map((section) => {
+        const filled = sectionHasContent(section.fields, client.anamnesis);
+        return (
+          <Section
+            key={section.key}
+            title={t(`karta.sections.${section.key}`)}
+            hint={filled ? undefined : t("karta.emptyCount")}
+            open={filled}
+          >
+            <dl className={cardUi.section}>
+              {section.fields.map((field) => {
+                const label = (option: string) =>
+                  t.has(`karta.options.${field.key}.${option}`)
+                    ? t(`karta.options.${field.key}.${option}`)
+                    : option;
+                return (
+                  <Row
+                    key={field.key}
+                    label={t(`karta.fields.${field.key}`)}
+                    // A section with one field of the same name (Жалобы) needs no second label.
+                    hideLabel={section.fields.length === 1 && field.key === section.key}
+                    value={fieldText(client.anamnesis[field.key], label) || null}
+                  />
+                );
+              })}
+            </dl>
+          </Section>
+        );
+      })}
 
       {/* PR3: free notes at the bottom, as in Notes. */}
       <section className="flex flex-col gap-2">
-        <h2 className={`${cardUi.label} px-1 font-semibold`}>{t("card.notes")}</h2>
+        <h2 className="text-lg font-semibold">{t("card.notes")}</h2>
         <div className={`${cardUi.section} min-h-16 px-4 py-3 text-base whitespace-pre-wrap`}>
           {client.notes ?? "—"}
         </div>
       </section>
     </main>
+  );
+}
+
+function Section(props: { title: string; hint?: string; open?: boolean; children: React.ReactNode }) {
+  return (
+    <details open={props.open} className="group flex flex-col gap-2">
+      <summary className={sectionSummary}>
+        <span className="flex items-baseline gap-2">
+          {props.title}
+          {props.hint && (
+            <span className="text-sm font-normal whitespace-nowrap text-neutral-400 dark:text-neutral-500">
+              {props.hint}
+            </span>
+          )}
+        </span>
+      </summary>
+      <div className="pt-2">{props.children}</div>
+    </details>
+  );
+}
+
+function Row(props: { label: string; hideLabel?: boolean; value: React.ReactNode }) {
+  const { label, hideLabel, value } = props;
+  return (
+    <div className={cardUi.row}>
+      <dt className={hideLabel ? "sr-only" : cardUi.label}>{label}</dt>
+      <dd className="text-base whitespace-pre-wrap">{value ?? "—"}</dd>
+    </div>
   );
 }

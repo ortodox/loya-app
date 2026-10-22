@@ -1,5 +1,6 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { practiceTimeZone } from "@/config/time";
+import { countryOptions } from "@/logic/rules/country";
 import { todayIn } from "@/logic/rules/dates";
 import { createClientAction } from "../actions";
 import { ClientForm } from "../ClientForm";
@@ -11,6 +12,7 @@ export default async function NewClientPage() {
       <ClientForm
         title={t("titleNew")}
         initial={{ cardDate: todayIn(practiceTimeZone), language: "ru" }}
+        countries={countryOptions(await getLocale())}
         cancelHref="/clients"
         action={createClientAction}
       />
