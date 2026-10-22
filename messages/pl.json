@@ -33,12 +33,58 @@
   },
   "clients": {
     "title": "Klienci",
-    "empty": "Tutaj pojawi się lista klientów."
+    "empty": "Brak klientów.",
+    "emptyCta": "Utwórz pierwszego klienta",
+    "new": "Nowy klient",
+    "search": "Szukaj",
+    "noResults": "Nikogo nie znaleziono",
+    "age": "{age, plural, one {# rok} few {# lata} many {# lat} other {# roku}}"
   },
   "language": {
     "ru": "Русский",
     "uk": "Українська",
     "pl": "Polski",
     "en": "English"
+  },
+  "card": {
+    "title": "Karta klienta",
+    "edit": "Edytuj",
+    "back": "Klienci",
+    "notes": "Notatki",
+    "alertTitle": "Uwaga",
+    "notFound": "Nie znaleziono klienta.",
+    "fields": {
+      "date": "Data",
+      "fullName": "Imię i nazwisko",
+      "age": "Wiek",
+      "phone": "Telefon",
+      "language": "Język",
+      "complaints": "Dolegliwości",
+      "allergies": "Alergie",
+      "medications": "Przyjmowane leki"
+    }
+  },
+  "form": {
+    "titleNew": "Nowy klient",
+    "titleEdit": "Edytuj klienta",
+    "fullName": "Imię i nazwisko",
+    "required": "wymagane",
+    "date": "Data pierwszej wizyty",
+    "ageMode": "Wiek lub data urodzenia",
+    "age": "Wiek",
+    "birthDate": "Data urodzenia",
+    "phone": "Telefon",
+    "language": "Język",
+    "notes": "Notatki",
+    "save": "Zapisz",
+    "cancel": "Anuluj",
+    "saveFailed": "Nie udało się zapisać. Spróbuj ponownie.",
+    "errors": {
+      "nameRequired": "Wpisz imię.",
+      "dateInvalid": "Nieprawidłowa data.",
+      "ageInvalid": "Wiek – liczba całkowita od 0 do 130.",
+      "birthDateInvalid": "Nieprawidłowa data urodzenia.",
+      "ageAndBirthDate": "Podaj wiek albo datę urodzenia, nie oba."
+    }
   }
 }

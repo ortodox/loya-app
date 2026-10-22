@@ -1,0 +1,103 @@
+import { describe, expect, it } from "vitest";
+import type { Client, ClientInput } from "@/logic/client";
+import type { ClientRepository } from "./client-repository";
+import { createClient, getClientCard, listClients, updateClient } from "./clients";
+
+const today = "2026-10-22";
+const id1 = "00000000-0000-4000-8000-000000000001";
+const id2 = "00000000-0000-4000-8000-000000000002";
+
+function client(overrides: Partial<Client>): Client {
+  return {
+    id: id1,
+    fullName: "Тестовая Клиентка",
+    cardDate: "2025-01-01",
+    ageAtRegistration: null,
+    birthDate: null,
+    phone: null,
+    language: "ru",
+    complaints: {},
+    anamnesis: {},
+    notes: null,
+    lastVisitDate: null,
+    updatedAt: "2025-01-01T00:00:00Z",
+    ...overrides,
+  };
+}
+
+function memoryRepo(initial: Client[] = []): ClientRepository & { rows: Client[] } {
+  const rows = [...initial];
+  let next = 100;
+  const toClient = (id: string, input: ClientInput): Client =>
+    client({ id, ...input, updatedAt: new Date().toISOString() });
+  return {
+    rows,
+    list: async () => rows,
+    get: async (id) => rows.find((r) => r.id === id) ?? null,
+    create: async (input) => {
+      const id = `00000000-0000-4000-8000-000000000${next++}`;
+      rows.push(toClient(id, input));
+      return { id };
+    },
+    update: async (id, input) => {
+      const i = rows.findIndex((r) => r.id === id);
+      if (i < 0) return false;
+      rows[i] = { ...rows[i], ...input };
+      return true;
+    },
+  };
+}
+
+describe("client use cases", () => {
+  it("PR2: lists newest first with date, current age and excerpt", async () => {
+    const repo = memoryRepo([
+      client({ id: id1, fullName: "Старая", cardDate: "2024-03-01", ageAtRegistration: 30 }),
+      client({ id: id2, fullName: "Новая", cardDate: "2026-10-01", notes: "Чувствительная кожа" }),
+    ]);
+    expect(await listClients(repo, today)).toEqual([
+      { id: id2, fullName: "Новая", date: "2026-10-01", age: null, excerpt: "Чувствительная кожа" },
+      { id: id1, fullName: "Старая", date: "2024-03-01", age: 32, excerpt: "" },
+    ]);
+  });
+
+  it("AG1/AL2: the card carries the current age and safety alerts", async () => {
+    const repo = memoryRepo([
+      client({ birthDate: "1990-06-01", anamnesis: { allergies: "Лидокаин" } }),
+    ]);
+    const card = await getClientCard(repo, id1, today);
+    expect(card?.age).toBe(36);
+    expect(card?.alerts).toEqual([{ field: "allergies", text: "Лидокаин" }]);
+  });
+
+  it("returns no card for unknown or malformed ids", async () => {
+    const repo = memoryRepo();
+    expect(await getClientCard(repo, id1, today)).toBeNull();
+    expect(await getClientCard(repo, "not-a-uuid", today)).toBeNull();
+  });
+
+  it("PR1: creates with only a name and does not store invalid input", async () => {
+    const repo = memoryRepo();
+    const created = await createClient(repo, { fullName: "Вера Примерная" }, today);
+    expect(created.ok).toBe(true);
+    expect(repo.rows[0]).toMatchObject({ fullName: "Вера Примерная", cardDate: today, language: "ru" });
+
+    expect(await createClient(repo, { fullName: "" }, today)).toEqual({
+      ok: false,
+      errors: { fullName: "nameRequired" },
+    });
+    expect(repo.rows).toHaveLength(1);
+  });
+
+  it("PR3: updates notes and reports missing clients", async () => {
+    const repo = memoryRepo([client({})]);
+    expect(await updateClient(repo, id1, { fullName: "Тестовая", notes: "Заметка" }, today)).toEqual({
+      ok: true,
+      id: id1,
+    });
+    expect(repo.rows[0].notes).toBe("Заметка");
+    expect(await updateClient(repo, id2, { fullName: "X" }, today)).toEqual({
+      ok: false,
+      notFound: true,
+    });
+  });
+});

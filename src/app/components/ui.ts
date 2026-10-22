@@ -8,3 +8,9 @@ export const ui = {
   error: "text-sm text-red-600 dark:text-red-400",
   muted: "text-sm text-neutral-600 dark:text-neutral-400",
 } as const;
+
+export const card = {
+  label: "text-sm text-neutral-500 dark:text-neutral-400",
+  section: "rounded-2xl bg-neutral-100 dark:bg-neutral-900",
+  row: "flex flex-col gap-0.5 px-4 py-3 border-b border-neutral-200 last:border-b-0 dark:border-neutral-800",
+} as const;

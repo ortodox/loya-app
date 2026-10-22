@@ -33,12 +33,58 @@
   },
   "clients": {
     "title": "Clients",
-    "empty": "The client list will appear here."
+    "empty": "No clients yet.",
+    "emptyCta": "Create the first client",
+    "new": "New client",
+    "search": "Search",
+    "noResults": "No one found",
+    "age": "{age, plural, one {# year} other {# years}}"
   },
   "language": {
     "ru": "Русский",
     "uk": "Українська",
     "pl": "Polski",
     "en": "English"
+  },
+  "card": {
+    "title": "Client card",
+    "edit": "Edit",
+    "back": "Clients",
+    "notes": "Notes",
+    "alertTitle": "Attention",
+    "notFound": "Client not found.",
+    "fields": {
+      "date": "Date",
+      "fullName": "Full name",
+      "age": "Age",
+      "phone": "Phone",
+      "language": "Language",
+      "complaints": "Complaints",
+      "allergies": "Allergies",
+      "medications": "Medications"
+    }
+  },
+  "form": {
+    "titleNew": "New client",
+    "titleEdit": "Edit client",
+    "fullName": "Full name",
+    "required": "required",
+    "date": "Date of first visit",
+    "ageMode": "Age or date of birth",
+    "age": "Age",
+    "birthDate": "Date of birth",
+    "phone": "Phone",
+    "language": "Language",
+    "notes": "Notes",
+    "save": "Save",
+    "cancel": "Cancel",
+    "saveFailed": "Could not save. Please try again.",
+    "errors": {
+      "nameRequired": "Enter a name.",
+      "dateInvalid": "Invalid date.",
+      "ageInvalid": "Age must be a whole number from 0 to 130.",
+      "birthDateInvalid": "Invalid date of birth.",
+      "ageAndBirthDate": "Enter an age or a date of birth, not both."
+    }
   }
 }
