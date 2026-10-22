@@ -1,0 +1,44 @@
+{
+  "app": {
+    "name": "Loya",
+    "description": "Karta klienta dla lekarza"
+  },
+  "common": {
+    "signOut": "Wyloguj",
+    "loading": "Ładowanie…",
+    "error": "Coś poszło nie tak. Spróbuj ponownie.",
+    "language": "Język"
+  },
+  "login": {
+    "title": "Logowanie",
+    "emailLabel": "E-mail",
+    "emailPlaceholder": "you@example.com",
+    "sendCode": "Wyślij kod",
+    "codeSent": "Wysłaliśmy kod na {email}.",
+    "codeLabel": "Kod z wiadomości",
+    "verify": "Zaloguj",
+    "changeEmail": "Inny e-mail",
+    "invalidCode": "Nieprawidłowy lub wygasły kod.",
+    "sendFailed": "Nie udało się wysłać kodu. Sprawdź e-mail."
+  },
+  "mfa": {
+    "enrollTitle": "Konfiguracja uwierzytelniania dwuskładnikowego",
+    "enrollIntro": "Zeskanuj kod QR w aplikacji uwierzytelniającej (np. Google Authenticator lub „Hasła” na iPhonie) i wpisz 6-cyfrowy kod.",
+    "secretLabel": "Lub wpisz klucz ręcznie:",
+    "verifyTitle": "Weryfikacja dwuskładnikowa",
+    "verifyIntro": "Wpisz 6-cyfrowy kod z aplikacji uwierzytelniającej.",
+    "codeLabel": "Kod",
+    "confirm": "Potwierdź",
+    "invalidCode": "Nieprawidłowy kod. Spróbuj ponownie."
+  },
+  "clients": {
+    "title": "Klienci",
+    "empty": "Tutaj pojawi się lista klientów."
+  },
+  "language": {
+    "ru": "Русский",
+    "uk": "Українська",
+    "pl": "Polski",
+    "en": "English"
+  }
+}
