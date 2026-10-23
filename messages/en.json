@@ -179,5 +179,22 @@
     },
     "freeText": "Own text, “?” is fine",
     "emptyCount": "not filled in"
+  },
+  "visits": {
+    "title": "Visits",
+    "new": "+ New visit",
+    "newTitle": "New visit",
+    "editTitle": "Edit visit",
+    "date": "Date",
+    "homeCareRecommendations": "Home care recommendations",
+    "procedurePlan": "Procedure plan",
+    "empty": "No visits yet.",
+    "edit": "Edit",
+    "delete": "Delete visit",
+    "confirmDelete": "Delete this visit? This cannot be undone.",
+    "confirmYes": "Yes, delete",
+    "confirmNo": "Cancel",
+    "deleteFailed": "Could not delete. Please try again.",
+    "dateInvalid": "Invalid date."
   }
 }

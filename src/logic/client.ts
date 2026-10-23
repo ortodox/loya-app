@@ -45,3 +45,19 @@ export type ClientInput = {
   anamnesis: Anamnesis;
   notes: string | null;
 };
+
+/** VS1: a visit appended to the card («Визиты»). */
+export type Visit = {
+  id: string;
+  clientId: string;
+  visitDate: IsoDate;
+  homeCareRecommendations: string | null;
+  procedurePlan: string | null;
+  createdAt: string;
+};
+
+export type VisitInput = {
+  visitDate: IsoDate;
+  homeCareRecommendations: string | null;
+  procedurePlan: string | null;
+};
