@@ -23,7 +23,7 @@ export function LanguageSelect() {
           router.refresh();
         })
       }
-      className="rounded-lg border border-neutral-300 bg-transparent px-2 py-1 text-sm dark:border-neutral-700"
+      className="min-h-11 rounded-[14px] border border-field bg-transparent px-3 text-sm text-ink"
     >
       {locales.map((l) => (
         <option key={l} value={l}>

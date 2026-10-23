@@ -55,3 +55,21 @@ export function parseAnamnesisForm(form: AnamnesisForm, previous: Anamnesis = {}
   }
   return result;
 }
+
+/**
+ * JA1/AN1/SK1/VI1/PH1: short summary of a section for its collapsed row –
+ * the filled fields in template order, joined with « · », cut at `maxLength`.
+ */
+export function sectionPreview(
+  fields: readonly KartaField[],
+  anamnesis: Anamnesis,
+  label: (field: string, choice: string) => string = (_, c) => c,
+  maxLength = 90,
+): string {
+  const text = fields
+    .map((f) => fieldText(anamnesis[f.key], (c) => label(f.key, c)))
+    .filter(Boolean)
+    .join(" · ")
+    .replace(/\s+/g, " ");
+  return text.length > maxLength ? `${text.slice(0, maxLength - 1).trimEnd()}…` : text;
+}

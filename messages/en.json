@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Loya",
+    "name": "LOA",
     "description": "Client card for the doctor"
   },
   "common": {
@@ -38,7 +38,9 @@
     "new": "New client",
     "search": "Search",
     "noResults": "No one found",
-    "age": "{age, plural, one {# year} other {# years}}"
+    "age": "{age, plural, one {# year} other {# years}}",
+    "count": "{count, plural, one {# client} other {# clients}}",
+    "allergyTag": "Allergy"
   },
   "language": {
     "ru": "Русский",
@@ -62,7 +64,9 @@
       "language": "Language",
       "allergies": "Allergies",
       "medications": "Medications"
-    }
+    },
+    "kicker": "Client card",
+    "firstVisit": "first visit {date}"
   },
   "form": {
     "titleNew": "New client",
@@ -178,7 +182,8 @@
       }
     },
     "freeText": "Own text, “?” is fine",
-    "emptyCount": "not filled in"
+    "emptyCount": "not filled in",
+    "selected": "selected"
   },
   "visits": {
     "title": "Visits",
@@ -196,5 +201,10 @@
     "confirmNo": "Cancel",
     "deleteFailed": "Could not delete. Please try again.",
     "dateInvalid": "Invalid date."
+  },
+  "brand": {
+    "name": "LOA",
+    "subtitle": "AESTHETIC MEDICINE",
+    "motto": "SCIENCE · BEAUTY · CONFIDENCE"
   }
 }

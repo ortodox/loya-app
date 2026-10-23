@@ -1,29 +1,71 @@
 @import "tailwindcss";
 
-/* Dark mode follows the system setting (Tailwind's default `dark:` variant). */
+/*
+ * LOA – Aesthetic Medicine. Palette from CLAUDE.md («Design»).
+ * Dark mode follows the system setting. Text pairs are ≥ 4.5:1, except gold on light
+ * backgrounds (3.4:1), which is used only for the logo mark (logotypes are exempt).
+ */
 :root {
-  color-scheme: light dark;
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+  --bg: #f4ece2;
+  --surface: #fbf7f2;
+  --line: #eadfd2;
+  --field: #d9c9b6;
+  --ink: #2a211d;
+  --muted: #6b5b4e;
+  --gold: #9c7a50;
+  --accent: #7a5a36;
+  --primary: #2a211d;
+  --on-primary: #f4ece2;
+  --alert: #f6e3dc;
+  --on-alert: #8a2e1e;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #000000;
-    --foreground: #ededed;
+    color-scheme: dark;
+    --bg: #1e1814;
+    --surface: #2a221d;
+    --line: #3a2f28;
+    --field: #806d5c;
+    --ink: #f4ece2;
+    --muted: #bfae9c;
+    --gold: #c9a57a;
+    --accent: #c9a57a;
+    --primary: #c9a57a;
+    --on-primary: #1e1814;
+    --alert: #4a2620;
+    --on-alert: #f2b8a8;
   }
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-field: var(--field);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-gold: var(--gold);
+  --color-accent: var(--accent);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-alert: var(--alert);
+  --color-on-alert: var(--on-alert);
+  --font-serif: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  --font-sans: var(--font-montserrat), Montserrat, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
   /* Room for the notch / home indicator when launched from the home screen. */
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
     env(safe-area-inset-left);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }

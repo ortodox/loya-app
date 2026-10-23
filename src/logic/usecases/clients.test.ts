@@ -69,10 +69,20 @@ describe("client use cases", () => {
         date: "2026-10-01",
         age: null,
         residenceCountry: "NO",
+        allergy: false,
         excerpt: "Чувствительная кожа",
       },
-      { id: id1, fullName: "Старая", date: "2024-03-01", age: 32, residenceCountry: null, excerpt: "" },
+      { id: id1, fullName: "Старая", date: "2024-03-01", age: 32, residenceCountry: null, allergy: false, excerpt: "" },
     ]);
+  });
+
+  it("AL2: the list marks clients with allergies, not with medications only", async () => {
+    const repo = memoryRepo([
+      client({ id: id1, anamnesis: { allergies: { text: "Лидокаин" } } }),
+      client({ id: id2, anamnesis: { medications: { text: "Витамин D" } } }),
+    ]);
+    const list = await listClients(repo, today);
+    expect(Object.fromEntries(list.map((c) => [c.id, c.allergy]))).toEqual({ [id1]: true, [id2]: false });
   });
 
   it("AG1/AL2: the card carries the current age and safety alerts", async () => {

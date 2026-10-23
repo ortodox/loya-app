@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Loya",
+    "name": "LOA",
     "description": "Karta klienta dla lekarza"
   },
   "common": {
@@ -38,7 +38,9 @@
     "new": "Nowy klient",
     "search": "Szukaj",
     "noResults": "Nikogo nie znaleziono",
-    "age": "{age, plural, one {# rok} few {# lata} many {# lat} other {# roku}}"
+    "age": "{age, plural, one {# rok} few {# lata} many {# lat} other {# roku}}",
+    "count": "{count, plural, one {# klient} few {# klientów} many {# klientów} other {# klienta}}",
+    "allergyTag": "Alergia"
   },
   "language": {
     "ru": "Русский",
@@ -62,7 +64,9 @@
       "language": "Język",
       "allergies": "Alergie",
       "medications": "Przyjmowane leki"
-    }
+    },
+    "kicker": "Karta klienta",
+    "firstVisit": "pierwsza wizyta {date}"
   },
   "form": {
     "titleNew": "Nowy klient",
@@ -178,7 +182,8 @@
       }
     },
     "freeText": "Własny tekst, można „?”",
-    "emptyCount": "nie wypełniono"
+    "emptyCount": "nie wypełniono",
+    "selected": "wybrane"
   },
   "visits": {
     "title": "Wizyty",
@@ -196,5 +201,10 @@
     "confirmNo": "Anuluj",
     "deleteFailed": "Nie udało się usunąć. Spróbuj ponownie.",
     "dateInvalid": "Nieprawidłowa data."
+  },
+  "brand": {
+    "name": "LOA",
+    "subtitle": "AESTHETIC MEDICINE",
+    "motto": "SCIENCE · BEAUTY · CONFIDENCE"
   }
 }

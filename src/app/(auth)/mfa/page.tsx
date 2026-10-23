@@ -70,12 +70,12 @@ export default function MfaPage() {
   }
 
   return (
-    <section className="flex flex-col gap-4">
+    <section className="flex flex-col gap-4 rounded-[18px] bg-surface p-5">
       {!setup ? (
         <p className={ui.muted}>{error ?? t("common.loading")}</p>
       ) : (
         <>
-          <h1 className="text-2xl font-semibold">
+          <h1 className="font-serif text-3xl text-ink">
             {setup.mode === "enroll" ? t("mfa.enrollTitle") : t("mfa.verifyTitle")}
           </h1>
           <p className={ui.muted}>
@@ -90,10 +90,10 @@ export default function MfaPage() {
                 alt=""
                 width={200}
                 height={200}
-                className="mx-auto rounded-xl bg-white p-3"
+                className="mx-auto rounded-[14px] bg-white p-3"
               />
               <p className={ui.muted}>{t("mfa.secretLabel")}</p>
-              <code className="select-all break-all rounded-lg bg-neutral-100 p-3 text-sm dark:bg-neutral-900">
+              <code className="select-all break-all rounded-[14px] border border-line bg-surface p-3 text-sm">
                 {setup.secret}
               </code>
             </>

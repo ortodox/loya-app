@@ -14,6 +14,8 @@ export type ClientSummary = {
   age: number | null;
   /** PR5: ISO code of the country of residence. */
   residenceCountry: string | null;
+  /** AL2: «Аллергоанамнез» is filled in – shown as a tag in the list. */
+  allergy: boolean;
   excerpt: string;
 };
 
@@ -25,6 +27,7 @@ export async function listClients(repo: ClientRepository, today: IsoDate): Promi
     date: lastActivityDate(c),
     age: currentAge(c, today),
     residenceCountry: c.residenceCountry,
+    allergy: safetyAlerts(c.anamnesis).some((a) => a.field === "allergies"),
     excerpt: notesExcerpt(c.notes),
   }));
 }
