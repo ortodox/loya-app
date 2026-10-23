@@ -1,7 +1,14 @@
 # Sikkerhetskopi (backup)
 
 Appen tar en kopi av alle klienter og besøk **hver natt kl. 01:00 UTC** (03:00 polsk sommertid, 02:00 vintertid).
-Kopiene ligger i databasen, i schemaet `backup`, og slettes etter **30 dager**. Appen selv kan ikke lese eller endre dem.
+Kopiene ligger i databasen, i schemaet `backup`. Appen selv kan ikke lese eller endre dem.
+
+Hvor lenge kopiene beholdes:
+
+| Kopi | Beholdes |
+|---|---|
+| Nattlige kopier (`daglig`) | 30 dager |
+| Alle andre: manuelle, før migreringer, før gjenoppretting | 90 dager |
 
 All SQL under kjøres i **Supabase → SQL Editor → New query**. Bytt ut det som står i `STORE_BOKSTAVER`.
 
@@ -46,7 +53,7 @@ Gjør dette før du endrer noe stort, for eksempel før en ny migrering:
 select backup.take_snapshot('manuell');
 ```
 
-Svaret er antall rader som ble kopiert (klienter + besøk). Manuelle kopier slettes også etter 30 dager.
+Svaret er antall rader som ble kopiert (klienter + besøk). Manuelle kopier beholdes i 90 dager.
 
 ## 3. Månedlig CSV-eksport
 
@@ -224,6 +231,7 @@ commit;
 -- Hvor mye plass kopiene bruker
 select pg_size_pretty(pg_total_relation_size('backup.snapshots'));
 
--- Slett kopier eldre enn 30 dager nå (skjer ellers automatisk hver natt)
+-- Rydd nå: sletter «daglig» eldre enn 30 dager og andre kopier eldre enn 90 dager
+-- (skjer ellers automatisk hver natt)
 select backup.cleanup();
 ```

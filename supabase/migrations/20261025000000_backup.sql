@@ -46,7 +46,9 @@ begin
 end;
 $$;
 
--- Deletes snapshots older than 30 days. Returns the number of rows deleted.
+-- Deletes nightly snapshots ('daglig') older than 30 days and all other snapshots
+-- (manual, before migrations, before restores) older than 90 days.
+-- Returns the number of rows deleted.
 create or replace function backup.cleanup()
 returns integer
 language plpgsql
@@ -56,7 +58,9 @@ as $$
 declare
   deleted integer;
 begin
-  delete from backup.snapshots where taken_at < now() - interval '30 days';
+  delete from backup.snapshots
+  where (reason = 'daglig' and taken_at < now() - interval '30 days')
+     or (reason <> 'daglig' and taken_at < now() - interval '90 days');
   get diagnostics deleted = row_count;
   return deleted;
 end;
