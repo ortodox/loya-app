@@ -5,9 +5,10 @@ import { clinicalSections, generalDataFields, type GeneralDataField } from "@/co
 import { fieldText, sectionHasContent } from "@/logic/rules/anamnesis";
 import { countryName, flagEmoji } from "@/logic/rules/country";
 import { formatIsoDate } from "@/logic/rules/dates";
+import type { Visit } from "@/logic/client";
 import type { ClientCard } from "@/logic/usecases/clients";
 
-export async function ClientCardView({ data }: { data: ClientCard }) {
+export async function ClientCardView({ data, visits }: { data: ClientCard; visits: Visit[] }) {
   const t = await getTranslations();
   const locale = await getLocale();
   const { client, age, alerts } = data;
@@ -104,6 +105,42 @@ export async function ClientCardView({ data }: { data: ClientCard }) {
           </Section>
         );
       })}
+
+      {/* VS1: visits under the template and above the notes, newest first. */}
+      <section className="flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">{t("visits.title")}</h2>
+          <Link
+            href={`/clients/${id}/visits/new`}
+            className="rounded-full bg-neutral-900 px-4 py-2 text-sm font-medium text-white dark:bg-neutral-100 dark:text-neutral-900"
+          >
+            {t("visits.new")}
+          </Link>
+        </div>
+        {visits.length === 0 ? (
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">{t("visits.empty")}</p>
+        ) : (
+          <ol className="flex flex-col gap-3">
+            {visits.map((visit) => (
+              <li key={visit.id} className={cardUi.section}>
+                <div className="flex items-center justify-between gap-3 border-b border-neutral-200 px-4 py-3 dark:border-neutral-800">
+                  <span className="text-base font-semibold">{formatIsoDate(visit.visitDate)}</span>
+                  <Link
+                    href={`/clients/${id}/visits/${visit.id}/edit`}
+                    className="text-sm text-neutral-500 dark:text-neutral-400"
+                  >
+                    {t("visits.edit")}
+                  </Link>
+                </div>
+                <dl>
+                  <Row label={t("visits.homeCareRecommendations")} value={visit.homeCareRecommendations} />
+                  <Row label={t("visits.procedurePlan")} value={visit.procedurePlan} />
+                </dl>
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
 
       {/* PR3: free notes at the bottom, as in Notes. */}
       <section className="flex flex-col gap-2">

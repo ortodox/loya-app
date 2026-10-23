@@ -1,9 +1,8 @@
 import type { Client, IsoDate } from "@/logic/client";
 
-/** PR2: the date shown in the list – the last visit, or the registration date. */
+/** PR2/VS1: the date shown in the list – the last visit when there is one, else the first visit. */
 export function lastActivityDate(client: Pick<Client, "lastVisitDate" | "cardDate">): IsoDate {
-  if (client.lastVisitDate && client.lastVisitDate > client.cardDate) return client.lastVisitDate;
-  return client.cardDate;
+  return client.lastVisitDate ?? client.cardDate;
 }
 
 /** PR2: newest first, by last activity; ties by most recently edited. */

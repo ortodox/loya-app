@@ -179,5 +179,22 @@
     },
     "freeText": "Własny tekst, można „?”",
     "emptyCount": "nie wypełniono"
+  },
+  "visits": {
+    "title": "Wizyty",
+    "new": "+ Nowa wizyta",
+    "newTitle": "Nowa wizyta",
+    "editTitle": "Edytuj wizytę",
+    "date": "Data",
+    "homeCareRecommendations": "Zalecenia pielęgnacji domowej",
+    "procedurePlan": "Plan zabiegów",
+    "empty": "Brak wizyt.",
+    "edit": "Edytuj",
+    "delete": "Usuń wizytę",
+    "confirmDelete": "Usunąć tę wizytę? Tego nie można cofnąć.",
+    "confirmYes": "Tak, usuń",
+    "confirmNo": "Anuluj",
+    "deleteFailed": "Nie udało się usunąć. Spróbuj ponownie.",
+    "dateInvalid": "Nieprawidłowa data."
   }
 }

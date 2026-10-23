@@ -19,7 +19,7 @@ Appen er **ikke** lovpålagt medisinsk journal (EDM). Den er et verktøy for opp
 
 Historier: L1, UI1, PR1, AG1, PR2, PR5, JA1, AN1, AN2, SK1, VI1, PH1, PR3, VS1, AL2 (se `roadmap_ru.md`).
 
-Status: oppgave 1 (innlogging), 2 (klientliste) og 3 (resten av malen, e-post og bosted, Жалобы flyttet ut av «Общие данные») er ferdige. Gjenstår: oppgave 4, besøk (VS1).
+Status: alle historier i MVP 1a er bygget – oppgave 1 (innlogging), 2 (klientliste), 3 (resten av malen, e-post og bosted) og 4 (besøk, VS1). Gjenstår: Loyas kontroll av «Ferdig når» før MVP 1b.
 
 **Ferdig når:** Loya kan opprette klienter, fylle ut hele malen, legge til besøk og finne klienter med søk – på iPhone – uten å trenge Notater.
 
@@ -43,7 +43,7 @@ src/
     rules/          DOMENEREGLER – rene funksjoner uten I/O (f.eks. beregnAlder)
     usecases/       BRUKSTILFELLER – orkestrerer: tilgang, hente, regler, lagre
   data/
-    repositories/   DATALAG – grensesnitt (clients.ts) + Supabase-implementasjon (clients-supabase.ts)
+    repositories/   DATALAG – grensesnitt (clients.ts, visits.ts) + Supabase-implementasjon (*-supabase.ts)
   config/
     kartaTemplate.ts  Malen for «Карта клиента» beskrevet som data
 messages/           ru.json, uk.json, pl.json, en.json
