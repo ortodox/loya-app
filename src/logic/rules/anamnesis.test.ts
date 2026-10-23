@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fieldText, isFieldEmpty, parseAnamnesisForm, sectionHasContent } from "./anamnesis";
+import { fieldText, isFieldEmpty, parseAnamnesisForm, sectionHasContent, sectionPreview } from "./anamnesis";
 import { clinicalSections } from "@/config/kartaTemplate";
 
 describe("JA1: жалобы", () => {
@@ -95,5 +95,28 @@ describe("SK1/VI1/PH1: кожа, возрастные изменения, про
     const health = clinicalSections.find((s) => s.key === "health")!;
     expect(sectionHasContent(health.fields, {})).toBe(false);
     expect(sectionHasContent(health.fields, { respiratory: { text: "астма" } })).toBe(true);
+  });
+});
+
+describe("AN1/SK1: краткое содержание раздела", () => {
+  const skin = clinicalSections.find((s) => s.key === "skin")!;
+  const health = clinicalSections.find((s) => s.key === "health")!;
+
+  it("SK1: summarises filled fields in template order with labels for quick choices", () => {
+    const label = (field: string, c: string) => `${field}:${c}`;
+    expect(
+      sectionPreview(skin.fields, { skinDiseases: { choices: ["rosacea"] }, skinType: { choices: ["dry"], text: "зимой" } }, label),
+    ).toBe("skinType:dry, зимой · skinDiseases:rosacea");
+  });
+
+  it("AN1: is empty for an empty section and shortens long text", () => {
+    expect(sectionPreview(health.fields, {})).toBe("");
+    const long = sectionPreview(health.fields, { bloodPressure: { text: "а".repeat(200) } }, undefined, 20);
+    expect(long).toHaveLength(20);
+    expect(long.endsWith("…")).toBe(true);
+  });
+
+  it("AN2: keeps «?» and flattens line breaks", () => {
+    expect(sectionPreview(health.fields, { allergies: { text: "Порошок ?\nпыльца" } })).toBe("Порошок ? пыльца");
   });
 });

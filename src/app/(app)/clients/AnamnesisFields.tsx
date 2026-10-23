@@ -1,7 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { card, sectionSummary, ui } from "@/app/components/ui";
+import { Chevron } from "@/app/components/Icons";
+import { card, disclosure, formSection, pill, ui } from "@/app/components/ui";
 import { clinicalSections } from "@/config/kartaTemplate";
 import { sectionHasContent, type AnamnesisForm } from "@/logic/rules/anamnesis";
 
@@ -13,10 +14,13 @@ export function AnamnesisFields({ values, openFilled }: { values: AnamnesisForm;
     <details
       key={section.key}
       open={openFilled && sectionHasContent(section.fields, values)}
-      className="group flex flex-col border-t border-neutral-200 pt-4 dark:border-neutral-800"
+      className={formSection.card}
     >
-      <summary className={sectionSummary}>{t(`sections.${section.key}`)}</summary>
-      <div className="flex flex-col gap-5 pt-3">
+      <summary className={formSection.summary}>
+        {t(`sections.${section.key}`)}
+        <Chevron className={disclosure.chevron} />
+      </summary>
+      <div className={formSection.body}>
         {section.fields.map((field) => {
           const value = values[field.key] ?? {};
           const ticked = new Set(value.choices ?? []);
@@ -39,7 +43,7 @@ export function AnamnesisFields({ values, openFilled }: { values: AnamnesisForm;
                         defaultChecked={ticked.has(option)}
                         className="peer sr-only"
                       />
-                      <span className="block rounded-full border border-neutral-300 px-3 py-1.5 text-sm peer-checked:border-neutral-900 peer-checked:bg-neutral-900 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-neutral-400 dark:border-neutral-700 dark:peer-checked:border-neutral-100 dark:peer-checked:bg-neutral-100 dark:peer-checked:text-neutral-900">
+                      <span className={`${pill.base} ${pill.off} peer-checked:border-primary peer-checked:bg-primary peer-checked:text-on-primary peer-focus-visible:outline-2 peer-focus-visible:outline-accent`}>
                         {t(`options.${field.key}.${option}`)}
                       </span>
                     </label>

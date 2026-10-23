@@ -49,13 +49,13 @@ export default function LoginPage() {
   }
 
   return (
-    <section className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">{t("title")}</h1>
+    <section className="flex flex-col gap-4 rounded-[18px] bg-surface p-5">
+      <h1 className="font-serif text-3xl text-ink">{t("title")}</h1>
 
       {!codeSent ? (
         <form onSubmit={sendCode} className="flex flex-col gap-4">
           <label className="flex flex-col gap-2">
-            <span className={ui.muted}>{t("emailLabel")}</span>
+            <span className="text-sm font-medium text-muted">{t("emailLabel")}</span>
             <input
               type="email"
               required

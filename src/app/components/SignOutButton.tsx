@@ -13,7 +13,7 @@ export function SignOutButton() {
   return (
     <button
       type="button"
-      className={ui.link}
+      className={ui.textButton}
       onClick={async () => {
         await createClient().auth.signOut();
         router.replace(routes.login);

@@ -89,13 +89,40 @@ Hvert felt: fritekst er alltid tillatt (også «?» for usikkerhet). Hurtigvalg 
 
 + **Заметки** (fritekst) og **AL2:** allergier og medisiner vises tydelig øverst i kortet når de er fylt ut.
 
-## Design
+## Design – «LOA – Aesthetic Medicine»
 
-- **Mobil først (iPhone), mørk modus støttes** (følg systeminnstilling).
-- Klientlisten skal ligne Apple Notater: navn, dato for siste besøk, kort utdrag, **søk nederst**.
-- Klientkortet: etikett/verdi-rader som i notatet hennes.
-- Visuell retning fra designutkastet: rolig, eksklusiv, beige/gull-aksent, serif i overskrifter. Skriften må støtte kyrillisk og polske tegn.
+- **Mobil først (iPhone), mørk modus følger systeminnstillingen.** Rolig, eksklusiv, beige/gull.
 - Bruk Loyas ord: **«клиент», «Карта клиента»** (ikke «пациент»).
+
+**Farger** – CSS-variabler i `src/app/globals.css`, brukt som Tailwind-tokens (`bg-bg`, `bg-surface`, `text-ink`, `text-muted`, `border-line`, `border-field`, `text-gold`, `text-accent`, `bg-primary`/`text-on-primary`, `bg-alert`/`text-on-alert`). Ingen `neutral-*`/`red-*` eller `dark:`-klasser i komponentene.
+
+| Token | Lys | Mørk | Bruk |
+|---|---|---|---|
+| `bg` | #F4ECE2 | #1E1814 | Bakgrunn |
+| `surface` | #FBF7F2 | #2A221D | Kort og flater |
+| `line` | #EADFD2 | #3A2F28 | Skillelinjer |
+| `field` | #D9C9B6 | #806D5C | Kantlinjer på felt |
+| `ink` | #2A211D | #F4ECE2 | Tekst |
+| `muted` | #6B5B4E | #BFAE9C | Sekundærtekst |
+| `gold` | #9C7A50 | #C9A57A | Logo |
+| `accent` | #7A5A36 | #C9A57A | Lenker, tekstknapper |
+| `primary` / `on-primary` | #2A211D / #F4ECE2 | #C9A57A / #1E1814 | Primærknapp, valgt pille |
+| `alert` / `on-alert` | #F6E3DC / #8A2E1E | #4A2620 / #F2B8A8 | Allergivarsel, feilmeldinger, sletting |
+
+- All tekst har minst **4.5:1** kontrast. Unntak: `gold` i lys modus (3.4:1) brukes **kun i logoen** (LOA, stjerne, bue) – aldri til vanlig tekst.
+
+**Skrift** (via `next/font`, med `latin`, `latin-ext` og `cyrillic`):
+- **Cormorant Garamond 500** (`font-serif`): logo og overskrifter.
+- **Montserrat 400/500/600** (`font-sans`, standard): all annen tekst.
+
+**Regler:**
+- Alle knapper og trykkflater er **minst 44 px høye** (`min-h-11`, runde knapper `size-11`).
+- Felt har radius **14 px**, kort radius **18 px**. Felles klasser i `src/app/components/ui.ts`.
+- Datoer `DD.MM.YYYY`.
+- **Innlogging:** stor «LOA» i gull serif med liten firkantet stjerne over og tynn bue under, «AESTHETIC MEDICINE» med bred bokstavavstand, linje med stjerne, «SCIENCE · BEAUTY · CONFIDENCE» (`BrandHero`). Skjema i kort under.
+- **Klientliste** (som Apple Notater): liten «LOA» øverst til venstre, rund «+» til høyre, stor serif-overskrift «Клиенты» med antall under. Listen i ett kort; hver rad: navn (fet), dato · alder, utdrag; til høyre landskode og eventuelt rød «Аллергия». **Søk nederst.**
+- **Klientkort:** liten «КАРТА КЛИЕНТА» over navnet (serif), under: alder · første besøk, landskode + land, by. Allergivarsel som avrundet boks med varseltrekant øverst. Hver seksjon i eget kort med serif-overskrift; etikett/verdi-rader som i notatet; «—» når tomt. Жалобы som piller (valgt = mørk fylt med ✓). Kliniske seksjoner som rader som kan åpnes, med kort sammendrag under tittelen.
+- **PWA-ikon:** midlertidig «LOA» i gull serif på #F4ECE2 (`public/icon-*.png`, `apple-touch-icon.png`, `src/app/icon.png`). Temafarge #F4ECE2 (mørk: #1E1814). Bytt ut når `design/loa-icon.png` finnes.
 
 ## Språk
 
