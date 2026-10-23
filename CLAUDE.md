@@ -109,6 +109,17 @@ Rekkefølge: **ru (standard)**, uk, pl, en. Alle UI-tekster i `messages/*.json` 
 - **Ingen ekte klientdata i repoet**, seed-filer eller tester – kun oppdiktede navn.
 - Ikke logg personopplysninger.
 
+## Databaseendringer
+
+Det ligger ekte klientdata i produksjon. Se `docs/BACKUP.md` for backup og gjenoppretting.
+
+- **Hver ny migrering starter med:** `select backup.take_snapshot('før migrering <filnavn>');`
+- **Migreringer skal kun LEGGE TIL.** Aldri `DROP`, `TRUNCATE`, `DELETE` eller endret kolonnetype uten eksplisitt godkjenning.
+- **Endre navn:** legg til ny kolonne og kopier data. Ikke rename eller drop i samme migrering.
+- **Hver PR med migrering har linjen** «Migreringen er trygg: kun tillegg» eller «⚠️ Migreringen endrer eller sletter data: …».
+- **Migreringer skal tåle å kjøres to ganger** (`if not exists`, `create or replace`, sjekk før endring).
+- Når en kolonne legges til i `clients` eller `visits`: oppdater kolonnelisten i gjenopprettings-SQL-en i `docs/BACKUP.md` i samme PR.
+
 ## Arbeidsmåte
 
 - Små PR-er, én historie eller en liten gruppe om gangen.
