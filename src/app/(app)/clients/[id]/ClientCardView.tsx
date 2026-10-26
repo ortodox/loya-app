@@ -7,6 +7,7 @@ import type { Visit } from "@/logic/client";
 import { fieldText, normalizeField, sectionHasContent, sectionPreview } from "@/logic/rules/anamnesis";
 import { countryName } from "@/logic/rules/country";
 import { formatIsoDate } from "@/logic/rules/dates";
+import { hasArchive } from "@/logic/rules/visits";
 import type { ClientCard } from "@/logic/usecases/clients";
 
 export async function ClientCardView({ data, visits }: { data: ClientCard; visits: Visit[] }) {
@@ -137,14 +138,17 @@ export async function ClientCardView({ data, visits }: { data: ClientCard; visit
         })}
       </section>
 
-      {/* VS1: visits under the template and above the notes, newest first. */}
+      {/* PP1: the procedure plan belongs to the client. */}
+      <section className={`${card.surface} flex flex-col gap-2 p-4`}>
+        <h2 className={card.heading}>{t("card.procedurePlan")}</h2>
+        <p className="min-h-6 text-base whitespace-pre-wrap">{client.procedurePlan ?? "—"}</p>
+      </section>
+
+      {/* VS1/H1: visits under the template and above the notes, newest first. */}
       <section className={card.surface}>
         <div className="flex items-center justify-between gap-3 px-4 pt-3 pb-2">
           <h2 className={card.heading}>{t("visits.title")}</h2>
-          <Link
-            href={`/clients/${id}/visits/new`}
-            className={ui.addButton}
-          >
+          <Link href={`/clients/${id}/visits/new`} className={ui.addButton}>
             {t("visits.new")}
           </Link>
         </div>
@@ -153,17 +157,56 @@ export async function ClientCardView({ data, visits }: { data: ClientCard; visit
         ) : (
           <ol>
             {visits.map((visit) => (
-              <li key={visit.id} className="border-t border-line">
+              <li key={visit.id} className="border-t border-line pb-2">
                 <div className="flex items-center justify-between gap-3 px-4 pt-2">
-                  <span className="text-base font-semibold">{formatIsoDate(visit.visitDate)}</span>
+                  <span className="flex items-baseline gap-2">
+                    <span className="text-base font-semibold">{formatIsoDate(visit.visitDate)}</span>
+                    {visit.photos.length > 0 && (
+                      <span className="text-sm text-muted">📷 {t("visits.photoCount", { count: visit.photos.length })}</span>
+                    )}
+                  </span>
                   <Link href={`/clients/${id}/visits/${visit.id}/edit`} className={`${ui.textButton} text-sm`}>
                     {t("visits.edit")}
                   </Link>
                 </div>
-                <dl>
-                  <Row label={t("visits.homeCareRecommendations")} value={visit.homeCareRecommendations} plain />
-                  <Row label={t("visits.procedurePlan")} value={visit.procedurePlan} plain />
-                </dl>
+                {visit.items.length > 0 && (
+                  <ul className="flex flex-col gap-0.5 px-4 pt-1">
+                    {visit.items.map((item) => (
+                      <li key={item.id} className="text-base text-ink">
+                        {item.preparationName}
+                        {item.quantity && <span className="text-muted"> · {item.quantity}</span>}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {visit.recommendations && (
+                  <dl>
+                    <Row label={t("visits.recommendations")} value={visit.recommendations} plain />
+                  </dl>
+                )}
+                {visit.notes && (
+                  <dl>
+                    <Row label={`${t("visits.notes")} (${t("visits.notesHint")})`} value={visit.notes} plain />
+                  </dl>
+                )}
+                {hasArchive(visit) && (
+                  <details className="group mx-4 mt-1 rounded-[14px] border border-line">
+                    <summary className={`${disclosure.summary} py-2 text-sm text-muted`}>
+                      <span>
+                        {t("visits.archive")} · <span className="text-xs">{t("visits.archiveHint")}</span>
+                      </span>
+                      <Chevron className={disclosure.chevron} />
+                    </summary>
+                    <dl className="border-t border-line">
+                      {visit.archive.homeCareRecommendations?.trim() && (
+                        <Row label={t("visits.homeCareRecommendations")} value={visit.archive.homeCareRecommendations} plain />
+                      )}
+                      {visit.archive.procedurePlan?.trim() && (
+                        <Row label={t("visits.procedurePlan")} value={visit.archive.procedurePlan} plain />
+                      )}
+                    </dl>
+                  </details>
+                )}
               </li>
             ))}
           </ol>

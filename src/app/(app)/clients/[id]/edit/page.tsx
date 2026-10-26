@@ -34,6 +34,7 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
           ),
           language: client.language ?? "ru",
           notes: client.notes ?? "",
+          procedurePlan: client.procedurePlan ?? "",
         }}
         countries={countryOptions(await getLocale())}
         cancelHref={`/clients/${id}`}

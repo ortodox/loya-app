@@ -16,12 +16,13 @@ type ClientRow = {
   language: string | null;
   anamnesis: Anamnesis | null;
   notes: string | null;
+  procedure_plan: string | null;
   updated_at: string;
   visits?: { visit_date: string }[];
 };
 
 const columns =
-  "id, full_name, card_date, age_at_registration, birth_date, phone, email, residence_country, residence_city, language, anamnesis, notes, updated_at";
+  "id, full_name, card_date, age_at_registration, birth_date, phone, email, residence_country, residence_city, language, anamnesis, notes, procedure_plan, updated_at";
 
 function toClient(row: ClientRow): Client {
   return {
@@ -37,6 +38,7 @@ function toClient(row: ClientRow): Client {
     language: isLocale(row.language) ? row.language : null,
     anamnesis: row.anamnesis ?? {},
     notes: row.notes,
+    procedurePlan: row.procedure_plan,
     lastVisitDate: row.visits?.[0]?.visit_date ?? null,
     updatedAt: row.updated_at,
   };
@@ -55,6 +57,7 @@ function toRow(input: ClientInput) {
     language: input.language,
     anamnesis: input.anamnesis,
     notes: input.notes,
+    procedure_plan: input.procedurePlan,
   };
 }
 

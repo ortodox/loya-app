@@ -20,6 +20,7 @@ describe("PR1: create client", () => {
         language: "ru",
         anamnesis: {},
         notes: null,
+        procedurePlan: null,
       },
     });
   });
@@ -101,5 +102,10 @@ describe("PR1: create client", () => {
       ok: false,
       errors: { residenceCountry: "countryInvalid" },
     });
+  });
+
+  it("PP1: keeps the client's procedure plan as multi-line free text", () => {
+    const result = parseClientForm({ fullName: "Анна", procedurePlan: "Ноябрь – биоревитализация\nДекабрь – ботокс\n\n" }, today);
+    expect(result.ok && result.input.procedurePlan).toBe("Ноябрь – биоревитализация\nДекабрь – ботокс");
   });
 });

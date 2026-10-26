@@ -66,7 +66,8 @@
       "medications": "Принимаемые препараты"
     },
     "kicker": "Карта клиента",
-    "firstVisit": "первый визит {date}"
+    "firstVisit": "первый визит {date}",
+    "procedurePlan": "План процедур"
   },
   "form": {
     "titleNew": "Новый клиент",
@@ -97,7 +98,8 @@
     "residenceCity": "Город",
     "countryNone": "Не указано",
     "countryCommon": "Чаще всего",
-    "countryOther": "Все страны"
+    "countryOther": "Все страны",
+    "procedurePlan": "План процедур"
   },
   "karta": {
     "sections": {
@@ -200,7 +202,46 @@
     "confirmYes": "Да, удалить",
     "confirmNo": "Отмена",
     "deleteFailed": "Не удалось удалить. Попробуйте ещё раз.",
-    "dateInvalid": "Неверная дата."
+    "dateInvalid": "Неверная дата.",
+    "preparations": "Препараты",
+    "addPreparation": "+ Добавить препарат",
+    "searchPreparation": "Поиск препарата",
+    "addManual": "+ Добавить вручную",
+    "manualName": "Название препарата",
+    "manualType": "Тип процедуры",
+    "manualHint": "Препарат сохранится в разделе «Препараты».",
+    "add": "Добавить",
+    "close": "Закрыть",
+    "remove": "Убрать",
+    "quantity": "Количество",
+    "quantityHint": "Станд.: {value}",
+    "noPreparations": "Препараты не выбраны.",
+    "photos": "Фото наклейки",
+    "photosHint": "До 3 фото на визит – камера или библиотека.",
+    "addPhoto": "+ Фото",
+    "removePhoto": "Убрать фото",
+    "photoCount": "{count, plural, one {# фото} few {# фото} many {# фото} other {# фото}}",
+    "compressing": "Обработка фото…",
+    "notes": "Заметки",
+    "notesHint": "Только для вас – клиент их не видит.",
+    "recommendations": "Рекомендации после процедуры",
+    "recommendationsHint": "Заполняются из каталога, можно изменить. Язык клиента: {language}.",
+    "updateAsk": "Обновить рекомендации?",
+    "updateAskHint": "Препараты изменились. Ваш текст будет заменён рекомендациями из каталога.",
+    "updateYes": "Обновить",
+    "updateNo": "Оставить мой текст",
+    "archive": "Архив",
+    "archiveHint": "Из прежней формы визита, только для чтения.",
+    "manual": "вручную",
+    "errors": {
+      "tooManyPhotos": "Не больше 3 фото на визит.",
+      "photoInvalid": "Не удалось обработать фото. Попробуйте другое.",
+      "manualNameRequired": "Введите название препарата.",
+      "manualTypeRequired": "Выберите тип процедуры.",
+      "preparationNotFound": "Препарат не найден в каталоге.",
+      "itemInvalid": "Не удалось прочитать препарат.",
+      "tooManyItems": "Слишком много препаратов в одном визите."
+    }
   },
   "brand": {
     "name": "LOA",

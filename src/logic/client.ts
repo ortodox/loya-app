@@ -27,6 +27,8 @@ export type Client = {
   language: Locale | null;
   anamnesis: Anamnesis;
   notes: string | null;
+  /** PP1: the procedure plan belongs to the client. */
+  procedurePlan: string | null;
   lastVisitDate: IsoDate | null;
   updatedAt: string;
 };
@@ -44,20 +46,51 @@ export type ClientInput = {
   language: Locale;
   anamnesis: Anamnesis;
   notes: string | null;
+  procedurePlan: string | null;
 };
 
-/** VS1: a visit appended to the card («Визиты»). */
+/** R1/DO1/P9: one preparation used in a visit; name and type are copies from the time of the visit. */
+export type VisitItem = {
+  id: string;
+  preparationId: string | null;
+  preparationName: string;
+  procedureTypeId: string | null;
+  /** DO1: free text, e.g. «20+15 ед.». */
+  quantity: string | null;
+  sortOrder: number;
+};
+
+/** LOT1: photo of the preparation stickers (at most 3 per visit). */
+export type VisitPhoto = { id: string; storagePath: string; sortOrder: number };
+
+/** VS1: a visit – date, preparations, quantities, sticker photos, notes, post-procedure advice. */
 export type Visit = {
   id: string;
   clientId: string;
   visitDate: IsoDate;
-  homeCareRecommendations: string | null;
-  procedurePlan: string | null;
   createdAt: string;
+  /** R2: internal notes, never shown to the client. */
+  notes: string | null;
+  /** P5: post-procedure advice, one per line (filled from the catalogue, editable). */
+  recommendations: string | null;
+  recommendationsLang: Locale | null;
+  items: VisitItem[];
+  photos: VisitPhoto[];
+  /** Fields of the MVP 1a visit form, kept read-only («Архив»). */
+  archive: { homeCareRecommendations: string | null; procedurePlan: string | null };
+};
+
+export type VisitItemInput = {
+  preparationId: string;
+  preparationName: string;
+  procedureTypeId: string;
+  quantity: string | null;
 };
 
 export type VisitInput = {
   visitDate: IsoDate;
-  homeCareRecommendations: string | null;
-  procedurePlan: string | null;
+  notes: string | null;
+  recommendations: string | null;
+  recommendationsLang: Locale | null;
+  items: VisitItemInput[];
 };

@@ -186,6 +186,11 @@ export function ClientForm({ title, initial, cancelHref, action, countries, open
       <AnamnesisFields values={v.anamnesis ?? {}} openFilled={openFilled} />
 
       <label className={`${card.surface} flex flex-col gap-3 p-4`}>
+        <span className={card.heading}>{t("form.procedurePlan")}</span>
+        <textarea name="procedurePlan" rows={5} defaultValue={v.procedurePlan} className={ui.input} />
+      </label>
+
+      <label className={`${card.surface} flex flex-col gap-3 p-4`}>
         <span className={card.heading}>{t("form.notes")}</span>
         <textarea name="notes" rows={8} defaultValue={v.notes} className={ui.input} />
       </label>

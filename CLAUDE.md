@@ -17,7 +17,7 @@ Appen er **ikke** lovpålagt medisinsk journal (EDM). Den er et verktøy for opp
 
 ## Nåværende oppgave: MVP 1b – digitalt hefte
 
-Historier: B1, P1, P2, P5, S2, R1, DO1, LOT1, Z5, R2, H1, P9, AL1, HE1, VS2, E2, E3, E4 (se `roadmap_ru.md`). Katalogen i `preparaty_ru.md`.
+Historier: B1, P1, P2, P5, S2, R1, DO1, LOT1, Z5, R2, H1, PP1, P9, AL1, HE1, VS2, E2, E3, E4 (se `roadmap_ru.md`). Katalogen i `preparaty_ru.md`.
 
 **Ferdig når:** Loya har registrert en behandling med ansiktsskisse og sendt siden til klienten, og den åpnes riktig på telefonen på klientens språk.
 
@@ -65,7 +65,10 @@ Regler:
 ## Datamodell (MVP 1a)
 
 - `clients` – id, `doctor_id` (= auth.uid()), `full_name` (påkrevd), `phone`, `email`, `residence_country` (ISO 3166-1 alpha-2, f.eks. `PL`), `residence_city`, `language`, `card_date` (første besøk = registreringsdato, brukes i AG1), `age_at_registration`, `birth_date` (valgfri), `anamnesis` (jsonb, flate feltnøkler fra `kartaTemplate.ts`: `{ choices: [...], text }`), `notes`, timestamps
-- `visits` – id, `client_id`, `doctor_id`, dato, `home_care_recommendations`, `procedure_plan`, timestamps
+- `clients.procedure_plan` – «План процедур» (PP1), i klientkortet (fra migrering `20261027000000_visit_items.sql`)
+- `visits` – id, `client_id`, `doctor_id`, dato, `notes` (intern, aldri for klienten), `recommendations` (råd etter behandling, én per linje), `recommendations_lang`, timestamps. Gamle kolonner `home_care_recommendations` og `procedure_plan` beholdes og vises som «Архив» (kun lesbart).
+- `visit_items` – id, `doctor_id`, `visit_id`, `preparation_id` (nullable), `preparation_name` og `procedure_type_id` (kopier på besøkstidspunktet, P9), `quantity` (fritekst), `sort_order`
+- `visit_photos` – id, `doctor_id`, `visit_id`, `storage_path`, `sort_order`; maks 3 per besøk (trigger + app). Filene ligger i den private Storage-bøtten `visit-photos` under `<doctor_id>/<visit_id>/<fil>.jpg` (eier + aal2). Filene er **ikke** med i `backup.take_snapshot` – se `docs/BACKUP.md` punkt 8.
 
 **Katalog (MVP 1b, migrering `20261026000000_catalog.sql`):**
 - `zones` – id, `doctor_id`, `code` (stabil nøkkel for startdata), `name` (jsonb ru/uk/pl/en), `zone_group` (`upper`/`middle`/`lower`/`body`/`other`), `sort_order`, `active`
@@ -101,7 +104,8 @@ Hvert felt: fritekst er alltid tillatt (også «?» for usikkerhet). Hurtigvalg 
 6. **Ранее проведённые процедуры:**
    - В салоне: чистка, пилинг, SMAS, биоревитализация, ботокс, филлеры губ, полимолочная кислота
    - Инъекционные вмешательства
-7. **Визиты** (nyeste øverst): Дата · Рекомендации по уходу дома · План процедур
+7. **Визиты** (nyeste øverst): Дата · Препараты (fra katalogen eller manuelt, flere) + Количество (fritekst) · Фото наклейки (1–3 per besøk) · Заметки (interne) · Рекомендации после процедуры (fylles fra katalogen på klientens språk, kan redigeres; redigert tekst overskrives aldri uten «Обновить рекомендации?»)
+8. **План процедур** (fritekst) – i klientkortet, ikke i besøket (PP1)
 
 + **Заметки** (fritekst) og **AL2:** allergier og medisiner vises tydelig øverst i kortet når de er fylt ut.
 

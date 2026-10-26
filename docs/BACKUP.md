@@ -25,6 +25,7 @@ All SQL under kjøres i **Supabase → SQL Editor → New query**. Bytt ut det s
 select taken_at, reason,
        count(*) filter (where table_name = 'clients')         as klienter,
        count(*) filter (where table_name = 'visits')          as besok,
+       count(*) filter (where table_name = 'visit_photos')    as bilder,
        count(*) filter (where table_name = 'procedure_types') as typer,
        count(*) filter (where table_name = 'preparations')    as preparater
 from backup.snapshots
@@ -147,7 +148,8 @@ on conflict (id) do update set
   birth_date          = excluded.birth_date,
   email               = excluded.email,
   residence_country   = excluded.residence_country,
-  residence_city      = excluded.residence_city;
+  residence_city      = excluded.residence_city,
+  procedure_plan      = excluded.procedure_plan;
 
 with valgt as (
   select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
@@ -162,7 +164,47 @@ on conflict (id) do update set
   visit_date                = excluded.visit_date,
   home_care_recommendations = excluded.home_care_recommendations,
   procedure_plan            = excluded.procedure_plan,
+  notes                     = excluded.notes,
+  recommendations           = excluded.recommendations,
+  recommendations_lang      = excluded.recommendations_lang,
   created_at                = excluded.created_at;
+
+-- Preparations in the visits (R1)
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.visit_items
+select (jsonb_populate_record(null::public.visit_items, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t
+  and s.table_name = 'visit_items'
+  and s.row_data ->> 'visit_id' in (
+    select v.row_data ->> 'id' from backup.snapshots v
+    where v.taken_at = valgt.t and v.table_name = 'visits' and v.row_data ->> 'client_id' = 'KLIENT_ID'
+  )
+on conflict (id) do update set
+  preparation_id    = excluded.preparation_id,
+  preparation_name  = excluded.preparation_name,
+  procedure_type_id = excluded.procedure_type_id,
+  quantity          = excluded.quantity,
+  sort_order        = excluded.sort_order;
+
+-- Photo rows – only where the image file still exists in Storage
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.visit_photos
+select (jsonb_populate_record(null::public.visit_photos, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t
+  and s.table_name = 'visit_photos'
+  and s.row_data ->> 'visit_id' in (
+    select v.row_data ->> 'id' from backup.snapshots v
+    where v.taken_at = valgt.t and v.table_name = 'visits' and v.row_data ->> 'client_id' = 'KLIENT_ID'
+  )
+  and exists (select 1 from storage.objects o
+              where o.bucket_id = 'visit-photos' and o.name = s.row_data ->> 'storage_path')
+on conflict (id) do nothing;
 
 commit;
 ```
@@ -200,7 +242,8 @@ on conflict (id) do update set
   birth_date          = excluded.birth_date,
   email               = excluded.email,
   residence_country   = excluded.residence_country,
-  residence_city      = excluded.residence_city;
+  residence_city      = excluded.residence_city,
+  procedure_plan      = excluded.procedure_plan;
 
 with valgt as (
   select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
@@ -214,7 +257,39 @@ on conflict (id) do update set
   visit_date                = excluded.visit_date,
   home_care_recommendations = excluded.home_care_recommendations,
   procedure_plan            = excluded.procedure_plan,
+  notes                     = excluded.notes,
+  recommendations           = excluded.recommendations,
+  recommendations_lang      = excluded.recommendations_lang,
   created_at                = excluded.created_at;
+
+-- Preparations in the visits (R1)
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.visit_items
+select (jsonb_populate_record(null::public.visit_items, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t
+  and s.table_name = 'visit_items'
+on conflict (id) do update set
+  preparation_id    = excluded.preparation_id,
+  preparation_name  = excluded.preparation_name,
+  procedure_type_id = excluded.procedure_type_id,
+  quantity          = excluded.quantity,
+  sort_order        = excluded.sort_order;
+
+-- Photo rows – only where the image file still exists in Storage
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.visit_photos
+select (jsonb_populate_record(null::public.visit_photos, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t
+  and s.table_name = 'visit_photos'
+  and exists (select 1 from storage.objects o
+              where o.bucket_id = 'visit-photos' and o.name = s.row_data ->> 'storage_path')
+on conflict (id) do nothing;
 
 commit;
 ```
@@ -225,8 +300,9 @@ commit;
 - Endringer gjort etter `TIDSPUNKT` på klienter som gjenopprettes, overskrives. Kopien «før gjenoppretting …»
   tas først, så du kan gå tilbake til den med samme fremgangsmåte.
 - Hvis noe feiler, stopper alt og ingenting endres. Kjør `rollback;` og si fra.
-- Når nye kolonner legges til i `clients` eller `visits`, må listen etter `do update set` her oppdateres
+- Når nye kolonner legges til i `clients`, `visits` eller `visit_items`, må listen etter `do update set` her oppdateres
   i samme PR som migreringen.
+- **Bilder:** bilderader legges bare tilbake når bildefilen fortsatt finnes i Storage (se punkt 8).
 
 ## 6b. Gjenopprett katalogen
 
@@ -312,3 +388,31 @@ select pg_size_pretty(pg_total_relation_size('backup.snapshots'));
 -- (skjer ellers automatisk hver natt)
 select backup.cleanup();
 ```
+
+## 8. Bilder av preparatetiketter (Storage)
+
+Bildene fra besøkene («Фото наклейки») ligger i Supabase Storage, i den private bøtten **visit-photos**,
+under `<lege-id>/<besøk-id>/<fil>.jpg`. **Bildefilene er ikke med i kopiene i databasen** – kopiene inneholder
+bare radene i `visit_photos` (hvilket besøk og hvilken fil). Sletter appen et bilde, slettes filen med en gang.
+
+**Last ned bildene manuelt** (f.eks. sammen med den månedlige CSV-eksporten):
+
+1. Supabase → **Storage** → bøtten **visit-photos**.
+2. Åpne mappen med din bruker-id, deretter mappen for besøket.
+3. Merk bildene → **Download**. (Hele mapper kan ikke lastes ned på én gang i dashbordet – ta det besøk for besøk,
+   eller be om et lite skript for å laste ned alt.)
+4. Lagre dem kryptert, som CSV-filene (punkt 3).
+
+```sql
+-- Hvor mange bilder og hvor mye plass
+select count(*) as bilder, pg_size_pretty(sum((metadata ->> 'size')::bigint)) as storrelse
+from storage.objects where bucket_id = 'visit-photos';
+
+-- Hvilket besøk og hvilken klient et bilde hører til
+select c.full_name, v.visit_date, p.storage_path
+from public.visit_photos p
+join public.visits v on v.id = p.visit_id
+join public.clients c on c.id = v.client_id
+order by v.visit_date desc;
+```
+

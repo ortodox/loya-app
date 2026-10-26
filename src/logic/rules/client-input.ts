@@ -24,6 +24,7 @@ export const clientFormFields = [
   "residenceCity",
   "language",
   "notes",
+  "procedurePlan",
 ] as const;
 export type ClientFormField = (typeof clientFormFields)[number];
 
@@ -38,6 +39,7 @@ export type ParsedClientInput =
 
 const blank = (v: string | undefined) => (v ?? "").trim();
 const orNull = (v: string | undefined) => blank(v) || null;
+const multiline = (v: string | undefined) => ((v ?? "").trim() ? (v ?? "").replace(/\s+$/, "") : null);
 const email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
@@ -93,7 +95,8 @@ export function parseClientForm(
       residenceCity: orNull(form.residenceCity),
       language: isLocale(language) ? language : "ru",
       anamnesis: parseAnamnesisForm(form.anamnesis ?? {}, previousAnamnesis),
-      notes: (form.notes ?? "").trim() ? (form.notes ?? "").replace(/\s+$/, "") : null,
+      notes: multiline(form.notes),
+      procedurePlan: multiline(form.procedurePlan),
     },
   };
 }
