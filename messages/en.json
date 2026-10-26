@@ -66,7 +66,8 @@
       "medications": "Medications"
     },
     "kicker": "Client card",
-    "firstVisit": "first visit {date}"
+    "firstVisit": "first visit {date}",
+    "procedurePlan": "Procedure plan"
   },
   "form": {
     "titleNew": "New client",
@@ -97,7 +98,8 @@
     "residenceCity": "City",
     "countryNone": "Not specified",
     "countryCommon": "Most common",
-    "countryOther": "All countries"
+    "countryOther": "All countries",
+    "procedurePlan": "Procedure plan"
   },
   "karta": {
     "sections": {
@@ -200,7 +202,46 @@
     "confirmYes": "Yes, delete",
     "confirmNo": "Cancel",
     "deleteFailed": "Could not delete. Please try again.",
-    "dateInvalid": "Invalid date."
+    "dateInvalid": "Invalid date.",
+    "preparations": "Preparations",
+    "addPreparation": "+ Add preparation",
+    "searchPreparation": "Search preparations",
+    "addManual": "+ Add manually",
+    "manualName": "Preparation name",
+    "manualType": "Procedure type",
+    "manualHint": "The preparation is saved under «Preparations».",
+    "add": "Add",
+    "close": "Close",
+    "remove": "Remove",
+    "quantity": "Quantity",
+    "quantityHint": "Std.: {value}",
+    "noPreparations": "No preparations chosen.",
+    "photos": "Sticker photos",
+    "photosHint": "Up to 3 photos per visit – camera or library.",
+    "addPhoto": "+ Photo",
+    "removePhoto": "Remove photo",
+    "photoCount": "{count, plural, one {# photo} other {# photos}}",
+    "compressing": "Processing photo…",
+    "notes": "Notes",
+    "notesHint": "Only for you – the client never sees them.",
+    "recommendations": "Post-procedure advice",
+    "recommendationsHint": "Filled in from the catalogue, can be edited. Client's language: {language}.",
+    "updateAsk": "Update the advice?",
+    "updateAskHint": "The preparations changed. Your text will be replaced by the advice from the catalogue.",
+    "updateYes": "Update",
+    "updateNo": "Keep my text",
+    "archive": "Archive",
+    "archiveHint": "From the earlier visit form, read-only.",
+    "manual": "manual",
+    "errors": {
+      "tooManyPhotos": "At most 3 photos per visit.",
+      "photoInvalid": "Could not process the photo. Try another one.",
+      "manualNameRequired": "Enter the preparation name.",
+      "manualTypeRequired": "Choose a procedure type.",
+      "preparationNotFound": "Preparation not found in the catalogue.",
+      "itemInvalid": "Could not read the preparation.",
+      "tooManyItems": "Too many preparations in one visit."
+    }
   },
   "brand": {
     "name": "LOA",

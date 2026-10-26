@@ -66,7 +66,8 @@
       "medications": "Przyjmowane leki"
     },
     "kicker": "Karta klienta",
-    "firstVisit": "pierwsza wizyta {date}"
+    "firstVisit": "pierwsza wizyta {date}",
+    "procedurePlan": "Plan zabiegów"
   },
   "form": {
     "titleNew": "Nowy klient",
@@ -97,7 +98,8 @@
     "residenceCity": "Miasto",
     "countryNone": "Nie podano",
     "countryCommon": "Najczęściej",
-    "countryOther": "Wszystkie kraje"
+    "countryOther": "Wszystkie kraje",
+    "procedurePlan": "Plan zabiegów"
   },
   "karta": {
     "sections": {
@@ -200,7 +202,46 @@
     "confirmYes": "Tak, usuń",
     "confirmNo": "Anuluj",
     "deleteFailed": "Nie udało się usunąć. Spróbuj ponownie.",
-    "dateInvalid": "Nieprawidłowa data."
+    "dateInvalid": "Nieprawidłowa data.",
+    "preparations": "Preparaty",
+    "addPreparation": "+ Dodaj preparat",
+    "searchPreparation": "Szukaj preparatu",
+    "addManual": "+ Dodaj ręcznie",
+    "manualName": "Nazwa preparatu",
+    "manualType": "Rodzaj zabiegu",
+    "manualHint": "Preparat zostanie zapisany w sekcji „Preparaty”.",
+    "add": "Dodaj",
+    "close": "Zamknij",
+    "remove": "Usuń",
+    "quantity": "Ilość",
+    "quantityHint": "Stand.: {value}",
+    "noPreparations": "Nie wybrano preparatów.",
+    "photos": "Zdjęcia naklejki",
+    "photosHint": "Do 3 zdjęć na wizytę – aparat lub galeria.",
+    "addPhoto": "+ Zdjęcie",
+    "removePhoto": "Usuń zdjęcie",
+    "photoCount": "{count, plural, one {# zdjęcie} few {# zdjęcia} many {# zdjęć} other {# zdjęcia}}",
+    "compressing": "Przetwarzanie zdjęcia…",
+    "notes": "Notatki",
+    "notesHint": "Tylko dla Ciebie – klient ich nie widzi.",
+    "recommendations": "Zalecenia po zabiegu",
+    "recommendationsHint": "Uzupełniane z katalogu, można zmienić. Język klienta: {language}.",
+    "updateAsk": "Zaktualizować zalecenia?",
+    "updateAskHint": "Preparaty się zmieniły. Twój tekst zostanie zastąpiony zaleceniami z katalogu.",
+    "updateYes": "Zaktualizuj",
+    "updateNo": "Zostaw mój tekst",
+    "archive": "Archiwum",
+    "archiveHint": "Z poprzedniego formularza wizyty, tylko do odczytu.",
+    "manual": "ręcznie",
+    "errors": {
+      "tooManyPhotos": "Maksymalnie 3 zdjęcia na wizytę.",
+      "photoInvalid": "Nie udało się przetworzyć zdjęcia. Spróbuj innego.",
+      "manualNameRequired": "Wpisz nazwę preparatu.",
+      "manualTypeRequired": "Wybierz rodzaj zabiegu.",
+      "preparationNotFound": "Nie znaleziono preparatu w katalogu.",
+      "itemInvalid": "Nie udało się odczytać preparatu.",
+      "tooManyItems": "Za dużo preparatów w jednej wizycie."
+    }
   },
   "brand": {
     "name": "LOA",

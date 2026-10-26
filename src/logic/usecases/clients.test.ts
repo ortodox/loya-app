@@ -21,6 +21,7 @@ function client(overrides: Partial<Client>): Client {
     language: "ru",
     anamnesis: {},
     notes: null,
+    procedurePlan: null,
     lastVisitDate: null,
     updatedAt: "2025-01-01T00:00:00Z",
     ...overrides,
