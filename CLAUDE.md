@@ -146,6 +146,7 @@ Hvert felt: fritekst er alltid tillatt (også «?» for usikkerhet). Hurtigvalg 
 - **Препараты** (katalogen, URL `/catalog`): liten «LOA» og «+ Препарат» øverst, serif-overskrift «Препараты», søk i preparater, typene i ett kort.
 - **Klientkort:** liten «КАРТА КЛИЕНТА» over navnet (serif), under: alder · første besøk, landskode + land, by. Allergivarsel som avrundet boks med varseltrekant øverst. Hver seksjon i eget kort med serif-overskrift; etikett/verdi-rader som i notatet; «—» når tomt. Жалобы som piller (valgt = mørk fylt med ✓). Kliniske seksjoner som rader som kan åpnes, med kort sammendrag under tittelen.
 - **PWA-ikon:** midlertidig «LOA» i gull serif på #F4ECE2 (`public/icon-*.png`, `apple-touch-icon.png`, `src/app/icon.png`). Temafarge #F4ECE2 (mørk: #1E1814). Bytt ut når `design/loa-icon.png` finnes.
+- **Ansiktsmal (1b-3):** `design/face-template.webp` – AI-generert, Loya har rett til å bruke den i appen og på siden til klienten. Ett ansikt forfra med hals (2:3). Tegningen lagres separat; malen er bakgrunn.
 
 ## Språk
 
