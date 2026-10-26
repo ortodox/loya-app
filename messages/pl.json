@@ -76,7 +76,9 @@
     "call": "Zadzwoń",
     "whatsapp": "WhatsApp",
     "telegram": "Telegram",
-    "viber": "Viber"
+    "viber": "Viber",
+    "questionnaire": "Ankieta",
+    "questionnaireHint": "Dane ogólne, dolegliwości, zdrowie, skóra, zabiegi"
   },
   "form": {
     "titleNew": "Nowy klient",
@@ -261,11 +263,11 @@
     "repeatLast": "↺ Powtórz poprzednią wizytę",
     "repeatedFrom": "Preparaty i ilości z wizyty {date}. Zdjęcia i notatki – nowe.",
     "upcoming": "Nadchodzące wizyty",
-    "past": "Minione wizyty",
     "planned": "Zaplanowana",
     "anamnesisUnchanged": "Wywiad bez zmian ✓",
     "anamnesisLast": "Ostatnie potwierdzenie: {date}",
-    "anamnesisNever": "Jeszcze nie potwierdzono"
+    "anamnesisNever": "Jeszcze nie potwierdzono",
+    "complete": "Uzupełnij wizytę"
   },
   "brand": {
     "name": "LOA",

@@ -76,7 +76,9 @@
     "call": "Позвонить",
     "whatsapp": "WhatsApp",
     "telegram": "Telegram",
-    "viber": "Viber"
+    "viber": "Viber",
+    "questionnaire": "Анкета",
+    "questionnaireHint": "Общие данные, жалобы, здоровье, кожа, процедуры"
   },
   "form": {
     "titleNew": "Новый клиент",
@@ -261,11 +263,11 @@
     "repeatLast": "↺ Повторить прошлый визит",
     "repeatedFrom": "Препараты и количество из визита {date}. Фото и заметки – новые.",
     "upcoming": "Предстоящие визиты",
-    "past": "Прошедшие визиты",
     "planned": "Запланирован",
     "anamnesisUnchanged": "Анамнез без изменений ✓",
     "anamnesisLast": "Последнее подтверждение: {date}",
-    "anamnesisNever": "Ещё не подтверждался"
+    "anamnesisNever": "Ещё не подтверждался",
+    "complete": "Дополнить визит"
   },
   "brand": {
     "name": "LOA",
