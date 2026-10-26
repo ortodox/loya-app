@@ -13,17 +13,24 @@ Appen er **ikke** lovpålagt medisinsk journal (EDM). Den er et verktøy for opp
 **Kilder i repoet:**
 - `roadmap_ru.md` – alle MVP-er og brukerhistorier (kilden til sannhet for omfang)
 - `brukerhistorier_loya_ru.md` – samme historier, formatert for Loya
-- `preparaty_chernovik_ru.md` – utkast til behandlingstyper, soner og preparater (ikke verifisert av Loya)
+- `preparaty_ru.md` – katalogen: behandlingstyper, soner, standardverdier, råd etter behandling og ca. 95 preparater (godkjent av Loya 26.10.2026)
 
-## Nåværende oppgave: MVP 1a – digital «Карта клиента»
+## Nåværende oppgave: MVP 1b – digitalt hefte
 
-Historier: L1, UI1, PR1, AG1, PR2, PR5, JA1, AN1, AN2, SK1, VI1, PH1, PR3, VS1, AL2 (se `roadmap_ru.md`).
+Historier: B1, P1, P2, P5, S2, R1, DO1, LOT1, Z5, R2, H1, P9, AL1, HE1, VS2, E2, E3, E4 (se `roadmap_ru.md`). Katalogen i `preparaty_ru.md`.
 
-Status: alle historier i MVP 1a er bygget – oppgave 1 (innlogging), 2 (klientliste), 3 (resten av malen, e-post og bosted) og 4 (besøk, VS1). Gjenstår: Loyas kontroll av «Ferdig når» før MVP 1b.
+**Ferdig når:** Loya har registrert en behandling med ansiktsskisse og sendt siden til klienten, og den åpnes riktig på telefonen på klientens språk.
 
-**Ferdig når:** Loya kan opprette klienter, fylle ut hele malen, legge til besøk og finne klienter med søk – på iPhone – uten å trenge Notater.
+**Ikke i MVP 1b:** beregning av neste dato, kontrollbesøk og kurstrinn (MVP 2), påminnelser (MVP 2 og 4), filer (MVP 1c), strukturerte soner (MVP 6) og alt under «Позже». Ikke bygg det ennå.
 
-**Ikke i MVP 1a:** preparater, behandlinger, tegning, deling, filer, neste dato. Ikke bygg det ennå.
+**MVP 1a er ferdig (✅):** innlogging, klientliste, hele «Карта клиента» og besøk. Kontrollpunktet «Заметки больше не нужны» venter på Loyas bekreftelse.
+
+### Katalogprinsipp (`preparaty_ru.md`)
+
+- **Råd, intervaller og kur defineres per BEHANDLINGSTYPE** (BT-01 … BT-10) og **arves av alle preparater** av den typen.
+- **Et preparat kan overstyre** typens verdier (unntak), f.eks. «Миндальный пилинг 40%». Uten overstyring gjelder typens verdier.
+- Felt merket «*заполнить*» i katalogen mangler data – Loya fyller dem ut i appen. Ikke dikt opp verdier.
+- En registrert behandling lagrer råd og parametere slik de var på behandlingstidspunktet (P9).
 
 ## Teknologi
 
