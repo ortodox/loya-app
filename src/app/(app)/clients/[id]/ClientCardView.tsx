@@ -10,7 +10,9 @@ import { formatIsoDate } from "@/logic/rules/dates";
 import { countRecommendations } from "@/logic/rules/recommendations";
 import { contactLinks } from "@/logic/rules/contacts";
 import { hasArchive, isPlanned, lastCompletedVisit, splitVisits } from "@/logic/rules/visits";
+import type { TreatmentCourse } from "@/logic/course";
 import type { ClientCard } from "@/logic/usecases/clients";
+import { CoursesSection } from "./CoursesSection";
 
 type Props = {
   data: ClientCard;
@@ -21,9 +23,11 @@ type Props = {
   created?: boolean;
   /** VP2/RV1: visits after today are appointments. */
   today: IsoDate;
+  /** LE5/LE9: treatment courses with prescription thumbnails. */
+  courses: { active: TreatmentCourse[]; completed: TreatmentCourse[]; photoUrls: Record<string, string> };
 };
 
-export async function ClientCardView({ data, visits, photoUrls, created = false, today }: Props) {
+export async function ClientCardView({ data, visits, photoUrls, created = false, today, courses }: Props) {
   const t = await getTranslations();
   const locale = await getLocale();
   const { client, age, alerts } = data;
@@ -200,6 +204,16 @@ export async function ClientCardView({ data, visits, photoUrls, created = false,
             {place}
           </p>
         )}
+        {/* DM1: cosmetology and/or dermatology. */}
+        {client.direction.length > 0 && (
+          <p className="flex flex-wrap gap-2 text-sm text-ink">
+            {client.direction.map((d) => (
+              <span key={d} className={ui.tag}>
+                {t(`direction.${d}`)}
+              </span>
+            ))}
+          </p>
+        )}
         {/* KT1: call or write right from the top of the card. */}
         {client.phone && (
           <div className="pt-2">
@@ -261,7 +275,8 @@ export async function ClientCardView({ data, visits, photoUrls, created = false,
         <p className="min-h-6 text-base whitespace-pre-wrap">{client.procedurePlan ?? "—"}</p>
       </section>
 
-      {/* MVP 1c: «Лечение» (LE5, active course) and «Уход» (UH1) go here. */}
+      {/* LE5/LE9: treatment courses. MVP 1c-2: «Уход» (UH1) goes after it. */}
+      <CoursesSection clientId={id} today={today} {...courses} />
 
       {/* PR3: free notes. */}
       <section className={`${card.surface} flex flex-col gap-2 p-4`}>

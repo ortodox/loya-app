@@ -51,3 +51,27 @@ export function formatDayMonth(value: IsoDate): string {
   const p = parseIsoDate(value);
   return p ? `${String(p.d).padStart(2, "0")}.${String(p.m).padStart(2, "0")}` : value;
 }
+
+const toUtc = (iso: IsoDate) => {
+  const p = parseIsoDate(iso);
+  return p ? Date.UTC(p.y, p.m - 1, p.d) : NaN;
+};
+const fromUtc = (ms: number): IsoDate => new Date(ms).toISOString().slice(0, 10);
+
+/** Calendar days from `from` to `to` (negative when `to` is earlier). */
+export function daysBetween(from: IsoDate, to: IsoDate): number {
+  return Math.round((toUtc(to) - toUtc(from)) / 86_400_000);
+}
+
+export function addDays(date: IsoDate, days: number): IsoDate {
+  return fromUtc(toUtc(date) + days * 86_400_000);
+}
+
+/** Whole calendar months; the 31st becomes the last day of a shorter month. */
+export function addMonths(date: IsoDate, months: number): IsoDate {
+  const p = parseIsoDate(date);
+  if (!p) return date;
+  const first = new Date(Date.UTC(p.y, p.m - 1 + months, 1));
+  const lastDay = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
+  return fromUtc(Date.UTC(first.getUTCFullYear(), first.getUTCMonth(), Math.min(p.d, lastDay)));
+}

@@ -26,6 +26,7 @@ select taken_at, reason,
        count(*) filter (where table_name = 'clients')         as klienter,
        count(*) filter (where table_name = 'visits')          as besok,
        count(*) filter (where table_name = 'visit_photos')    as bilder,
+       count(*) filter (where table_name = 'treatment_courses') as kurer,
        count(*) filter (where table_name = 'procedure_types') as typer,
        count(*) filter (where table_name = 'preparations')    as preparater
 from backup.snapshots
@@ -150,7 +151,8 @@ on conflict (id) do update set
   residence_country   = excluded.residence_country,
   residence_city      = excluded.residence_city,
   procedure_plan      = excluded.procedure_plan,
-  anamnesis_confirmed_at = excluded.anamnesis_confirmed_at;
+  anamnesis_confirmed_at = excluded.anamnesis_confirmed_at,
+  direction           = excluded.direction;
 
 with valgt as (
   select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
@@ -208,6 +210,79 @@ where s.taken_at = valgt.t
               where o.bucket_id = 'visit-photos' and o.name = s.row_data ->> 'storage_path')
 on conflict (id) do nothing;
 
+-- Treatment courses (LE1)
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.treatment_courses
+select (jsonb_populate_record(null::public.treatment_courses, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t
+  and s.table_name = 'treatment_courses'
+  and s.row_data ->> 'client_id' = 'KLIENT_ID'
+on conflict (id) do update set
+  diagnosis          = excluded.diagnosis,
+  prescription       = excluded.prescription,
+  start_date         = excluded.start_date,
+  end_date           = excluded.end_date,
+  lab_interval_value = excluded.lab_interval_value,
+  lab_interval_unit  = excluded.lab_interval_unit,
+  last_lab_date      = excluded.last_lab_date,
+  status             = excluded.status,
+  completed_at       = excluded.completed_at,
+  created_at         = excluded.created_at;
+
+-- Prescription photo rows (LE3) – only where the image file still exists in Storage
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.course_photos
+select (jsonb_populate_record(null::public.course_photos, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t
+  and s.table_name = 'course_photos'
+  and s.row_data ->> 'course_id' in (
+    select k.row_data ->> 'id' from backup.snapshots k
+    where k.taken_at = valgt.t and k.table_name = 'treatment_courses' and k.row_data ->> 'client_id' = 'KLIENT_ID'
+  )
+  and exists (select 1 from storage.objects o
+              where o.bucket_id = 'visit-photos' and o.name = s.row_data ->> 'storage_path')
+on conflict (id) do nothing;
+
+-- Treatment courses (LE1)
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.treatment_courses
+select (jsonb_populate_record(null::public.treatment_courses, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t
+  and s.table_name = 'treatment_courses'
+on conflict (id) do update set
+  diagnosis          = excluded.diagnosis,
+  prescription       = excluded.prescription,
+  start_date         = excluded.start_date,
+  end_date           = excluded.end_date,
+  lab_interval_value = excluded.lab_interval_value,
+  lab_interval_unit  = excluded.lab_interval_unit,
+  last_lab_date      = excluded.last_lab_date,
+  status             = excluded.status,
+  completed_at       = excluded.completed_at,
+  created_at         = excluded.created_at;
+
+-- Prescription photo rows (LE3) – only where the image file still exists in Storage
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.course_photos
+select (jsonb_populate_record(null::public.course_photos, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t
+  and s.table_name = 'course_photos'
+  and exists (select 1 from storage.objects o
+              where o.bucket_id = 'visit-photos' and o.name = s.row_data ->> 'storage_path')
+on conflict (id) do nothing;
+
 commit;
 ```
 
@@ -246,7 +321,8 @@ on conflict (id) do update set
   residence_country   = excluded.residence_country,
   residence_city      = excluded.residence_city,
   procedure_plan      = excluded.procedure_plan,
-  anamnesis_confirmed_at = excluded.anamnesis_confirmed_at;
+  anamnesis_confirmed_at = excluded.anamnesis_confirmed_at,
+  direction           = excluded.direction;
 
 with valgt as (
   select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
@@ -304,9 +380,9 @@ commit;
 - Endringer gjort etter `TIDSPUNKT` på klienter som gjenopprettes, overskrives. Kopien «før gjenoppretting …»
   tas først, så du kan gå tilbake til den med samme fremgangsmåte.
 - Hvis noe feiler, stopper alt og ingenting endres. Kjør `rollback;` og si fra.
-- Når nye kolonner legges til i `clients`, `visits` eller `visit_items`, må listen etter `do update set` her oppdateres
+- Når nye kolonner legges til i `clients`, `visits`, `visit_items` eller `treatment_courses`, må listen etter `do update set` her oppdateres
   i samme PR som migreringen.
-- **Bilder:** bilderader legges bare tilbake når bildefilen fortsatt finnes i Storage (se punkt 8).
+- **Bilder:** bilderader (etiketter og resepter) legges bare tilbake når bildefilen fortsatt finnes i Storage (se punkt 8).
 
 ## 6b. Gjenopprett katalogen
 
@@ -393,11 +469,14 @@ select pg_size_pretty(pg_total_relation_size('backup.snapshots'));
 select backup.cleanup();
 ```
 
-## 8. Bilder av preparatetiketter (Storage)
+## 8. Bilder av preparatetiketter og resepter (Storage)
 
 Bildene fra besøkene («Фото наклейки») ligger i Supabase Storage, i den private bøtten **visit-photos**,
 under `<lege-id>/<besøk-id>/<fil>.jpg`. **Bildefilene er ikke med i kopiene i databasen** – kopiene inneholder
 bare radene i `visit_photos` (hvilket besøk og hvilken fil). Sletter appen et bilde, slettes filen med en gang.
+
+**Bilder av resepter** i behandlingskurer (LE3) ligger i samme bøtte, under `<lege-id>/courses/<kur-id>/<fil>.jpg`,
+med radene i `course_photos`. De er heller ikke med i kopiene – last dem ned på samme måte (mappen **courses**).
 
 **Last ned bildene manuelt** (f.eks. sammen med den månedlige CSV-eksporten):
 
@@ -418,5 +497,12 @@ from public.visit_photos p
 join public.visits v on v.id = p.visit_id
 join public.clients c on c.id = v.client_id
 order by v.visit_date desc;
+
+-- Bilder av resepter: hvilken kur og hvilken klient
+select c.full_name, k.diagnosis, k.start_date, p.storage_path
+from public.course_photos p
+join public.treatment_courses k on k.id = p.course_id
+join public.clients c on c.id = k.client_id
+order by p.created_at desc;
 ```
 

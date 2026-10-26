@@ -44,7 +44,16 @@
     "created": "Klient zapisany.",
     "addVisit": "+ Dodaj wizytę",
     "later": "Później",
-    "nextVisit": "Wizyta: {date}"
+    "nextVisit": "Wizyta: {date}",
+    "filter": {
+      "all": "Wszyscy",
+      "cosmetology": "Kosmetologia",
+      "dermatology": "Dermatologia",
+      "treatment": "W leczeniu"
+    },
+    "onTreatment": "🩺 W leczeniu · {count} dni",
+    "filterLabel": "Pokaż klientów",
+    "treatmentEnded": "🩺 Kurs zakończony"
   },
   "language": {
     "ru": "Русский",
@@ -372,5 +381,56 @@
   "draft": {
     "restored": "Przywrócono niezapisany szkic.",
     "discard": "Odrzuć szkic"
+  },
+  "courses": {
+    "title": "Leczenie",
+    "add": "+ Kurs leczenia",
+    "newTitle": "Nowy kurs",
+    "editTitle": "Zmień kurs",
+    "diagnosis": "Rozpoznanie",
+    "prescription": "Zalecenie",
+    "prescriptionHint": "Co, ile, według jakiego schematu. Recepta jest wystawiana w innym systemie.",
+    "startDate": "Początek",
+    "endDate": "Koniec (w przybliżeniu)",
+    "labControl": "Kontrola badań",
+    "labEvery": "Co",
+    "units": {
+      "days": "dni",
+      "weeks": "tyg.",
+      "months": "mies."
+    },
+    "lastLabDate": "Ostatnie badania (jeśli już wykonane)",
+    "photos": "Zdjęcia recept",
+    "photosHint": "Można dodawać przy każdym przedłużeniu – do 3 zdjęć naraz.",
+    "addPhoto": "+ Zdjęcie recepty",
+    "daysLeft": "{count, plural, one {Został # dzień} few {Zostały # dni} many {Zostało # dni} other {Zostało # dnia}}",
+    "ended": "Kurs zakończył się {date}",
+    "complete": "Zakończ kurs",
+    "extend": "Przedłuż",
+    "extendTo": "Nowa data końca",
+    "nextLabs": "Następne badania: ~{date}",
+    "labsOverdue": "Badania: termin minął ~{date}",
+    "labsDone": "Badania wykonane ✓",
+    "lastLabs": "ostatnie {date}",
+    "interval": "Kontrola badań: co {value} {unit}",
+    "completedList": "Zakończone kursy ({count})",
+    "completedOn": "zakończony {date}",
+    "edit": "Zmień",
+    "empty": "Brak aktywnego kursu leczenia.",
+    "photoAdded": "dodano {date}",
+    "errors": {
+      "diagnosisRequired": "Wpisz rozpoznanie.",
+      "dateInvalid": "Nieprawidłowa data.",
+      "endRequired": "Podaj przybliżoną datę końca.",
+      "endBeforeStart": "Koniec nie może być przed początkiem.",
+      "labIntervalInvalid": "Podaj odstęp, np. 2,5 mies.",
+      "tooManyPhotos": "Najwyżej 3 zdjęcia naraz.",
+      "photoInvalid": "Nie udało się przetworzyć zdjęcia. Spróbuj innego."
+    }
+  },
+  "direction": {
+    "label": "Kierunek",
+    "cosmetology": "✨ Kosmetologia",
+    "dermatology": "🩺 Dermatologia"
   }
 }

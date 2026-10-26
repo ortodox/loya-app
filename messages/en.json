@@ -44,7 +44,16 @@
     "created": "Client saved.",
     "addVisit": "+ Add visit",
     "later": "Later",
-    "nextVisit": "Booked: {date}"
+    "nextVisit": "Booked: {date}",
+    "filter": {
+      "all": "All",
+      "cosmetology": "Cosmetology",
+      "dermatology": "Dermatology",
+      "treatment": "On treatment"
+    },
+    "onTreatment": "🩺 On treatment · {count} d",
+    "filterLabel": "Show clients",
+    "treatmentEnded": "🩺 Course ended"
   },
   "language": {
     "ru": "Русский",
@@ -372,5 +381,56 @@
   "draft": {
     "restored": "Unsaved draft restored.",
     "discard": "Discard draft"
+  },
+  "courses": {
+    "title": "Treatment",
+    "add": "+ Treatment course",
+    "newTitle": "New course",
+    "editTitle": "Edit course",
+    "diagnosis": "Diagnosis",
+    "prescription": "Prescription",
+    "prescriptionHint": "What, how much, which scheme. The prescription itself is written in another system.",
+    "startDate": "Start",
+    "endDate": "End (approximate)",
+    "labControl": "Lab tests",
+    "labEvery": "Every",
+    "units": {
+      "days": "days",
+      "weeks": "wk",
+      "months": "mo"
+    },
+    "lastLabDate": "Last tests (if already done)",
+    "photos": "Prescription photos",
+    "photosHint": "Add more at every renewal – up to 3 photos at a time.",
+    "addPhoto": "+ Prescription photo",
+    "daysLeft": "{count, plural, one {# day left} other {# days left}}",
+    "ended": "Course ended on {date}",
+    "complete": "Finish course",
+    "extend": "Extend",
+    "extendTo": "New end date",
+    "nextLabs": "Next lab tests: ~{date}",
+    "labsOverdue": "Lab tests overdue since ~{date}",
+    "labsDone": "Lab tests done ✓",
+    "lastLabs": "last {date}",
+    "interval": "Lab tests: every {value} {unit}",
+    "completedList": "Finished courses ({count})",
+    "completedOn": "finished {date}",
+    "edit": "Edit",
+    "empty": "No active treatment course.",
+    "photoAdded": "added {date}",
+    "errors": {
+      "diagnosisRequired": "Enter a diagnosis.",
+      "dateInvalid": "Invalid date.",
+      "endRequired": "Enter an approximate end date.",
+      "endBeforeStart": "The end cannot be before the start.",
+      "labIntervalInvalid": "Enter an interval, e.g. 2.5 mo.",
+      "tooManyPhotos": "At most 3 photos at a time.",
+      "photoInvalid": "Could not process the photo. Try another one."
+    }
+  },
+  "direction": {
+    "label": "Direction",
+    "cosmetology": "✨ Cosmetology",
+    "dermatology": "🩺 Dermatology"
   }
 }

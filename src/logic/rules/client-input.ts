@@ -1,6 +1,7 @@
 import { isLocale } from "@/logic/locale";
 import type { Anamnesis, ClientInput, IsoDate } from "@/logic/client";
 import { parseAnamnesisForm, type AnamnesisForm } from "./anamnesis";
+import { parseDirection } from "./courses";
 import { isCountryCode } from "./country";
 import { isIsoDate } from "./dates";
 
@@ -29,7 +30,11 @@ export const clientFormFields = [
 export type ClientFormField = (typeof clientFormFields)[number];
 
 /** Raw form values; every field may be missing or blank. */
-export type ClientForm = Partial<Record<ClientFormField, string>> & { anamnesis?: AnamnesisForm };
+export type ClientForm = Partial<Record<ClientFormField, string>> & {
+  anamnesis?: AnamnesisForm;
+  /** DM1: ticked «Косметология» / «Дерматология». */
+  direction?: string[];
+};
 
 export type ClientInputErrors = Partial<Record<ClientFormField, ClientInputError>>;
 
@@ -97,6 +102,7 @@ export function parseClientForm(
       anamnesis: parseAnamnesisForm(form.anamnesis ?? {}, previousAnamnesis),
       notes: multiline(form.notes),
       procedurePlan: multiline(form.procedurePlan),
+      direction: parseDirection(form.direction),
     },
   };
 }

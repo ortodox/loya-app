@@ -1,4 +1,5 @@
 import type { Locale } from "@/config/locales";
+import type { CourseSummary, Direction } from "./course";
 
 /** ISO calendar date, `YYYY-MM-DD`. */
 export type IsoDate = string;
@@ -33,6 +34,10 @@ export type Client = {
   anamnesisConfirmedAt: IsoDate | null;
   /** VS1/VP2: dates of all the client's visits, past and planned. */
   visitDates: IsoDate[];
+  /** DM1: «Косметология», «Дерматология» or both; empty when not set. */
+  direction: Direction[];
+  /** LE4: the client's treatment courses, for «На лечении» in the list. */
+  courses: CourseSummary[];
   updatedAt: string;
 };
 
@@ -50,6 +55,7 @@ export type ClientInput = {
   anamnesis: Anamnesis;
   notes: string | null;
   procedurePlan: string | null;
+  direction: Direction[];
 };
 
 /** R1/DO1/P9: one preparation used in a visit; name and type are copies from the time of the visit. */

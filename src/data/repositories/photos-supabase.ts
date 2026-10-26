@@ -6,10 +6,10 @@ const bucket = "visit-photos";
 /** Supabase Storage; the bucket policy only lets the owner (aal2) read and write her own folder. */
 export function supabasePhotoStorage(supabase: SupabaseClient): PhotoStorage {
   return {
-    async upload(visitId, bytes) {
+    async upload(folder, bytes) {
       const { data, error } = await supabase.auth.getUser();
       if (error || !data.user) throw error ?? new Error("Not signed in");
-      const path = `${data.user.id}/${visitId}/${crypto.randomUUID()}.jpg`;
+      const path = `${data.user.id}/${folder}/${crypto.randomUUID()}.jpg`;
       const res = await supabase.storage.from(bucket).upload(path, bytes, { contentType: "image/jpeg", upsert: false });
       if (res.error) throw res.error;
       return path;

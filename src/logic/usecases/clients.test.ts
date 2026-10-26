@@ -24,6 +24,8 @@ function client(overrides: Partial<Client>): Client {
     procedurePlan: null,
     anamnesisConfirmedAt: null,
     visitDates: [],
+    direction: [],
+    courses: [],
     updatedAt: "2025-01-01T00:00:00Z",
     ...overrides,
   };
@@ -49,6 +51,12 @@ function memoryRepo(initial: Client[] = []): ClientRepository & { rows: Client[]
       rows[i] = { ...rows[i], ...input };
       return true;
     },
+    setDirection: async (id, direction) => {
+      const i = rows.findIndex((r) => r.id === id);
+      if (i < 0) return false;
+      rows[i] = { ...rows[i], direction };
+      return true;
+    },
     confirmAnamnesis: async (id, date) => {
       const i = rows.findIndex((r) => r.id === id);
       if (i < 0) return false;
@@ -59,6 +67,13 @@ function memoryRepo(initial: Client[] = []): ClientRepository & { rows: Client[]
 }
 
 describe("client use cases", () => {
+  it("DM1/LE4: the list shows the direction and the days left of the active course", async () => {
+    const repo = memoryRepo([
+      client({ direction: ["dermatology"], courses: [{ status: "active", startDate: "2026-09-01", endDate: "2026-11-01" }] }),
+    ]);
+    expect(await listClients(repo, today)).toMatchObject([{ direction: ["dermatology"], treatment: { daysLeft: 10, ended: false } }]);
+  });
+
   it("VP2: the list shows the last visit that took place and the next appointment", async () => {
     const repo = memoryRepo([client({ visitDates: ["2026-11-05", "2026-09-01", "2026-10-31"] })]);
     expect(await listClients(repo, today)).toMatchObject([{ date: "2026-09-01", nextVisitDate: "2026-10-31" }]);
@@ -86,8 +101,10 @@ describe("client use cases", () => {
         excerpt: "Чувствительная кожа",
         phone: null,
         nextVisitDate: null,
+        direction: [],
+        treatment: null,
       },
-      { id: id1, fullName: "Старая", date: "2024-03-01", age: 32, residenceCountry: null, allergy: false, excerpt: "", phone: null, nextVisitDate: null },
+      { id: id1, fullName: "Старая", date: "2024-03-01", age: 32, residenceCountry: null, allergy: false, excerpt: "", phone: null, nextVisitDate: null, direction: [], treatment: null },
     ]);
   });
 

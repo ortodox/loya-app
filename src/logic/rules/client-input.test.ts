@@ -21,6 +21,7 @@ describe("PR1: create client", () => {
         anamnesis: {},
         notes: null,
         procedurePlan: null,
+        direction: [],
       },
     });
   });
@@ -107,5 +108,14 @@ describe("PR1: create client", () => {
   it("PP1: keeps the client's procedure plan as multi-line free text", () => {
     const result = parseClientForm({ fullName: "Анна", procedurePlan: "Ноябрь – биоревитализация\nДекабрь – ботокс\n\n" }, today);
     expect(result.ok && result.input.procedurePlan).toBe("Ноябрь – биоревитализация\nДекабрь – ботокс");
+  });
+});
+
+describe("DM1: направление в карте клиента", () => {
+  it("DM1: keeps the ticked directions", () => {
+    expect(parseClientForm({ fullName: "Анна", direction: ["dermatology", "cosmetology"] }, "2026-10-28")).toMatchObject({
+      ok: true,
+      input: { direction: ["cosmetology", "dermatology"] },
+    });
   });
 });

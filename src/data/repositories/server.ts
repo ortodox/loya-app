@@ -1,6 +1,7 @@
 import { createClient } from "@/data/supabase/server";
 import { supabaseCatalogRepository } from "./catalog-supabase";
 import { supabaseClientRepository } from "./clients-supabase";
+import { supabaseCourseRepository } from "./courses-supabase";
 import { supabasePhotoStorage } from "./photos-supabase";
 import { supabaseVisitRepository } from "./visits-supabase";
 
@@ -15,6 +16,10 @@ export async function visitRepository() {
 
 export async function catalogRepository() {
   return supabaseCatalogRepository(await createClient());
+}
+
+export async function courseRepository() {
+  return supabaseCourseRepository(await createClient());
 }
 
 export async function photoStorage() {
