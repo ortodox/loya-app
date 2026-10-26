@@ -6,7 +6,7 @@ import type { ClientRepository } from "@/data/repositories/clients";
 import type { PhotoStorage } from "@/data/repositories/photos";
 import type { VisitRepository } from "@/data/repositories/visits";
 import { listClients } from "./clients";
-import { deleteVisit, getVisitFormData, listVisits, saveVisit, type PhotoUpload } from "./visits";
+import { deleteVisit, getVisitFormData, listVisits, listVisitsForCard, saveVisit, type PhotoUpload } from "./visits";
 
 const today = "2026-10-27";
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
@@ -68,6 +68,7 @@ function memory() {
     notes: input.notes,
     recommendations: input.recommendations,
     recommendationsLang: input.recommendationsLang,
+    recommendationsEdited: input.recommendationsEdited,
     items: input.items.map((it, i) => ({ ...it, id: id(n + 500 + i), sortOrder: i })),
     photos: [],
     archive: { homeCareRecommendations: null, procedurePlan: null },
@@ -249,6 +250,22 @@ describe("R2/P5/AL1: заметки, рекомендации, предупре�
     expect(data.preparations[1].advice).toEqual({ ru: "Шелушение не удалять." });
   });
 
+  it("P5: remembers that the doctor edited the advice herself", async () => {
+    const m = memory();
+    await saveVisit(m.deps, clientA, null, { recommendations: "Свій совет", recommendationsEdited: "1" }, noPhotos, today);
+    await saveVisit(m.deps, clientA, null, { recommendations: "Не лягати 4 години." }, noPhotos, today);
+    expect(m.visits.map((v) => v.recommendationsEdited)).toEqual([true, false]);
+  });
+
+  it("PO1: preparations the client has had come first and are marked", async () => {
+    const m = memory();
+    await saveVisit(m.deps, clientA, null, { items: [{ preparationId: almond }] }, noPhotos, today);
+    const data = (await getVisitFormData(m.deps, clientA, null))!;
+    expect(data.preparations.map((p) => [p.name, p.usedBefore])).toEqual([["Миндальный пилинг 40%", true], ["Botox", false]]);
+    const other = (await getVisitFormData(m.deps, clientB, null))!;
+    expect(other.preparations.map((p) => p.name)).toEqual(["Botox", "Миндальный пилинг 40%"]);
+  });
+
   it("VS1: a visit can only be edited through its own client", async () => {
     const m = memory();
     const { id: vid } = (await saveVisit(m.deps, clientA, null, {}, noPhotos, today)) as { id: string };
@@ -259,6 +276,14 @@ describe("R2/P5/AL1: заметки, рекомендации, предупре�
 });
 
 describe("H1: история визитов", () => {
+  it("H1: the card gets the visits with thumbnails of their sticker photos", async () => {
+    const m = memory();
+    await saveVisit(m.deps, clientA, null, { items: [{ preparationId: botox }] }, { add: [jpeg(), jpeg()], removeIds: [] }, today);
+    const { visits, photoUrls } = await listVisitsForCard(m.deps, clientA);
+    expect(visits[0].photos).toHaveLength(2);
+    expect(Object.keys(photoUrls)).toEqual(visits[0].photos.map((p) => p.storagePath));
+  });
+
   it("H1: lists the client's visits newest first; the client list shows the last visit", async () => {
     const m = memory();
     await saveVisit(m.deps, clientA, null, { visitDate: "2026-03-01", items: [{ preparationId: botox }] }, noPhotos, today);

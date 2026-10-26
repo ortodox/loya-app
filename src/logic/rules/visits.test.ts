@@ -7,6 +7,7 @@ import {
   parseVisitForm,
   photosFit,
   sortVisitsNewestFirst,
+  usedPreparationIds,
 } from "./visits";
 
 const today = "2026-10-27";
@@ -26,7 +27,7 @@ describe("VS1: визиты", () => {
   it("VS1: a new visit needs nothing but defaults to today", () => {
     expect(parseVisitForm({}, today)).toEqual({
       ok: true,
-      input: { visitDate: today, notes: null, recommendations: null, recommendationsLang: null, items: [] },
+      input: { visitDate: today, notes: null, recommendations: null, recommendationsLang: null, recommendationsEdited: false, items: [] },
     });
   });
 
@@ -98,6 +99,31 @@ describe("R2/P5: заметки и рекомендации", () => {
       recommendationsLang: "uk",
     });
     expect(parseVisitForm({ recommendationsLang: "de" }, today)).toMatchObject({ ok: true, input: { recommendationsLang: null } });
+  });
+
+  it("P5: remembers that the doctor edited the advice, but not for an empty field", () => {
+    expect(parseVisitForm({ recommendations: "Мой совет", recommendationsEdited: "1" }, today)).toMatchObject({
+      ok: true,
+      input: { recommendationsEdited: true },
+    });
+    expect(parseVisitForm({ recommendations: " ", recommendationsEdited: "1" }, today)).toMatchObject({
+      ok: true,
+      input: { recommendationsEdited: false },
+    });
+    expect(parseVisitForm({ recommendations: "SPF 50" }, today)).toMatchObject({ ok: true, input: { recommendationsEdited: false } });
+  });
+});
+
+describe("PO1: препараты, которые клиент уже получал", () => {
+  it("PO1: lists catalogue preparations from the latest visit back, each once", () => {
+    const item = (preparationId: string | null) => ({
+      id: "x", preparationId, preparationName: "x", procedureTypeId: null, quantity: null, sortOrder: 0,
+    });
+    const visits = [
+      { visitDate: "2026-09-01", createdAt: "2026-09-01T10:00:00Z", items: [item("a"), item("b")] },
+      { visitDate: "2026-10-01", createdAt: "2026-10-01T10:00:00Z", items: [item("b"), item(null), item("c")] },
+    ];
+    expect(usedPreparationIds(visits)).toEqual(["b", "c", "a"]);
   });
 });
 

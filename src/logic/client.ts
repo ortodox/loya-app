@@ -74,6 +74,8 @@ export type Visit = {
   /** P5: post-procedure advice, one per line (filled from the catalogue, editable). */
   recommendations: string | null;
   recommendationsLang: Locale | null;
+  /** P5: the doctor edited the advice herself – never replace it without asking. */
+  recommendationsEdited: boolean;
   items: VisitItem[];
   photos: VisitPhoto[];
   /** Fields of the MVP 1a visit form, kept read-only («Архив»). */
@@ -92,5 +94,6 @@ export type VisitInput = {
   notes: string | null;
   recommendations: string | null;
   recommendationsLang: Locale | null;
+  recommendationsEdited: boolean;
   items: VisitItemInput[];
 };

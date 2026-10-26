@@ -20,6 +20,7 @@ export default async function NewVisitPage({ params }: { params: Promise<{ id: s
         title={t("newTitle")}
         cancelHref={`/clients/${id}`}
         {...visitFormProps(data, (await getLocale()) as Locale, todayIn(practiceTimeZone))}
+        draftKey={`visit:${id}`}
         action={saveVisitAction.bind(null, id, null)}
       />
     </main>

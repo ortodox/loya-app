@@ -2,13 +2,14 @@ import type { Locale } from "@/config/locales";
 import { emptySettings, type Localized, type ProcedureType } from "@/logic/catalog";
 import type { Client, IsoDate, Visit, VisitItemInput } from "@/logic/client";
 import { effectivePreparationSettings } from "@/logic/rules/catalog-settings";
-import { sortPreparations } from "@/logic/rules/catalog-list";
+import { orderForClient, sortPreparations } from "@/logic/rules/catalog-list";
 import { safetyAlerts, type SafetyAlert } from "@/logic/rules/safety-alert";
 import {
   isAcceptablePhoto,
   parseVisitForm,
   photosFit,
   sortVisitsNewestFirst,
+  usedPreparationIds,
   type VisitForm,
   type VisitInputErrors,
 } from "@/logic/rules/visits";
@@ -40,6 +41,16 @@ export async function listVisits(repo: VisitRepository, clientId: string): Promi
   return sortVisitsNewestFirst(await repo.listByClient(clientId));
 }
 
+/** H1: the client's visits for the card, newest first, with thumbnails of the sticker photos. */
+export async function listVisitsForCard(
+  deps: Pick<VisitDeps, "visits" | "photos">,
+  clientId: string,
+): Promise<{ visits: Visit[]; photoUrls: Record<string, string> }> {
+  const visits = await listVisits(deps.visits, clientId);
+  const paths = visits.flatMap((v) => v.photos.map((p) => p.storagePath));
+  return { visits, photoUrls: paths.length > 0 ? await deps.photos.signedUrls(paths) : {} };
+}
+
 /** VS1: one visit, only when it belongs to the client in the URL. */
 export async function getVisit(repo: VisitRepository, clientId: string, visitId: string): Promise<Visit | null> {
   if (!uuid.test(clientId) || !uuid.test(visitId)) return null;
@@ -53,6 +64,8 @@ export type PreparationOption = {
   name: string;
   manufacturer: string | null;
   favorite: boolean;
+  /** PO1: the client has had this preparation before. */
+  usedBefore: boolean;
   procedureTypeId: string;
   /** DO1: standard dose from the catalogue, shown as help text. */
   doseText: string | null;
@@ -85,9 +98,14 @@ export async function getVisitFormData(
   const visit = visitId === null ? null : await getVisit(deps.visits, clientId, visitId);
   if (visitId !== null && !visit) return null;
 
-  const [types, preparations] = await Promise.all([deps.catalog.listTypes(), deps.catalog.listPreparations()]);
+  const [types, preparations, earlier] = await Promise.all([
+    deps.catalog.listTypes(),
+    deps.catalog.listPreparations(),
+    deps.visits.listByClient(clientId),
+  ]);
   const typeById = new Map(types.map((t) => [t.id, t]));
-  const options: PreparationOption[] = sortPreparations(preparations).flatMap((p) => {
+  const used = usedPreparationIds(earlier);
+  const options: PreparationOption[] = orderForClient(sortPreparations(preparations), used).flatMap((p) => {
     const type = typeById.get(p.procedureTypeId);
     if (!type) return [];
     const { settings } = effectivePreparationSettings(type, p);
@@ -97,6 +115,7 @@ export async function getVisitFormData(
         name: p.name,
         manufacturer: p.manufacturer,
         favorite: p.favorite,
+        usedBefore: used.includes(p.id),
         procedureTypeId: p.procedureTypeId,
         doseText: settings.doseText,
         doseUnit: settings.doseUnit,

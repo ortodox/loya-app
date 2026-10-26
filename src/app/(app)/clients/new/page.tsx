@@ -14,6 +14,7 @@ export default async function NewClientPage() {
         initial={{ cardDate: todayIn(practiceTimeZone), language: "ru" }}
         countries={countryOptions(await getLocale())}
         cancelHref="/clients"
+        draftKey="client:new"
         action={createClientAction}
       />
     </main>

@@ -40,7 +40,10 @@
     "age": "{age, plural, one {# рік} few {# роки} many {# років} other {# року}}",
     "count": "{count, plural, one {# клієнт} few {# клієнти} many {# клієнтів} other {# клієнта}}",
     "allergyTag": "Алергія",
-    "newButton": "+ Новий клієнт"
+    "newButton": "+ Новий клієнт",
+    "created": "Клієнта збережено.",
+    "addVisit": "+ Додати візит",
+    "later": "Пізніше"
   },
   "language": {
     "ru": "Русский",
@@ -241,7 +244,14 @@
       "preparationNotFound": "Препарат не знайдено в каталозі.",
       "itemInvalid": "Не вдалося прочитати препарат.",
       "tooManyItems": "Забагато препаратів в одному візиті."
-    }
+    },
+    "adviceTitle": "Рекомендації для клієнта",
+    "adviceCount": "{count, plural, one {# пункт} few {# пункти} many {# пунктів} other {# пункту}}",
+    "adviceEdit": "Змінити",
+    "adviceClose": "Згорнути",
+    "alertMatch": "У рекомендаціях є «{word}» – перевірте:",
+    "usedBefore": "Клієнт уже отримував",
+    "noItems": "Без препаратів"
   },
   "brand": {
     "name": "LOA",
@@ -342,5 +352,9 @@
     "label": "Розділи",
     "clients": "Клієнти",
     "preparations": "Препарати"
+  },
+  "draft": {
+    "restored": "Відновлено незбережену чернетку.",
+    "discard": "Скинути чернетку"
   }
 }

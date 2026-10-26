@@ -23,6 +23,8 @@ export type VisitForm = {
   notes?: string;
   recommendations?: string;
   recommendationsLang?: string;
+  /** «1» when the doctor edited the advice herself. */
+  recommendationsEdited?: string;
   items?: VisitItemForm[];
 };
 
@@ -46,6 +48,7 @@ export type ParsedVisit = {
   notes: string | null;
   recommendations: string | null;
   recommendationsLang: Locale | null;
+  recommendationsEdited: boolean;
   items: ParsedVisitItem[];
 };
 
@@ -94,6 +97,7 @@ export function parseVisitForm(
       notes: freeText(form.notes),
       recommendations: freeText(form.recommendations),
       recommendationsLang: isLocale(form.recommendationsLang) ? form.recommendationsLang : null,
+      recommendationsEdited: form.recommendationsEdited === "1" && freeText(form.recommendations) !== null,
       items,
     },
   };
@@ -127,4 +131,15 @@ export function sortVisitsNewestFirst<T extends Pick<Visit, "visitDate" | "creat
 /** Archive of the MVP 1a visit form: shown read-only when it has content. */
 export function hasArchive(visit: Pick<Visit, "archive">): boolean {
   return Boolean(visit.archive.homeCareRecommendations?.trim() || visit.archive.procedurePlan?.trim());
+}
+
+/** PO1: catalogue preparations the client has had, from the most recent visit back, each once. */
+export function usedPreparationIds(visits: readonly Pick<Visit, "visitDate" | "createdAt" | "items">[]): string[] {
+  const ids: string[] = [];
+  for (const visit of sortVisitsNewestFirst(visits)) {
+    for (const item of visit.items) {
+      if (item.preparationId && !ids.includes(item.preparationId)) ids.push(item.preparationId);
+    }
+  }
+  return ids;
 }

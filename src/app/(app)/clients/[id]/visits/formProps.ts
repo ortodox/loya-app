@@ -13,6 +13,7 @@ export function visitFormProps(data: VisitFormData, locale: Locale, today: strin
     name: p.name,
     manufacturer: p.manufacturer,
     favorite: p.favorite,
+    usedBefore: p.usedBefore,
     typeName: typeName.get(p.procedureTypeId) ?? "",
     procedureTypeId: p.procedureTypeId,
     doseHint: dose(p.doseText, p.doseUnit),
@@ -30,6 +31,7 @@ export function visitFormProps(data: VisitFormData, locale: Locale, today: strin
     visitDate: visit?.visitDate ?? today,
     notes: visit?.notes ?? "",
     recommendations: visit?.recommendations ?? "",
+    recommendationsEdited: visit?.recommendationsEdited ?? false,
     // Rows whose preparation is no longer in the catalogue stay as named rows of their type.
     items: (visit?.items ?? []).map((i) =>
       i.preparationId && known.has(i.preparationId)

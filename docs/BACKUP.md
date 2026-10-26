@@ -167,6 +167,7 @@ on conflict (id) do update set
   notes                     = excluded.notes,
   recommendations           = excluded.recommendations,
   recommendations_lang      = excluded.recommendations_lang,
+  recommendations_edited    = excluded.recommendations_edited,
   created_at                = excluded.created_at;
 
 -- Preparations in the visits (R1)
@@ -260,6 +261,7 @@ on conflict (id) do update set
   notes                     = excluded.notes,
   recommendations           = excluded.recommendations,
   recommendations_lang      = excluded.recommendations_lang,
+  recommendations_edited    = excluded.recommendations_edited,
   created_at                = excluded.created_at;
 
 -- Preparations in the visits (R1)
