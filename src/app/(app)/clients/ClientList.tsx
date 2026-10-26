@@ -4,14 +4,14 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
 import { card, ui } from "@/app/components/ui";
-import { matchesName } from "@/logic/rules/client-list";
-import { formatIsoDate } from "@/logic/rules/dates";
+import { matchesClient } from "@/logic/rules/client-list";
+import { formatDayMonth, formatIsoDate } from "@/logic/rules/dates";
 import type { ClientSummary } from "@/logic/usecases/clients";
 
 export function ClientList({ clients }: { clients: ClientSummary[] }) {
   const t = useTranslations("clients");
   const [query, setQuery] = useState("");
-  const shown = clients.filter((c) => matchesName(c.fullName, query));
+  const shown = clients.filter((c) => matchesClient(c, query));
 
   if (clients.length === 0) {
     return (
@@ -45,6 +45,10 @@ export function ClientList({ clients }: { clients: ClientSummary[] }) {
                   {formatIsoDate(c.date)}
                   {c.age !== null && ` · ${t("age", { age: c.age })}`}
                 </span>
+                {/* VP2: the next appointment. */}
+                {c.nextVisitDate && (
+                  <span className="text-sm font-medium text-accent">{t("nextVisit", { date: formatDayMonth(c.nextVisitDate) })}</span>
+                )}
                 {c.excerpt && <span className="truncate text-sm text-muted">{c.excerpt}</span>}
               </span>
               <span className="flex shrink-0 flex-col items-end gap-1 pt-0.5">

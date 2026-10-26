@@ -8,6 +8,8 @@ import {
   isAcceptablePhoto,
   parseVisitForm,
   photosFit,
+  anamnesisConfirmation,
+  lastCompletedVisit,
   sortVisitsNewestFirst,
   usedPreparationIds,
   type VisitForm,
@@ -82,6 +84,10 @@ export type VisitFormData = {
   preparations: PreparationOption[];
   types: Pick<ProcedureType, "id" | "name" | "advice" | "doseText" | "doseUnit">[];
   visit: Visit | null;
+  /** RV1: «Повторить прошлый визит» – the visit whose preparations and quantities are copied. */
+  repeatFrom: Visit | null;
+  /** AN3: last «Анамнез без изменений ✓». */
+  anamnesisConfirmedAt: IsoDate | null;
   /** Thumbnails of the visit's photos, by storage path. */
   photoUrls: Record<string, string>;
 };
@@ -91,6 +97,7 @@ export async function getVisitFormData(
   deps: VisitDeps,
   clientId: string,
   visitId: string | null,
+  repeat: { today: IsoDate } | null = null,
 ): Promise<VisitFormData | null> {
   if (!uuid.test(clientId)) return null;
   const client = await deps.clients.get(clientId);
@@ -133,6 +140,8 @@ export async function getVisitFormData(
       .sort((a, b) => a.sortOrder - b.sortOrder)
       .map((t) => ({ id: t.id, name: t.name, advice: t.advice, doseText: t.doseText, doseUnit: t.doseUnit })),
     visit,
+    repeatFrom: visit === null && repeat ? lastCompletedVisit(earlier, repeat.today) : null,
+    anamnesisConfirmedAt: client.anamnesisConfirmedAt,
     photoUrls: visit ? await deps.photos.signedUrls(visit.photos.map((p) => p.storagePath)) : {},
   };
 }
@@ -151,7 +160,8 @@ export async function saveVisit(
   photos: { add: PhotoUpload[]; removeIds: string[] },
   today: IsoDate,
 ): Promise<SaveVisitResult> {
-  if (!uuid.test(clientId) || !(await deps.clients.get(clientId))) return { ok: false, notFound: true };
+  const client = uuid.test(clientId) ? await deps.clients.get(clientId) : null;
+  if (!client) return { ok: false, notFound: true };
   const existing = visitId === null ? null : await getVisit(deps.visits, clientId, visitId);
   if (visitId !== null && !existing) return { ok: false, notFound: true };
 
@@ -192,7 +202,8 @@ export async function saveVisit(
     items.push({ preparationId: id, preparationName: r.manual.name, procedureTypeId: r.manual.procedureTypeId, quantity: r.quantity });
   }
 
-  const input = { ...parsed.input, items };
+  const { anamnesisConfirmed, ...visitFields } = parsed.input;
+  const input = { ...visitFields, items };
   let id: string;
   if (existing) {
     if (!(await deps.visits.update(existing.id, input))) return { ok: false, notFound: true };
@@ -211,6 +222,10 @@ export async function saveVisit(
     const path = await deps.photos.upload(id, photo.bytes);
     await deps.visits.addPhoto(id, path, order++);
   }
+
+  // AN3: «Анамнез без изменений ✓» – remember when the anamnesis was last confirmed.
+  const confirmed = anamnesisConfirmed ? anamnesisConfirmation(input.visitDate, today, client.anamnesisConfirmedAt) : null;
+  if (confirmed) await deps.clients.confirmAnamnesis(clientId, confirmed);
   return { ok: true, id };
 }
 

@@ -19,5 +19,5 @@ export default async function ClientCardPage({
     listVisitsForCard({ visits: await visitRepository(), photos: await photoStorage() }, id),
   ]);
   if (!data) notFound();
-  return <ClientCardView data={data} visits={visits} photoUrls={photoUrls} created={created === "1"} />;
+  return <ClientCardView data={data} visits={visits} photoUrls={photoUrls} created={created === "1"} today={todayIn(practiceTimeZone)} />;
 }

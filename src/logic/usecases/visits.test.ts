@@ -32,7 +32,8 @@ const client = (cid: string, fullName: string, extra: Partial<Client> = {}): Cli
   anamnesis: {},
   notes: null,
   procedurePlan: null,
-  lastVisitDate: null,
+  anamnesisConfirmedAt: null,
+  visitDates: [],
   updatedAt: "2026-01-01T00:00:00Z",
   ...extra,
 });
@@ -55,10 +56,15 @@ function memory() {
   const stored = new Set<string>();
   const clientRepo: ClientRepository = {
     list: async () =>
-      clients.map((c) => ({ ...c, lastVisitDate: visits.filter((v) => v.clientId === c.id).map((v) => v.visitDate).sort().at(-1) ?? null })),
+      clients.map((c) => ({ ...c, visitDates: visits.filter((v) => v.clientId === c.id).map((v) => v.visitDate) })),
     get: async (cid) => clients.find((c) => c.id === cid) ?? null,
     create: async () => ({ id: "x" }),
     update: async () => true,
+    confirmAnamnesis: async (cid, date) => {
+      const c = clients.find((x) => x.id === cid);
+      if (c) c.anamnesisConfirmedAt = date;
+      return Boolean(c);
+    },
   };
   const toVisit = (vid: string, clientId: string, input: VisitInput): Visit => ({
     id: vid,
@@ -127,7 +133,7 @@ function memory() {
     remove: async (paths) => paths.forEach((p) => stored.delete(p)),
     signedUrls: async (paths) => Object.fromEntries(paths.map((p) => [p, `https://signed/${p}`])),
   };
-  return { deps: { clients: clientRepo, visits: visitRepo, catalog, photos }, visits, preparations, stored };
+  return { deps: { clients: clientRepo, visits: visitRepo, catalog, photos }, visits, preparations, stored, clients };
 }
 
 const noPhotos = { add: [], removeIds: [] };
@@ -272,6 +278,30 @@ describe("R2/P5/AL1: заметки, рекомендации, предупре�
     expect(await saveVisit(m.deps, clientB, vid, {}, noPhotos, today)).toEqual({ ok: false, notFound: true });
     expect(await getVisitFormData(m.deps, clientB, vid)).toBeNull();
     expect(await deleteVisit(m.deps, clientB, vid)).toBe(false);
+  });
+});
+
+describe("RV1: повторить прошлый визит", () => {
+  it("RV1: the new visit form gets the last visit that took place, not a planned one", async () => {
+    const m = memory();
+    await saveVisit(m.deps, clientA, null, { visitDate: "2026-10-01", items: [{ preparationId: botox, quantity: "20+15 ед." }] }, noPhotos, today);
+    await saveVisit(m.deps, clientA, null, { visitDate: "2026-11-15" }, noPhotos, today);
+    const data = (await getVisitFormData(m.deps, clientA, null, { today }))!;
+    expect(data.repeatFrom?.visitDate).toBe("2026-10-01");
+    expect(data.repeatFrom?.items.map((i) => [i.preparationName, i.quantity])).toEqual([["Botox", "20+15 ед."]]);
+    expect((await getVisitFormData(m.deps, clientA, null))!.repeatFrom).toBeNull();
+  });
+});
+
+describe("AN3: анамнез без изменений", () => {
+  it("AN3: ticking «Анамнез без изменений ✓» stores the visit date on the client", async () => {
+    const m = memory();
+    await saveVisit(m.deps, clientA, null, { visitDate: "2026-10-20", anamnesisConfirmed: "1" }, noPhotos, today);
+    expect(m.clients.find((c) => c.id === clientA)!.anamnesisConfirmedAt).toBe("2026-10-20");
+    await saveVisit(m.deps, clientA, null, { visitDate: "2026-09-01", anamnesisConfirmed: "1" }, noPhotos, today);
+    expect(m.clients.find((c) => c.id === clientA)!.anamnesisConfirmedAt).toBe("2026-10-20");
+    await saveVisit(m.deps, clientB, null, { visitDate: "2026-10-20" }, noPhotos, today);
+    expect(m.clients.find((c) => c.id === clientB)!.anamnesisConfirmedAt).toBeNull();
   });
 });
 

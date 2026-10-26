@@ -43,7 +43,8 @@
     "newButton": "+ Nowy klient",
     "created": "Klient zapisany.",
     "addVisit": "+ Dodaj wizytę",
-    "later": "Później"
+    "later": "Później",
+    "nextVisit": "Wizyta: {date}"
   },
   "language": {
     "ru": "Русский",
@@ -70,7 +71,12 @@
     },
     "kicker": "Karta klienta",
     "firstVisit": "pierwsza wizyta {date}",
-    "procedurePlan": "Plan zabiegów"
+    "procedurePlan": "Plan zabiegów",
+    "anamnesisConfirmed": "Wywiad potwierdzony: {date}",
+    "call": "Zadzwoń",
+    "whatsapp": "WhatsApp",
+    "telegram": "Telegram",
+    "viber": "Viber"
   },
   "form": {
     "titleNew": "Nowy klient",
@@ -251,7 +257,15 @@
     "adviceClose": "Zwiń",
     "alertMatch": "W zaleceniach jest „{word}” – sprawdź:",
     "usedBefore": "Klient już otrzymywał",
-    "noItems": "Bez preparatów"
+    "noItems": "Bez preparatów",
+    "repeatLast": "↺ Powtórz poprzednią wizytę",
+    "repeatedFrom": "Preparaty i ilości z wizyty {date}. Zdjęcia i notatki – nowe.",
+    "upcoming": "Nadchodzące wizyty",
+    "past": "Minione wizyty",
+    "planned": "Zaplanowana",
+    "anamnesisUnchanged": "Wywiad bez zmian ✓",
+    "anamnesisLast": "Ostatnie potwierdzenie: {date}",
+    "anamnesisNever": "Jeszcze nie potwierdzono"
   },
   "brand": {
     "name": "LOA",

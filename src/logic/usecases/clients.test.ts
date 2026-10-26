@@ -22,7 +22,8 @@ function client(overrides: Partial<Client>): Client {
     anamnesis: {},
     notes: null,
     procedurePlan: null,
-    lastVisitDate: null,
+    anamnesisConfirmedAt: null,
+    visitDates: [],
     updatedAt: "2025-01-01T00:00:00Z",
     ...overrides,
   };
@@ -48,10 +49,21 @@ function memoryRepo(initial: Client[] = []): ClientRepository & { rows: Client[]
       rows[i] = { ...rows[i], ...input };
       return true;
     },
+    confirmAnamnesis: async (id, date) => {
+      const i = rows.findIndex((r) => r.id === id);
+      if (i < 0) return false;
+      rows[i] = { ...rows[i], anamnesisConfirmedAt: date };
+      return true;
+    },
   };
 }
 
 describe("client use cases", () => {
+  it("VP2: the list shows the last visit that took place and the next appointment", async () => {
+    const repo = memoryRepo([client({ visitDates: ["2026-11-05", "2026-09-01", "2026-10-31"] })]);
+    expect(await listClients(repo, today)).toMatchObject([{ date: "2026-09-01", nextVisitDate: "2026-10-31" }]);
+  });
+
   it("PR2: lists newest first with date, current age and excerpt", async () => {
     const repo = memoryRepo([
       client({ id: id1, fullName: "Старая", cardDate: "2024-03-01", ageAtRegistration: 30 }),
@@ -72,8 +84,10 @@ describe("client use cases", () => {
         residenceCountry: "NO",
         allergy: false,
         excerpt: "Чувствительная кожа",
+        phone: null,
+        nextVisitDate: null,
       },
-      { id: id1, fullName: "Старая", date: "2024-03-01", age: 32, residenceCountry: null, allergy: false, excerpt: "" },
+      { id: id1, fullName: "Старая", date: "2024-03-01", age: 32, residenceCountry: null, allergy: false, excerpt: "", phone: null, nextVisitDate: null },
     ]);
   });
 

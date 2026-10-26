@@ -17,12 +17,13 @@ type ClientRow = {
   anamnesis: Anamnesis | null;
   notes: string | null;
   procedure_plan: string | null;
+  anamnesis_confirmed_at: string | null;
   updated_at: string;
   visits?: { visit_date: string }[];
 };
 
 const columns =
-  "id, full_name, card_date, age_at_registration, birth_date, phone, email, residence_country, residence_city, language, anamnesis, notes, procedure_plan, updated_at";
+  "id, full_name, card_date, age_at_registration, birth_date, phone, email, residence_country, residence_city, language, anamnesis, notes, procedure_plan, anamnesis_confirmed_at, updated_at";
 
 function toClient(row: ClientRow): Client {
   return {
@@ -39,7 +40,8 @@ function toClient(row: ClientRow): Client {
     anamnesis: row.anamnesis ?? {},
     notes: row.notes,
     procedurePlan: row.procedure_plan,
-    lastVisitDate: row.visits?.[0]?.visit_date ?? null,
+    anamnesisConfirmedAt: row.anamnesis_confirmed_at,
+    visitDates: (row.visits ?? []).map((v) => v.visit_date),
     updatedAt: row.updated_at,
   };
 }
@@ -63,22 +65,18 @@ function toRow(input: ClientInput) {
 
 /** Supabase-backed client storage. RLS limits every query to the signed-in doctor. */
 export function supabaseClientRepository(supabase: SupabaseClient): ClientRepository {
-  const withLastVisit = () =>
-    supabase
-      .from("clients")
-      .select(`${columns}, visits(visit_date)`)
-      .order("visit_date", { referencedTable: "visits", ascending: false })
-      .limit(1, { referencedTable: "visits" });
+  // VS1/VP2: all visit dates, so the list can show the last visit and the next appointment.
+  const withVisits = () => supabase.from("clients").select(`${columns}, visits(visit_date)`);
 
   return {
     async list() {
-      const { data, error } = await withLastVisit();
+      const { data, error } = await withVisits();
       if (error) throw error;
       return (data as ClientRow[]).map(toClient);
     },
 
     async get(id) {
-      const { data, error } = await withLastVisit().eq("id", id).maybeSingle();
+      const { data, error } = await withVisits().eq("id", id).maybeSingle();
       if (error) throw error;
       return data ? toClient(data as ClientRow) : null;
     },
@@ -93,6 +91,16 @@ export function supabaseClientRepository(supabase: SupabaseClient): ClientReposi
       const { data, error } = await supabase
         .from("clients")
         .update(toRow(input))
+        .eq("id", id)
+        .select("id");
+      if (error) throw error;
+      return data.length > 0;
+    },
+
+    async confirmAnamnesis(id, date) {
+      const { data, error } = await supabase
+        .from("clients")
+        .update({ anamnesis_confirmed_at: date })
         .eq("id", id)
         .select("id");
       if (error) throw error;

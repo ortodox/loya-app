@@ -9,9 +9,18 @@ import { visitDeps } from "../deps";
 import { visitFormProps } from "../formProps";
 import { VisitForm } from "../VisitForm";
 
-export default async function NewVisitPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const data = await getVisitFormData(await visitDeps(), id, null);
+export default async function NewVisitPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ repeat?: string }>;
+}) {
+  const [{ id }, { repeat }] = await Promise.all([params, searchParams]);
+  const today = todayIn(practiceTimeZone);
+  // RV1: «Повторить прошлый визит» opens the form filled in from the last visit.
+  const repeating = repeat === "1";
+  const data = await getVisitFormData(await visitDeps(), id, null, repeating ? { today } : null);
   if (!data) notFound();
   const t = await getTranslations("visits");
   return (
@@ -19,8 +28,8 @@ export default async function NewVisitPage({ params }: { params: Promise<{ id: s
       <VisitForm
         title={t("newTitle")}
         cancelHref={`/clients/${id}`}
-        {...visitFormProps(data, (await getLocale()) as Locale, todayIn(practiceTimeZone))}
-        draftKey={`visit:${id}`}
+        {...visitFormProps(data, (await getLocale()) as Locale, today)}
+        draftKey={repeating ? `visit:${id}:repeat` : `visit:${id}`}
         action={saveVisitAction.bind(null, id, null)}
       />
     </main>

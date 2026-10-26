@@ -149,7 +149,8 @@ on conflict (id) do update set
   email               = excluded.email,
   residence_country   = excluded.residence_country,
   residence_city      = excluded.residence_city,
-  procedure_plan      = excluded.procedure_plan;
+  procedure_plan      = excluded.procedure_plan,
+  anamnesis_confirmed_at = excluded.anamnesis_confirmed_at;
 
 with valgt as (
   select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
@@ -244,7 +245,8 @@ on conflict (id) do update set
   email               = excluded.email,
   residence_country   = excluded.residence_country,
   residence_city      = excluded.residence_city,
-  procedure_plan      = excluded.procedure_plan;
+  procedure_plan      = excluded.procedure_plan,
+  anamnesis_confirmed_at = excluded.anamnesis_confirmed_at;
 
 with valgt as (
   select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'

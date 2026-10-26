@@ -1,7 +1,7 @@
 import type { Client, IsoDate } from "@/logic/client";
 import { currentAge } from "@/logic/rules/age";
 import { parseClientForm, type ClientForm, type ClientInputErrors } from "@/logic/rules/client-input";
-import { lastActivityDate, notesExcerpt, sortNewestFirst } from "@/logic/rules/client-list";
+import { lastActivityDate, notesExcerpt, sortNewestFirst, visitTimeline } from "@/logic/rules/client-list";
 import { safetyAlerts, type SafetyAlert } from "@/logic/rules/safety-alert";
 import type { ClientRepository } from "@/data/repositories/clients";
 
@@ -17,11 +17,19 @@ export type ClientSummary = {
   /** AL2: «Аллергоанамнез» is filled in – shown as a tag in the list. */
   allergy: boolean;
   excerpt: string;
+  /** PR7: for the search by phone number (not shown). */
+  phone: string | null;
+  /** VP2: the next planned visit («Запись: 31.10»). */
+  nextVisitDate: IsoDate | null;
 };
 
-/** PR2: all clients for the list, newest first. Search runs in the UI with `matchesName`. */
+/** PR2/VP2: all clients for the list, newest first. Search runs in the UI with `matchesClient`. */
 export async function listClients(repo: ClientRepository, today: IsoDate): Promise<ClientSummary[]> {
-  return sortNewestFirst(await repo.list()).map((c) => ({
+  const withDates = (await repo.list()).map((c) => {
+    const { last, next } = visitTimeline(c.visitDates, today);
+    return { ...c, lastVisitDate: last, nextVisitDate: next };
+  });
+  return sortNewestFirst(withDates).map((c) => ({
     id: c.id,
     fullName: c.fullName,
     date: lastActivityDate(c),
@@ -29,6 +37,8 @@ export async function listClients(repo: ClientRepository, today: IsoDate): Promi
     residenceCountry: c.residenceCountry,
     allergy: safetyAlerts(c.anamnesis).some((a) => a.field === "allergies"),
     excerpt: notesExcerpt(c.notes),
+    phone: c.phone,
+    nextVisitDate: c.nextVisitDate,
   }));
 }
 

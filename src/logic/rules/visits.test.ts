@@ -8,7 +8,12 @@ import {
   photosFit,
   sortVisitsNewestFirst,
   usedPreparationIds,
+  isPlanned,
+  splitVisits,
+  lastCompletedVisit,
+  anamnesisConfirmation,
 } from "./visits";
+import type { Visit } from "@/logic/client";
 
 const today = "2026-10-27";
 const prep = "00000000-0000-4000-8000-000000000001";
@@ -27,7 +32,7 @@ describe("VS1: визиты", () => {
   it("VS1: a new visit needs nothing but defaults to today", () => {
     expect(parseVisitForm({}, today)).toEqual({
       ok: true,
-      input: { visitDate: today, notes: null, recommendations: null, recommendationsLang: null, recommendationsEdited: false, items: [] },
+      input: { visitDate: today, notes: null, recommendations: null, recommendationsLang: null, recommendationsEdited: false, anamnesisConfirmed: false, items: [] },
     });
   });
 
@@ -145,5 +150,46 @@ describe("LOT1: фото наклейки", () => {
     expect(fitWithin(4032, 3024)).toEqual({ width: 1600, height: 1200 });
     expect(fitWithin(3024, 4032)).toEqual({ width: 1200, height: 1600 });
     expect(fitWithin(800, 600)).toEqual({ width: 800, height: 600 });
+  });
+});
+
+describe("VP2: запланированные визиты", () => {
+  const v = (visitDate: string, n = 0) => ({ visitDate, createdAt: `2026-01-01T00:00:0${n}Z`, items: [] as Visit["items"] });
+
+  it("VP2: a visit after today is planned; today's visit is not", () => {
+    expect(isPlanned({ visitDate: "2026-10-29" }, "2026-10-28")).toBe(true);
+    expect(isPlanned({ visitDate: "2026-10-28" }, "2026-10-28")).toBe(false);
+  });
+
+  it("VP2: upcoming visits soonest first, then the past ones newest first", () => {
+    const { upcoming, past } = splitVisits([v("2026-11-20"), v("2026-09-01"), v("2026-10-31"), v("2026-10-28")], "2026-10-28");
+    expect(upcoming.map((x) => x.visitDate)).toEqual(["2026-10-31", "2026-11-20"]);
+    expect(past.map((x) => x.visitDate)).toEqual(["2026-10-28", "2026-09-01"]);
+  });
+});
+
+describe("RV1: повторить прошлый визит", () => {
+  const item = { id: "i", preparationId: "p", preparationName: "Botox", procedureTypeId: null, quantity: "20 ед.", sortOrder: 0 };
+  const v = (visitDate: string, items: Visit["items"]) => ({ visitDate, createdAt: "2026-01-01T00:00:00Z", items });
+
+  it("RV1: repeats the newest visit that took place and has preparations", () => {
+    const visits = [v("2026-11-01", [item]), v("2026-10-20", []), v("2026-10-01", [item]), v("2026-09-01", [item])];
+    expect(lastCompletedVisit(visits, "2026-10-28")?.visitDate).toBe("2026-10-01");
+  });
+
+  it("RV1: nothing to repeat without such a visit", () => {
+    expect(lastCompletedVisit([v("2026-11-01", [item])], "2026-10-28")).toBeNull();
+  });
+});
+
+describe("AN3: анамнез без изменений", () => {
+  it("AN3: stores the visit date, never a future date", () => {
+    expect(anamnesisConfirmation("2026-10-27", "2026-10-28", null)).toBe("2026-10-27");
+    expect(anamnesisConfirmation("2026-11-05", "2026-10-28", null)).toBe("2026-10-28");
+  });
+
+  it("AN3: keeps a newer confirmation that is already stored", () => {
+    expect(anamnesisConfirmation("2026-09-01", "2026-10-28", "2026-10-01")).toBeNull();
+    expect(anamnesisConfirmation("2026-10-28", "2026-10-28", "2026-10-01")).toBe("2026-10-28");
   });
 });
