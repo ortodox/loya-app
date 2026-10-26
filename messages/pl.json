@@ -40,7 +40,10 @@
     "age": "{age, plural, one {# rok} few {# lata} many {# lat} other {# roku}}",
     "count": "{count, plural, one {# klient} few {# klientów} many {# klientów} other {# klienta}}",
     "allergyTag": "Alergia",
-    "newButton": "+ Nowy klient"
+    "newButton": "+ Nowy klient",
+    "created": "Klient zapisany.",
+    "addVisit": "+ Dodaj wizytę",
+    "later": "Później"
   },
   "language": {
     "ru": "Русский",
@@ -241,7 +244,14 @@
       "preparationNotFound": "Nie znaleziono preparatu w katalogu.",
       "itemInvalid": "Nie udało się odczytać preparatu.",
       "tooManyItems": "Za dużo preparatów w jednej wizycie."
-    }
+    },
+    "adviceTitle": "Zalecenia dla klienta",
+    "adviceCount": "{count, plural, one {# punkt} few {# punkty} many {# punktów} other {# punktu}}",
+    "adviceEdit": "Zmień",
+    "adviceClose": "Zwiń",
+    "alertMatch": "W zaleceniach jest „{word}” – sprawdź:",
+    "usedBefore": "Klient już otrzymywał",
+    "noItems": "Bez preparatów"
   },
   "brand": {
     "name": "LOA",
@@ -342,5 +352,9 @@
     "label": "Sekcje",
     "clients": "Klienci",
     "preparations": "Preparaty"
+  },
+  "draft": {
+    "restored": "Przywrócono niezapisany szkic.",
+    "discard": "Odrzuć szkic"
   }
 }

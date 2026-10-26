@@ -40,7 +40,10 @@
     "age": "{age, plural, one {# год} few {# года} many {# лет} other {# года}}",
     "count": "{count, plural, one {# клиент} few {# клиента} many {# клиентов} other {# клиента}}",
     "allergyTag": "Аллергия",
-    "newButton": "+ Новый клиент"
+    "newButton": "+ Новый клиент",
+    "created": "Клиент сохранён.",
+    "addVisit": "+ Добавить визит",
+    "later": "Позже"
   },
   "language": {
     "ru": "Русский",
@@ -241,7 +244,14 @@
       "preparationNotFound": "Препарат не найден в каталоге.",
       "itemInvalid": "Не удалось прочитать препарат.",
       "tooManyItems": "Слишком много препаратов в одном визите."
-    }
+    },
+    "adviceTitle": "Рекомендации для клиента",
+    "adviceCount": "{count, plural, one {# пункт} few {# пункта} many {# пунктов} other {# пункта}}",
+    "adviceEdit": "Изменить",
+    "adviceClose": "Свернуть",
+    "alertMatch": "В рекомендациях есть «{word}» – проверьте:",
+    "usedBefore": "Клиент уже получал",
+    "noItems": "Без препаратов"
   },
   "brand": {
     "name": "LOA",
@@ -342,5 +352,9 @@
     "label": "Разделы",
     "clients": "Клиенты",
     "preparations": "Препараты"
+  },
+  "draft": {
+    "restored": "Восстановлен несохранённый черновик.",
+    "discard": "Сбросить черновик"
   }
 }

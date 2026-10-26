@@ -37,6 +37,7 @@ function readForm(formData: FormData): ClientForm {
 async function save(
   formData: FormData,
   run: (form: ClientForm, today: string) => Promise<SaveClientResult>,
+  created = false,
 ): Promise<ClientFormState> {
   const values = readForm(formData);
   let result: SaveClientResult;
@@ -48,12 +49,12 @@ async function save(
   if (!result.ok) return "errors" in result ? { values, errors: result.errors } : { values, failed: true };
 
   revalidatePath("/clients");
-  redirect(`/clients/${result.id}`);
+  redirect(created ? `/clients/${result.id}?created=1` : `/clients/${result.id}`);
 }
 
 export async function createClientAction(_: ClientFormState, formData: FormData) {
   const repo = await clientRepository();
-  return save(formData, (form, today) => createClient(repo, form, today));
+  return save(formData, (form, today) => createClient(repo, form, today), true);
 }
 
 export async function updateClientAction(id: string, _: ClientFormState, formData: FormData) {

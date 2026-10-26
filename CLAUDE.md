@@ -20,8 +20,8 @@ Appen er **ikke** lovpålagt medisinsk journal (EDM). Den er et verktøy for opp
 **Rekkefølge** (vedtatt 26.10.2026, se «Порядок работы» i `roadmap_ru.md`). MVP-nummereringen beholdes; bare rekkefølgen endres – 1c kommer før 1b-3 og 1b-4:
 
 1. **1b-1 Каталог** ✅ – B1, P1, P2, P5, S2
-2. **1b-2 Новый визит** ← *nå* – R1, DO1, LOT1, R2, H1, PP1, P9, AL1, P10. Gjenstår: rådene er for klienten, så hos legen vises de **sammenfoldet til én linje**; AL1-varselet er **alltid synlig**. P10 = standarddose som hjelpetekst ved mengde.
-3. **1b-2b Быстрее каждый день** – RV1 (gjenta forrige besøk), trykkbar telefon/e-post (ring, WhatsApp, Telegram, Viber), søk på telefonnummer, «Анамнез без изменений ✓» (AN3 delvis), automatisk lagring av utkast, «Добавить визит» rett etter ny klient, preparater klienten har fått før øverst
+2. **1b-2 Новый визит** ✅ (venter på Loyas kontroll) – R1, DO1, LOT1, R2, P5, H1, PP1, P9, AL1, P10, PO1, DR1, AV1. Rådene er for klienten: hos legen **sammenfoldet til én linje**; AL1-varselet **alltid åpent**, og nevner ord fra allergifeltet som står i rådene (`adviceConflicts`). P10 = standarddose som hjelpetekst. PO1 = preparater klienten har fått før øverst. DR1 = utkast. AV1 = «Добавить визит» etter ny klient.
+3. **1b-2b Быстрее каждый день** ← *neste* – RV1 (gjenta forrige besøk), trykkbar telefon/e-post (ring, WhatsApp, Telegram, Viber), søk på telefonnummer, «Анамнез без изменений ✓» (AN3 delvis)
 4. **1c Лечение, уход и документы** – LE1–LE6, LE8, LE9, UH1, UH2, DK1, DK3, DK5. Diagnose kun i kurset (ikke eget felt i kortet); aktivt kurs øverst i kortet; resepter skrives i et annet system (kun foto); ingen legemiddelliste
 5. **1b-3 Схема лица** – Z5, med `design/face-template.webp`
 6. **1b-4 Страница клиента** – HE1, E2, E3, E4. Én app; hemmelig lenke per besøk (`/p/<kode>`), uten innlogging, kan trekkes tilbake, ikke indekserbar (`noindex`). Klienten ser dato, preparater, foto av klistremerke og råd – ikke mengde eller notater. *Eget domene anbefales før 1b-4.*
@@ -76,7 +76,7 @@ Regler:
 
 - `clients` – id, `doctor_id` (= auth.uid()), `full_name` (påkrevd), `phone`, `email`, `residence_country` (ISO 3166-1 alpha-2, f.eks. `PL`), `residence_city`, `language`, `card_date` (første besøk = registreringsdato, brukes i AG1), `age_at_registration`, `birth_date` (valgfri), `anamnesis` (jsonb, flate feltnøkler fra `kartaTemplate.ts`: `{ choices: [...], text }`), `notes`, timestamps
 - `clients.procedure_plan` – «План процедур» (PP1), i klientkortet (fra migrering `20261027000000_visit_items.sql`)
-- `visits` – id, `client_id`, `doctor_id`, dato, `notes` (intern, aldri for klienten), `recommendations` (råd etter behandling, én per linje), `recommendations_lang`, timestamps. Gamle kolonner `home_care_recommendations` og `procedure_plan` beholdes og vises som «Архив» (kun lesbart).
+- `visits` – id, `client_id`, `doctor_id`, dato, `notes` (intern, aldri for klienten), `recommendations` (råd etter behandling, én per linje), `recommendations_lang`, `recommendations_edited` (legen har redigert rådene selv; `null` = lagret før kolonnen fantes → regnes som redigert når det finnes tekst, `storedAsEdited`), timestamps. Gamle kolonner `home_care_recommendations` og `procedure_plan` beholdes og vises som «Архив» (kun lesbart).
 - `visit_items` – id, `doctor_id`, `visit_id`, `preparation_id` (nullable), `preparation_name` og `procedure_type_id` (kopier på besøkstidspunktet, P9), `quantity` (fritekst), `sort_order`
 - `visit_photos` – id, `doctor_id`, `visit_id`, `storage_path`, `sort_order`; maks 3 per besøk (trigger + app). Filene ligger i den private Storage-bøtten `visit-photos` under `<doctor_id>/<visit_id>/<fil>.jpg` (eier + aal2). Filene er **ikke** med i `backup.take_snapshot` – se `docs/BACKUP.md` punkt 8.
 
@@ -164,6 +164,7 @@ Rekkefølge: **ru (standard)**, uk, pl, en. Alle UI-tekster i `messages/*.json` 
 
 ## Sikkerhet og personvern
 
+- **Utkast (DR1):** «Новый визит» og «Новый клиент» lagres lokalt i nettleseren (`localStorage`, `src/app/components/draft.ts`), slettes ved lagring, ved utlogging og etter 7 dager. Bilder lagres aldri i utkastet.
 - Data er helseopplysninger (GDPR art. 9). Kun legen har tilgang i fase 1–2.
 - Innlogging: e-post med engangskode + to-faktor (TOTP) for legen.
 - **Aldri** `service_role`-nøkkel i klientkode eller i repoet. Hemmeligheter kun i miljøvariabler.

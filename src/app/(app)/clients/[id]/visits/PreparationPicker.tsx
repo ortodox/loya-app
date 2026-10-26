@@ -10,6 +10,8 @@ export type PickerOption = {
   name: string;
   manufacturer: string | null;
   favorite: boolean;
+  /** PO1: the client has had it before – these come first. */
+  usedBefore: boolean;
   typeName: string;
 };
 
@@ -21,7 +23,7 @@ type Props = {
   onClose: () => void;
 };
 
-/** R1: search the catalogue (favourites first) or «Добавить вручную» with a procedure type. */
+/** R1/PO1: search the catalogue (what the client had before, then favourites) or «Добавить вручную» with a procedure type. */
 export function PreparationPicker({ options, types, onPick, onManual, onClose }: Props) {
   const t = useTranslations("visits");
   const [query, setQuery] = useState("");
@@ -57,7 +59,9 @@ export function PreparationPicker({ options, types, onPick, onManual, onClose }:
                     {o.favorite && "⭐ "}
                     {o.name}
                   </span>
-                  <span className="text-sm text-muted">{[o.manufacturer, o.typeName].filter(Boolean).join(" · ")}</span>
+                  <span className="text-sm text-muted">
+                    {[o.usedBefore ? `↺ ${t("usedBefore")}` : null, o.manufacturer, o.typeName].filter(Boolean).join(" · ")}
+                  </span>
                 </button>
               </li>
             ))}

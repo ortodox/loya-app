@@ -40,7 +40,10 @@
     "age": "{age, plural, one {# year} other {# years}}",
     "count": "{count, plural, one {# client} other {# clients}}",
     "allergyTag": "Allergy",
-    "newButton": "+ New client"
+    "newButton": "+ New client",
+    "created": "Client saved.",
+    "addVisit": "+ Add visit",
+    "later": "Later"
   },
   "language": {
     "ru": "Русский",
@@ -241,7 +244,14 @@
       "preparationNotFound": "Preparation not found in the catalogue.",
       "itemInvalid": "Could not read the preparation.",
       "tooManyItems": "Too many preparations in one visit."
-    }
+    },
+    "adviceTitle": "Advice for the client",
+    "adviceCount": "{count, plural, one {# point} other {# points}}",
+    "adviceEdit": "Edit",
+    "adviceClose": "Collapse",
+    "alertMatch": "The advice mentions “{word}” – please check:",
+    "usedBefore": "Client has had this before",
+    "noItems": "No preparations"
   },
   "brand": {
     "name": "LOA",
@@ -342,5 +352,9 @@
     "label": "Sections",
     "clients": "Clients",
     "preparations": "Preparations"
+  },
+  "draft": {
+    "restored": "Unsaved draft restored.",
+    "discard": "Discard draft"
   }
 }
