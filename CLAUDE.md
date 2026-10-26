@@ -20,8 +20,8 @@ Appen er **ikke** lovpålagt medisinsk journal (EDM). Den er et verktøy for opp
 **Rekkefølge** (vedtatt 26.10.2026, se «Порядок работы» i `roadmap_ru.md`). MVP-nummereringen beholdes; bare rekkefølgen endres – 1c kommer før 1b-3 og 1b-4:
 
 1. **1b-1 Каталог** ✅ – B1, P1, P2, P5, S2
-2. **1b-2 Новый визит** ✅ (venter på Loyas kontroll) – R1, DO1, LOT1, R2, P5, H1, PP1, P9, AL1, P10, PO1, DR1, AV1. Rådene er for klienten: hos legen **sammenfoldet til én linje**; AL1-varselet **alltid åpent**, og nevner ord fra allergifeltet som står i rådene (`adviceConflicts`). P10 = standarddose som hjelpetekst. PO1 = preparater klienten har fått før øverst. DR1 = utkast. AV1 = «Добавить визит» etter ny klient.
-3. **1b-2b Быстрее каждый день** ✅ (venter på Loyas kontroll) – RV1 (gjenta forrige fullførte besøk: preparater + mengde, dato i dag, råd på nytt), VP2 (besøk etter i dag = «Запланирован», gruppe «Предстоящие визиты», «Запись: 31.10» i listen), KT1 (ring, WhatsApp, Telegram, Viber), PR7 (søk på telefonnummer), AN3 delvis («Анамнез без изменений ✓» → `clients.anamnesis_confirmed_at`)
+2. **1b-2 Новый визит** ✅ (godkjent av Loya – et besøk tar ca. ett minutt) – R1, DO1, LOT1, R2, P5, H1, PP1, P9, AL1, P10, PO1, DR1, AV1. Rådene er for klienten: hos legen **sammenfoldet til én linje**; AL1-varselet **alltid åpent**, og nevner ord fra allergifeltet som står i rådene (`adviceConflicts`). P10 = standarddose som hjelpetekst. PO1 = preparater klienten har fått før øverst. DR1 = utkast. AV1 = «Добавить визит» etter ny klient.
+3. **1b-2b Быстрее каждый день** ✅ (venter på Loyas kontroll) – RV1 (gjenta forrige fullførte besøk: preparater + mengde, dato i dag, råd på nytt), VP2 (besøk etter i dag = «Запланирован», gruppe «Предстоящие визиты», «Запись: 31.10» i listen), KT1 (ring, WhatsApp, Telegram, Viber), PR7 (søk på telefonnummer), AN3 delvis («Анамнез без изменений ✓» → `clients.anamnesis_confirmed_at`), ny rekkefølge i klientkortet
 4. **1c Лечение, уход и документы** ← *neste* – LE1–LE6, LE8, LE9, UH1, UH2, DM1, DK1, DK3, DK5. DM1: retning «Косметология» / «Дерматология» / begge per klient, filter i listen; settes automatisk til «Дерматология» når en kur opprettes. Diagnose kun i kurset (ikke eget felt i kortet); aktivt kurs øverst i kortet; resepter skrives i et annet system (kun foto); ingen legemiddelliste
 5. **1b-3 Схема лица** – Z5, med `design/face-template.webp`
 6. **1b-4 Страница клиента** – HE1, E2, E3, E4. Én app; hemmelig lenke per besøk (`/p/<kode>`), uten innlogging, kan trekkes tilbake, ikke indekserbar (`noindex`). Klienten ser dato, preparater, foto av klistremerke og råd – ikke mengde eller notater. *Eget domene anbefales før 1b-4.*
@@ -156,7 +156,15 @@ Hvert felt: fritekst er alltid tillatt (også «?» for usikkerhet). Hurtigvalg 
 - **Innlogging:** stor «LOA» i gull serif med liten firkantet stjerne over og tynn bue under, «AESTHETIC MEDICINE» med bred bokstavavstand, linje med stjerne, «SCIENCE · BEAUTY · CONFIDENCE» (`BrandHero`). Skjema i kort under.
 - **Klientliste** (som Apple Notater): liten «LOA» øverst til venstre, «+ Новый клиент» til høyre, stor serif-overskrift «Клиенты» med antall under, **søk rett under overskriften**. Listen i ett kort; hver rad: navn (fet), dato · alder, utdrag; til høyre landskode og eventuelt rød «Аллергия».
 - **Препараты** (katalogen, URL `/catalog`): liten «LOA» og «+ Препарат» øverst, serif-overskrift «Препараты», søk i preparater, typene i ett kort.
-- **Klientkort:** liten «КАРТА КЛИЕНТА» over navnet (serif), under: alder · første besøk, landskode + land, by. Allergivarsel som avrundet boks med varseltrekant øverst. Hver seksjon i eget kort med serif-overskrift; etikett/verdi-rader som i notatet; «—» når tomt. Жалобы som piller (valgt = mørk fylt med ✓). Kliniske seksjoner som rader som kan åpnes, med kort sammendrag under tittelen.
+- **Klientkort – rekkefølge** (Loya 26.10.2026: «план процедур и визиты должны быть первыми»):
+  1. **Toppen:** liten «КАРТА КЛИЕНТА» over navnet (serif), under: alder · første besøk, landskode + land, by, telefon med «Позвонить», «WhatsApp», «Telegram», «Viber» (KT1). **Allergivarsel (AL2)** rett under, avrundet boks med varseltrekant.
+  2. **«Предстоящие визиты»** – planlagte besøk (VP2), bare når det finnes noen; «Дополнить визит» når klienten kommer.
+  3. **«Визиты»** med «+ Новый визит» og «↺ Повторить прошлый визит» (RV1); nyeste øverst, hver rad kan åpnes.
+  4. **«План процедур»** (PP1).
+  5. **«Лечение» og «Уход»** – plass reservert til MVP 1c (LE5, UH1).
+  6. **«Заметки»**.
+  7. **«Анкета»** nederst, lukket som standard: Общие данные, Жалобы, Состояние здоровья, Состояние кожи, Возрастные изменения, Ранее проведённые процедуры – hver seksjon kan åpnes og viser kort sammendrag; under tittelen «✓ Анамнез подтверждён: <dato>» (AN3).
+  - Hver seksjon i eget kort med serif-overskrift; etikett/verdi-rader som i notatet; «—» når tomt. Жалобы som piller (valgt = mørk fylt med ✓).
 - **PWA-ikon:** midlertidig «LOA» i gull serif på #F4ECE2 (`public/icon-*.png`, `apple-touch-icon.png`, `src/app/icon.png`). Temafarge #F4ECE2 (mørk: #1E1814). Bytt ut når `design/loa-icon.png` finnes.
 - **Ansiktsmal (1b-3):** `design/face-template.webp` – AI-generert, Loya har rett til å bruke den i appen og på siden til klienten. Ett ansikt forfra med hals (2:3). Tegningen lagres separat; malen er bakgrunn.
 

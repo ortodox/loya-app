@@ -76,7 +76,9 @@
     "call": "Call",
     "whatsapp": "WhatsApp",
     "telegram": "Telegram",
-    "viber": "Viber"
+    "viber": "Viber",
+    "questionnaire": "Questionnaire",
+    "questionnaireHint": "General data, complaints, health, skin, procedures"
   },
   "form": {
     "titleNew": "New client",
@@ -261,11 +263,11 @@
     "repeatLast": "↺ Repeat last visit",
     "repeatedFrom": "Preparations and quantities from the visit on {date}. Photos and notes are new.",
     "upcoming": "Upcoming visits",
-    "past": "Past visits",
     "planned": "Planned",
     "anamnesisUnchanged": "Medical history unchanged ✓",
     "anamnesisLast": "Last confirmed: {date}",
-    "anamnesisNever": "Not confirmed yet"
+    "anamnesisNever": "Not confirmed yet",
+    "complete": "Complete visit"
   },
   "brand": {
     "name": "LOA",

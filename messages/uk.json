@@ -76,7 +76,9 @@
     "call": "Зателефонувати",
     "whatsapp": "WhatsApp",
     "telegram": "Telegram",
-    "viber": "Viber"
+    "viber": "Viber",
+    "questionnaire": "Анкета",
+    "questionnaireHint": "Загальні дані, скарги, здоров’я, шкіра, процедури"
   },
   "form": {
     "titleNew": "Новий клієнт",
@@ -261,11 +263,11 @@
     "repeatLast": "↺ Повторити минулий візит",
     "repeatedFrom": "Препарати й кількість з візиту {date}. Фото й нотатки – нові.",
     "upcoming": "Майбутні візити",
-    "past": "Минулі візити",
     "planned": "Заплановано",
     "anamnesisUnchanged": "Анамнез без змін ✓",
     "anamnesisLast": "Останнє підтвердження: {date}",
-    "anamnesisNever": "Ще не підтверджувався"
+    "anamnesisNever": "Ще не підтверджувався",
+    "complete": "Доповнити візит"
   },
   "brand": {
     "name": "LOA",
