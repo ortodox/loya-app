@@ -50,7 +50,7 @@ src/
     rules/          DOMENEREGLER – rene funksjoner uten I/O (f.eks. beregnAlder)
     usecases/       BRUKSTILFELLER – orkestrerer: tilgang, hente, regler, lagre
   data/
-    repositories/   DATALAG – grensesnitt (clients.ts, visits.ts) + Supabase-implementasjon (*-supabase.ts)
+    repositories/   DATALAG – grensesnitt (clients.ts, visits.ts, catalog.ts) + Supabase-implementasjon (*-supabase.ts)
   config/
     kartaTemplate.ts  Malen for «Карта клиента» beskrevet som data
 messages/           ru.json, uk.json, pl.json, en.json
@@ -66,6 +66,15 @@ Regler:
 
 - `clients` – id, `doctor_id` (= auth.uid()), `full_name` (påkrevd), `phone`, `email`, `residence_country` (ISO 3166-1 alpha-2, f.eks. `PL`), `residence_city`, `language`, `card_date` (første besøk = registreringsdato, brukes i AG1), `age_at_registration`, `birth_date` (valgfri), `anamnesis` (jsonb, flate feltnøkler fra `kartaTemplate.ts`: `{ choices: [...], text }`), `notes`, timestamps
 - `visits` – id, `client_id`, `doctor_id`, dato, `home_care_recommendations`, `procedure_plan`, timestamps
+
+**Katalog (MVP 1b, migrering `20261026000000_catalog.sql`):**
+- `zones` – id, `doctor_id`, `code` (stabil nøkkel for startdata), `name` (jsonb ru/uk/pl/en), `zone_group` (`upper`/`middle`/`lower`/`body`/`other`), `sort_order`, `active`
+- `procedure_types` – id, `doctor_id`, `code` (BT-01 … BT-10), `name` (jsonb), `sort_order`, verdifelt (se under), `active`
+- `procedure_type_zones` – tillatte soner per type (`procedure_type_id`, `zone_id`, `doctor_id`)
+- `preparations` – id, `doctor_id`, `procedure_type_id`, `name`, `manufacturer`, `favorite`, de samme verdifeltene som typen (alle valgfrie = overstyring), `active`
+- Verdifelt: `dose_text`, `dose_unit`, `course_min/max`, `interval_min/max/unit` (`days`/`weeks`/`months`), `maintenance_min/max/unit`, `maintenance_as_needed` («по показаниям»), `control_after_days` (0 = ingen kontroll), `advice` (jsonb ru/uk/pl/en, én anbefaling per linje), `advice_review` (språk som er oversettelser og «требует проверки»)
+- Arv: `effectivePreparationSettings` i `src/logic/rules/catalog-settings.ts`. Gruppene dose, kur, intervall, vedlikehold, kontroll og råd arves eller overstyres hver for seg som en helhet. `null` på preparatet = arv.
+- Startdata: `private.seed_catalog(doctor_id)` (idempotent). For en ny lege: `select private.seed_catalog('<user id>');`
 
 **Alle tabeller har `doctor_id`** og **Row Level Security**: en lege ser kun sine egne rader (`doctor_id = auth.uid()`). Forbered for flere leger senere.
 
