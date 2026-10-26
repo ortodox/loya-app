@@ -25,6 +25,8 @@ export type VisitForm = {
   recommendationsLang?: string;
   /** «1» when the doctor edited the advice herself. */
   recommendationsEdited?: string;
+  /** AN3: «1» when «Анамнез без изменений ✓» is ticked. */
+  anamnesisConfirmed?: string;
   items?: VisitItemForm[];
 };
 
@@ -49,6 +51,7 @@ export type ParsedVisit = {
   recommendations: string | null;
   recommendationsLang: Locale | null;
   recommendationsEdited: boolean;
+  anamnesisConfirmed: boolean;
   items: ParsedVisitItem[];
 };
 
@@ -98,6 +101,7 @@ export function parseVisitForm(
       recommendations: freeText(form.recommendations),
       recommendationsLang: isLocale(form.recommendationsLang) ? form.recommendationsLang : null,
       recommendationsEdited: form.recommendationsEdited === "1" && freeText(form.recommendations) !== null,
+      anamnesisConfirmed: form.anamnesisConfirmed === "1",
       items,
     },
   };
@@ -142,4 +146,38 @@ export function usedPreparationIds(visits: readonly Pick<Visit, "visitDate" | "c
     }
   }
   return ids;
+}
+
+/** VP2: a visit dated after today is a planned appointment («Запланирован»). */
+export function isPlanned(visit: Pick<Visit, "visitDate">, today: IsoDate): boolean {
+  return visit.visitDate > today;
+}
+
+/** VP2: «Предстоящие визиты» (soonest first) above the visits that took place (newest first). */
+export function splitVisits<T extends Pick<Visit, "visitDate" | "createdAt">>(
+  visits: readonly T[],
+  today: IsoDate,
+): { upcoming: T[]; past: T[] } {
+  const sorted = sortVisitsNewestFirst(visits);
+  return {
+    upcoming: sorted.filter((v) => isPlanned(v, today)).reverse(),
+    past: sorted.filter((v) => !isPlanned(v, today)),
+  };
+}
+
+/** RV1: the visit to repeat – the newest one that took place and has preparations. */
+export function lastCompletedVisit<T extends Pick<Visit, "visitDate" | "createdAt" | "items">>(
+  visits: readonly T[],
+  today: IsoDate,
+): T | null {
+  return splitVisits(visits, today).past.find((v) => v.items.length > 0) ?? null;
+}
+
+/**
+ * AN3: date stored when «Анамнез без изменений ✓» is ticked – the visit date, but never in the
+ * future (a planned visit confirms today). Null when it would not be newer than the stored date.
+ */
+export function anamnesisConfirmation(visitDate: IsoDate, today: IsoDate, current: IsoDate | null): IsoDate | null {
+  const date = visitDate < today ? visitDate : today;
+  return current !== null && current >= date ? null : date;
 }

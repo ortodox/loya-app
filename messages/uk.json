@@ -43,7 +43,8 @@
     "newButton": "+ Новий клієнт",
     "created": "Клієнта збережено.",
     "addVisit": "+ Додати візит",
-    "later": "Пізніше"
+    "later": "Пізніше",
+    "nextVisit": "Запис: {date}"
   },
   "language": {
     "ru": "Русский",
@@ -70,7 +71,12 @@
     },
     "kicker": "Картка клієнта",
     "firstVisit": "перший візит {date}",
-    "procedurePlan": "План процедур"
+    "procedurePlan": "План процедур",
+    "anamnesisConfirmed": "Анамнез підтверджено: {date}",
+    "call": "Зателефонувати",
+    "whatsapp": "WhatsApp",
+    "telegram": "Telegram",
+    "viber": "Viber"
   },
   "form": {
     "titleNew": "Новий клієнт",
@@ -251,7 +257,15 @@
     "adviceClose": "Згорнути",
     "alertMatch": "У рекомендаціях є «{word}» – перевірте:",
     "usedBefore": "Клієнт уже отримував",
-    "noItems": "Без препаратів"
+    "noItems": "Без препаратів",
+    "repeatLast": "↺ Повторити минулий візит",
+    "repeatedFrom": "Препарати й кількість з візиту {date}. Фото й нотатки – нові.",
+    "upcoming": "Майбутні візити",
+    "past": "Минулі візити",
+    "planned": "Заплановано",
+    "anamnesisUnchanged": "Анамнез без змін ✓",
+    "anamnesisLast": "Останнє підтвердження: {date}",
+    "anamnesisNever": "Ще не підтверджувався"
   },
   "brand": {
     "name": "LOA",

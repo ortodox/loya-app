@@ -6,6 +6,7 @@ import { useActionState, useEffect, useMemo, useRef, useState, useTransition } f
 import { clearDraft, readDraft, writeDraft } from "@/app/components/draft";
 import { WarningIcon } from "@/app/components/Icons";
 import { card, ui } from "@/app/components/ui";
+import { formatIsoDate } from "@/logic/rules/dates";
 import type { Locale } from "@/config/locales";
 import type { Localized } from "@/logic/catalog";
 import {
@@ -36,12 +37,17 @@ export type VisitFormInitial = {
   notes: string;
   recommendations: string;
   recommendationsEdited: boolean;
+  /** AN3: «Анамнез без изменений ✓». */
+  anamnesisConfirmed: boolean;
   items: ItemState[];
   photos: ExistingPhoto[];
 };
 
 /** DR1: what an unsaved «Новый визит» keeps on the phone (photos are not kept). */
-type VisitDraft = Pick<VisitFormInitial, "visitDate" | "notes" | "recommendations" | "recommendationsEdited" | "items">;
+type VisitDraft = Pick<
+  VisitFormInitial,
+  "visitDate" | "notes" | "recommendations" | "recommendationsEdited" | "anamnesisConfirmed" | "items"
+>;
 
 type Props = {
   title: string;
@@ -51,6 +57,10 @@ type Props = {
   types: FormType[];
   language: Locale;
   alerts: SafetyAlert[];
+  /** AN3: when the anamnesis was last confirmed. */
+  anamnesisConfirmedAt?: string | null;
+  /** RV1: date of the visit whose preparations were copied. */
+  repeatedFrom?: string | null;
   /** DR1: set for a new visit – unsaved text is kept on this phone until it is saved. */
   draftKey?: string;
   action: (state: VisitFormState, fd: FormData) => Promise<VisitFormState>;
@@ -60,6 +70,7 @@ type Props = {
 /** VS1 «Новый визит»: date, preparations + quantity, sticker photos, notes, post-procedure advice. */
 export function VisitForm(props: Props) {
   const { title, cancelHref, initial, options, types, language, alerts, draftKey, action, onDelete } = props;
+  const { anamnesisConfirmedAt = null, repeatedFrom = null } = props;
   const t = useTranslations();
   const [state, formAction, pending] = useActionState(action, { values: {} });
   const [, startTransition] = useTransition();
@@ -78,6 +89,7 @@ export function VisitForm(props: Props) {
   const [picking, setPicking] = useState(initial.items.length === 0);
   const [recommendations, setRecommendations] = useState(initial.recommendations);
   const [edited, setEdited] = useState(initial.recommendationsEdited);
+  const [anamnesisConfirmed, setAnamnesisConfirmed] = useState(initial.anamnesisConfirmed);
   const [lastSuggested, setLastSuggested] = useState(() => suggest(initial.items));
   const [askWith, setAskWith] = useState<string | null>(null);
   const [adviceOpen, setAdviceOpen] = useState(false);
@@ -93,6 +105,7 @@ export function VisitForm(props: Props) {
     setPicking(d.items.length === 0);
     setRecommendations(d.recommendations);
     setEdited(d.recommendationsEdited);
+    setAnamnesisConfirmed(d.anamnesisConfirmed === true);
     setLastSuggested(suggest(d.items));
     setAskWith(null);
   }
@@ -113,11 +126,16 @@ export function VisitForm(props: Props) {
   // DR1: keep the draft up to date; also after a failed save, since the draft is cleared on submit.
   useEffect(() => {
     if (!draftKey || !draftReady.current) return;
-    const draft: VisitDraft = { visitDate, notes, items, recommendations, recommendationsEdited: edited };
-    const empty = notes.trim() === "" && items.length === 0 && recommendations.trim() === "" && visitDate === initial.visitDate;
+    const draft: VisitDraft = { visitDate, notes, items, recommendations, recommendationsEdited: edited, anamnesisConfirmed };
+    const empty =
+      notes.trim() === "" &&
+      items.length === 0 &&
+      recommendations.trim() === "" &&
+      !anamnesisConfirmed &&
+      visitDate === initial.visitDate;
     if (empty) clearDraft(draftKey);
     else writeDraft(draftKey, draft);
-  }, [draftKey, visitDate, notes, items, recommendations, edited, initial.visitDate, state]);
+  }, [draftKey, visitDate, notes, items, recommendations, edited, anamnesisConfirmed, initial.visitDate, state]);
 
   /** P5: refill the advice from the catalogue, unless the doctor has edited it – then ask. */
   function changeItems(next: ItemState[]) {
@@ -215,6 +233,35 @@ export function VisitForm(props: Props) {
             </div>
           </section>
         )}
+
+        {/* RV1: what was copied from the last visit. */}
+        {repeatedFrom && (
+          <p role="status" className="rounded-[14px] border border-field px-4 py-3 text-sm text-ink">
+            {t("visits.repeatedFrom", { date: formatIsoDate(repeatedFrom) })}
+          </p>
+        )}
+
+        {/* AN3: one tap when nothing has changed since the last visit. */}
+        <section className={`${card.surface} flex flex-col px-4 py-2`}>
+          <label className="flex min-h-11 items-center gap-3">
+            <input
+              type="checkbox"
+              name="anamnesisConfirmed"
+              value="1"
+              checked={anamnesisConfirmed}
+              onChange={(e) => setAnamnesisConfirmed(e.target.checked)}
+              className="size-5 shrink-0 accent-[var(--accent)]"
+            />
+            <span className="flex flex-col">
+              <span className="text-base text-ink">{t("visits.anamnesisUnchanged")}</span>
+              <span className="text-sm text-muted">
+                {anamnesisConfirmedAt
+                  ? t("visits.anamnesisLast", { date: formatIsoDate(anamnesisConfirmedAt) })
+                  : t("visits.anamnesisNever")}
+              </span>
+            </span>
+          </label>
+        </section>
 
         <section className={`${card.surface} flex flex-col gap-2 p-4`}>
           <label className="flex flex-col gap-2">

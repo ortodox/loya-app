@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatIsoDate, isIsoDate, todayIn, wholeYearsBetween } from "./dates";
+import { formatDayMonth, formatIsoDate, isIsoDate, todayIn, wholeYearsBetween } from "./dates";
 
 describe("dates", () => {
   it("accepts only real calendar dates", () => {
@@ -23,5 +23,12 @@ describe("date format", () => {
   it("shows dates as DD.MM.YYYY", () => {
     expect(formatIsoDate("2026-03-05")).toBe("05.03.2026");
     expect(formatIsoDate("not a date")).toBe("not a date");
+  });
+});
+
+describe("VP2: дата записи в списке", () => {
+  it("VP2: formats the next appointment as DD.MM", () => {
+    expect(formatDayMonth("2026-10-31")).toBe("31.10");
+    expect(formatDayMonth("2027-01-05")).toBe("05.01");
   });
 });

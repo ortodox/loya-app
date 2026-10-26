@@ -3,12 +3,13 @@ import Link from "next/link";
 import { Chevron, WarningIcon } from "@/app/components/Icons";
 import { card, disclosure, pill, ui } from "@/app/components/ui";
 import { clinicalSections, generalDataFields, type GeneralDataField } from "@/config/kartaTemplate";
-import type { Visit } from "@/logic/client";
+import type { IsoDate, Visit } from "@/logic/client";
 import { fieldText, normalizeField, sectionHasContent, sectionPreview } from "@/logic/rules/anamnesis";
 import { countryName } from "@/logic/rules/country";
 import { formatIsoDate } from "@/logic/rules/dates";
 import { countRecommendations } from "@/logic/rules/recommendations";
-import { hasArchive } from "@/logic/rules/visits";
+import { contactLinks } from "@/logic/rules/contacts";
+import { hasArchive, isPlanned, lastCompletedVisit, splitVisits } from "@/logic/rules/visits";
 import type { ClientCard } from "@/logic/usecases/clients";
 
 type Props = {
@@ -18,9 +19,11 @@ type Props = {
   photoUrls: Record<string, string>;
   /** AV1: just created – offer «Добавить визит» right away. */
   created?: boolean;
+  /** VP2/RV1: visits after today are appointments. */
+  today: IsoDate;
 };
 
-export async function ClientCardView({ data, visits, photoUrls, created = false }: Props) {
+export async function ClientCardView({ data, visits, photoUrls, created = false, today }: Props) {
   const t = await getTranslations();
   const locale = await getLocale();
   const { client, age, alerts } = data;
@@ -34,11 +37,7 @@ export async function ClientCardView({ data, visits, photoUrls, created = false 
     date: formatIsoDate(client.cardDate),
     fullName: client.fullName,
     age: age !== null ? t("clients.age", { age }) : null,
-    phone: client.phone ? (
-      <a href={`tel:${client.phone.replace(/[^\d+]/g, "")}`} className="inline-flex min-h-11 items-center text-accent underline">
-        {client.phone}
-      </a>
-    ) : null,
+    phone: client.phone ? <PhoneLinks phone={client.phone} /> : null,
     email: client.email ? (
       <a href={`mailto:${client.email}`} className="inline-flex min-h-11 items-center break-all text-accent underline">
         {client.email}
@@ -49,6 +48,108 @@ export async function ClientCardView({ data, visits, photoUrls, created = false 
   };
 
   const [complaints, ...otherSections] = clinicalSections;
+  const { upcoming, past } = splitVisits(visits, today);
+  const repeatable = lastCompletedVisit(visits, today) !== null;
+
+  function renderVisit(visit: Visit) {
+    const planned = isPlanned(visit, today);
+    const adviceCount = countRecommendations(visit.recommendations);
+    return (
+      <li key={visit.id} className="border-t border-line">
+        {/* H1: date, preparations and number of photos; the rest when opened. */}
+        <details className="group">
+          <summary className={disclosure.summary}>
+            <span className="flex min-w-0 flex-col">
+              <span className="flex items-baseline gap-2">
+                <span className="text-base font-semibold text-ink">{formatIsoDate(visit.visitDate)}</span>
+                {visit.photos.length > 0 && (
+                  <span className="text-sm text-muted">📷 {t("visits.photoCount", { count: visit.photos.length })}</span>
+                )}
+              </span>
+              <span className="truncate text-sm text-muted">
+                {[planned ? t("visits.planned") : null, visit.items.map((i) => i.preparationName).join(", ") || null]
+                  .filter(Boolean)
+                  .join(" · ") || t("visits.noItems")}
+              </span>
+            </span>
+            <Chevron className={disclosure.chevron} />
+          </summary>
+          <div className="flex flex-col gap-1 border-t border-line pb-3">
+            {visit.items.length > 0 && (
+              <ul className="flex flex-col gap-0.5 px-4 pt-2">
+                {visit.items.map((item) => (
+                  <li key={item.id} className="text-base text-ink">
+                    {item.preparationName}
+                    {item.quantity && <span className="text-muted"> · {item.quantity}</span>}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {visit.photos.length > 0 && (
+              <ul className="flex flex-wrap gap-2 px-4 pt-2">
+                {visit.photos.map((p) => (
+                  <li key={p.id}>
+                    {photoUrls[p.storagePath] ? (
+                      <a href={photoUrls[p.storagePath]} target="_blank" rel="noreferrer" aria-label={t("visits.photos")}>
+                        {/* eslint-disable-next-line @next/next/no-img-element -- signed storage URL */}
+                        <img src={photoUrls[p.storagePath]} alt="" className="size-24 rounded-[14px] object-cover" />
+                      </a>
+                    ) : (
+                      <div className="size-24 rounded-[14px] bg-line" />
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {visit.notes && (
+              <dl>
+                <Row label={`${t("visits.notes")} (${t("visits.notesHint")})`} value={visit.notes} plain />
+              </dl>
+            )}
+            {/* P5: the advice is for the client – one closed line. */}
+            {visit.recommendations && (
+              <details className="group/advice mx-4 mt-1 rounded-[14px] border border-line">
+                <summary className={`${disclosure.summary} py-2 text-sm text-ink`}>
+                  <span>
+                    {[
+                      t("visits.adviceTitle"),
+                      t("visits.adviceCount", { count: adviceCount }),
+                      visit.recommendationsLang ? t(`language.${visit.recommendationsLang}`) : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </span>
+                  <Chevron className="shrink-0 text-muted transition-transform group-open/advice:rotate-180" />
+                </summary>
+                <p className="border-t border-line px-4 py-2 text-base whitespace-pre-wrap text-ink">{visit.recommendations}</p>
+              </details>
+            )}
+            {hasArchive(visit) && (
+              <details className="group/archive mx-4 mt-1 rounded-[14px] border border-line">
+                <summary className={`${disclosure.summary} py-2 text-sm text-muted`}>
+                  <span>
+                    {t("visits.archive")} · <span className="text-xs">{t("visits.archiveHint")}</span>
+                  </span>
+                  <Chevron className="shrink-0 text-muted transition-transform group-open/archive:rotate-180" />
+                </summary>
+                <dl className="border-t border-line">
+                  {visit.archive.homeCareRecommendations?.trim() && (
+                    <Row label={t("visits.homeCareRecommendations")} value={visit.archive.homeCareRecommendations} plain />
+                  )}
+                  {visit.archive.procedurePlan?.trim() && (
+                    <Row label={t("visits.procedurePlan")} value={visit.archive.procedurePlan} plain />
+                  )}
+                </dl>
+              </details>
+            )}
+            <Link href={`/clients/${id}/visits/${visit.id}/edit`} className={`${ui.textButton} self-start px-4 text-sm`}>
+              {t("visits.edit")}
+            </Link>
+          </div>
+        </details>
+      </li>
+    );
+  }
   const complaintsValue = normalizeField(client.anamnesis.complaints);
 
   return (
@@ -162,6 +263,12 @@ export async function ClientCardView({ data, visits, photoUrls, created = false 
           );
         })}
       </section>
+      {/* AN3: last «Анамнез без изменений ✓». */}
+      {client.anamnesisConfirmedAt && (
+        <p className="-mt-2 px-4 text-sm text-muted">
+          ✓ {t("card.anamnesisConfirmed", { date: formatIsoDate(client.anamnesisConfirmedAt) })}
+        </p>
+      )}
 
       {/* PP1: the procedure plan belongs to the client. */}
       <section className={`${card.surface} flex flex-col gap-2 p-4`}>
@@ -169,7 +276,7 @@ export async function ClientCardView({ data, visits, photoUrls, created = false 
         <p className="min-h-6 text-base whitespace-pre-wrap">{client.procedurePlan ?? "—"}</p>
       </section>
 
-      {/* VS1/H1: visits under the template and above the notes, newest first. */}
+      {/* VS1/H1/VP2: planned visits first («Предстоящие визиты»), then the visits that took place. */}
       <section className={card.surface}>
         <div className="flex items-center justify-between gap-3 px-4 pt-3 pb-2">
           <h2 className={card.heading}>{t("visits.title")}</h2>
@@ -177,107 +284,33 @@ export async function ClientCardView({ data, visits, photoUrls, created = false 
             {t("visits.new")}
           </Link>
         </div>
+        {/* RV1: same preparations and quantities as last time. */}
+        {repeatable && (
+          <div className="px-4 pb-3">
+            <Link href={`/clients/${id}/visits/new?repeat=1`} className={`${ui.textButton} font-medium`}>
+              {t("visits.repeatLast")}
+            </Link>
+          </div>
+        )}
         {visits.length === 0 ? (
           <p className={`${ui.muted} px-4 pb-4`}>{t("visits.empty")}</p>
         ) : (
-          <ol>
-            {visits.map((visit) => {
-              const adviceCount = countRecommendations(visit.recommendations);
-              return (
-                <li key={visit.id} className="border-t border-line">
-                  {/* H1: date, preparations and number of photos; the rest when opened. */}
-                  <details className="group">
-                    <summary className={disclosure.summary}>
-                      <span className="flex min-w-0 flex-col">
-                        <span className="flex items-baseline gap-2">
-                          <span className="text-base font-semibold text-ink">{formatIsoDate(visit.visitDate)}</span>
-                          {visit.photos.length > 0 && (
-                            <span className="text-sm text-muted">📷 {t("visits.photoCount", { count: visit.photos.length })}</span>
-                          )}
-                        </span>
-                        <span className="truncate text-sm text-muted">
-                          {visit.items.map((i) => i.preparationName).join(", ") || t("visits.noItems")}
-                        </span>
-                      </span>
-                      <Chevron className={disclosure.chevron} />
-                    </summary>
-                    <div className="flex flex-col gap-1 border-t border-line pb-3">
-                      {visit.items.length > 0 && (
-                        <ul className="flex flex-col gap-0.5 px-4 pt-2">
-                          {visit.items.map((item) => (
-                            <li key={item.id} className="text-base text-ink">
-                              {item.preparationName}
-                              {item.quantity && <span className="text-muted"> · {item.quantity}</span>}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                      {visit.photos.length > 0 && (
-                        <ul className="flex flex-wrap gap-2 px-4 pt-2">
-                          {visit.photos.map((p) => (
-                            <li key={p.id}>
-                              {photoUrls[p.storagePath] ? (
-                                <a href={photoUrls[p.storagePath]} target="_blank" rel="noreferrer" aria-label={t("visits.photos")}>
-                                  {/* eslint-disable-next-line @next/next/no-img-element -- signed storage URL */}
-                                  <img src={photoUrls[p.storagePath]} alt="" className="size-24 rounded-[14px] object-cover" />
-                                </a>
-                              ) : (
-                                <div className="size-24 rounded-[14px] bg-line" />
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                      {visit.notes && (
-                        <dl>
-                          <Row label={`${t("visits.notes")} (${t("visits.notesHint")})`} value={visit.notes} plain />
-                        </dl>
-                      )}
-                      {/* P5: the advice is for the client – one closed line. */}
-                      {visit.recommendations && (
-                        <details className="group/advice mx-4 mt-1 rounded-[14px] border border-line">
-                          <summary className={`${disclosure.summary} py-2 text-sm text-ink`}>
-                            <span>
-                              {[
-                                t("visits.adviceTitle"),
-                                t("visits.adviceCount", { count: adviceCount }),
-                                visit.recommendationsLang ? t(`language.${visit.recommendationsLang}`) : null,
-                              ]
-                                .filter(Boolean)
-                                .join(" · ")}
-                            </span>
-                            <Chevron className="shrink-0 text-muted transition-transform group-open/advice:rotate-180" />
-                          </summary>
-                          <p className="border-t border-line px-4 py-2 text-base whitespace-pre-wrap text-ink">{visit.recommendations}</p>
-                        </details>
-                      )}
-                      {hasArchive(visit) && (
-                        <details className="group/archive mx-4 mt-1 rounded-[14px] border border-line">
-                          <summary className={`${disclosure.summary} py-2 text-sm text-muted`}>
-                            <span>
-                              {t("visits.archive")} · <span className="text-xs">{t("visits.archiveHint")}</span>
-                            </span>
-                            <Chevron className="shrink-0 text-muted transition-transform group-open/archive:rotate-180" />
-                          </summary>
-                          <dl className="border-t border-line">
-                            {visit.archive.homeCareRecommendations?.trim() && (
-                              <Row label={t("visits.homeCareRecommendations")} value={visit.archive.homeCareRecommendations} plain />
-                            )}
-                            {visit.archive.procedurePlan?.trim() && (
-                              <Row label={t("visits.procedurePlan")} value={visit.archive.procedurePlan} plain />
-                            )}
-                          </dl>
-                        </details>
-                      )}
-                      <Link href={`/clients/${id}/visits/${visit.id}/edit`} className={`${ui.textButton} self-start px-4 text-sm`}>
-                        {t("visits.edit")}
-                      </Link>
-                    </div>
-                  </details>
-                </li>
-              );
-            })}
-          </ol>
+          <>
+            {upcoming.length > 0 && (
+              <>
+                <h3 className="border-t border-line px-4 pt-3 pb-1 text-xs font-semibold tracking-[0.15em] text-muted uppercase">
+                  {t("visits.upcoming")}
+                </h3>
+                <ol>{upcoming.map((v) => renderVisit(v))}</ol>
+              </>
+            )}
+            {upcoming.length > 0 && past.length > 0 && (
+              <h3 className="border-t border-line px-4 pt-3 pb-1 text-xs font-semibold tracking-[0.15em] text-muted uppercase">
+                {t("visits.past")}
+              </h3>
+            )}
+            <ol>{past.map((v) => renderVisit(v))}</ol>
+          </>
         )}
       </section>
 
@@ -297,5 +330,32 @@ function Row(props: { label: string; value: React.ReactNode; plain?: boolean }) 
       <dt className={card.label}>{label}</dt>
       <dd className="text-base whitespace-pre-wrap text-ink">{value ?? "—"}</dd>
     </div>
+  );
+}
+
+/** KT1: the phone number with «Позвонить», WhatsApp, Telegram and Viber. */
+async function PhoneLinks({ phone }: { phone: string }) {
+  const t = await getTranslations("card");
+  const links = contactLinks(phone);
+  if (!links) return <span>{phone}</span>;
+  const button = "inline-flex min-h-11 items-center rounded-full border border-field px-4 text-sm font-medium text-accent";
+  return (
+    <span className="flex flex-col gap-2">
+      <span>{phone}</span>
+      <span className="flex flex-wrap gap-2">
+        <a href={links.call} className={button}>
+          {t("call")}
+        </a>
+        <a href={links.whatsapp} target="_blank" rel="noreferrer" className={button}>
+          {t("whatsapp")}
+        </a>
+        <a href={links.telegram} target="_blank" rel="noreferrer" className={button}>
+          {t("telegram")}
+        </a>
+        <a href={links.viber} className={button}>
+          {t("viber")}
+        </a>
+      </span>
+    </span>
   );
 }

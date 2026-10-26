@@ -45,3 +45,9 @@ export function formatIsoDate(iso: IsoDate): string {
   if (!p) return iso;
   return `${String(p.d).padStart(2, "0")}.${String(p.m).padStart(2, "0")}.${p.y}`;
 }
+
+/** VP2: short date for the client list, `DD.MM` («Запись: 31.10»). */
+export function formatDayMonth(value: IsoDate): string {
+  const p = parseIsoDate(value);
+  return p ? `${String(p.d).padStart(2, "0")}.${String(p.m).padStart(2, "0")}` : value;
+}

@@ -29,7 +29,10 @@ export type Client = {
   notes: string | null;
   /** PP1: the procedure plan belongs to the client. */
   procedurePlan: string | null;
-  lastVisitDate: IsoDate | null;
+  /** AN3: last time the doctor confirmed «Анамнез без изменений». */
+  anamnesisConfirmedAt: IsoDate | null;
+  /** VS1/VP2: dates of all the client's visits, past and planned. */
+  visitDates: IsoDate[];
   updatedAt: string;
 };
 

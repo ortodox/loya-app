@@ -43,7 +43,8 @@
     "newButton": "+ New client",
     "created": "Client saved.",
     "addVisit": "+ Add visit",
-    "later": "Later"
+    "later": "Later",
+    "nextVisit": "Booked: {date}"
   },
   "language": {
     "ru": "Русский",
@@ -70,7 +71,12 @@
     },
     "kicker": "Client card",
     "firstVisit": "first visit {date}",
-    "procedurePlan": "Procedure plan"
+    "procedurePlan": "Procedure plan",
+    "anamnesisConfirmed": "Medical history confirmed: {date}",
+    "call": "Call",
+    "whatsapp": "WhatsApp",
+    "telegram": "Telegram",
+    "viber": "Viber"
   },
   "form": {
     "titleNew": "New client",
@@ -251,7 +257,15 @@
     "adviceClose": "Collapse",
     "alertMatch": "The advice mentions “{word}” – please check:",
     "usedBefore": "Client has had this before",
-    "noItems": "No preparations"
+    "noItems": "No preparations",
+    "repeatLast": "↺ Repeat last visit",
+    "repeatedFrom": "Preparations and quantities from the visit on {date}. Photos and notes are new.",
+    "upcoming": "Upcoming visits",
+    "past": "Past visits",
+    "planned": "Planned",
+    "anamnesisUnchanged": "Medical history unchanged ✓",
+    "anamnesisLast": "Last confirmed: {date}",
+    "anamnesisNever": "Not confirmed yet"
   },
   "brand": {
     "name": "LOA",

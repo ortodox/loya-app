@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lastActivityDate, matchesName, notesExcerpt, sortNewestFirst } from "./client-list";
+import { lastActivityDate, matchesClient, matchesName, notesExcerpt, sortNewestFirst, visitTimeline } from "./client-list";
 
 const row = (name: string, cardDate: string, lastVisitDate: string | null, updatedAt = "t0") => ({
   name,
@@ -42,5 +42,31 @@ describe("PR2: client list", () => {
     expect(notesExcerpt("\n  Сухая кожа, SPF\nвторая строка")).toBe("Сухая кожа, SPF");
     expect(notesExcerpt(null)).toBe("");
     expect(notesExcerpt("a".repeat(100), 10)).toBe("aaaaaaaaa…");
+  });
+});
+
+describe("PR7: поиск по телефону", () => {
+  const anna = { fullName: "Анна Выдуманная", phone: "+48 600-123-456" };
+
+  it("PR7: finds a client by phone number regardless of spaces, + and dashes", () => {
+    expect(matchesClient(anna, "600 123")).toBe(true);
+    expect(matchesClient(anna, "+48600123456")).toBe(true);
+    expect(matchesClient(anna, "48 600 123 456")).toBe(true);
+    expect(matchesClient(anna, "700")).toBe(false);
+  });
+
+  it("PR7: still searches by name when letters are typed", () => {
+    expect(matchesClient(anna, "анна")).toBe(true);
+    expect(matchesClient({ fullName: "Анна", phone: null }, "600")).toBe(false);
+  });
+});
+
+describe("VP2: запись на будущую дату", () => {
+  it("VP2: splits visit dates into the last one that took place and the next planned one", () => {
+    expect(visitTimeline(["2026-09-01", "2026-11-05", "2026-10-28", "2026-10-31"], "2026-10-28")).toEqual({
+      last: "2026-10-28",
+      next: "2026-10-31",
+    });
+    expect(visitTimeline([], "2026-10-28")).toEqual({ last: null, next: null });
   });
 });
