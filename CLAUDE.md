@@ -17,11 +17,21 @@ Appen er **ikke** lovpålagt medisinsk journal (EDM). Den er et verktøy for opp
 
 ## Nåværende oppgave: MVP 1b – digitalt hefte
 
-Historier: B1, P1, P2, P5, S2, R1, DO1, LOT1, Z5, R2, H1, PP1, P9, AL1, HE1, VS2, E2, E3, E4 (se `roadmap_ru.md`). Katalogen i `preparaty_ru.md`.
+**Rekkefølge** (vedtatt 26.10.2026, se «Порядок работы» i `roadmap_ru.md`). MVP-nummereringen beholdes; bare rekkefølgen endres – 1c kommer før 1b-3 og 1b-4:
 
-**Ferdig når:** Loya har registrert en behandling med ansiktsskisse og sendt siden til klienten, og den åpnes riktig på telefonen på klientens språk.
+1. **1b-1 Каталог** ✅ – B1, P1, P2, P5, S2
+2. **1b-2 Новый визит** ← *nå* – R1, DO1, LOT1, R2, H1, PP1, P9, AL1, P10. Gjenstår: rådene er for klienten, så hos legen vises de **sammenfoldet til én linje**; AL1-varselet er **alltid synlig**. P10 = standarddose som hjelpetekst ved mengde.
+3. **1b-2b Быстрее каждый день** – RV1 (gjenta forrige besøk), trykkbar telefon/e-post (ring, WhatsApp, Telegram, Viber), søk på telefonnummer, «Анамнез без изменений ✓» (AN3 delvis), automatisk lagring av utkast, «Добавить визит» rett etter ny klient, preparater klienten har fått før øverst
+4. **1c Лечение, уход и документы** – LE1–LE6, LE8, LE9, UH1, UH2, DK1, DK3, DK5. Diagnose kun i kurset (ikke eget felt i kortet); aktivt kurs øverst i kortet; resepter skrives i et annet system (kun foto); ingen legemiddelliste
+5. **1b-3 Схема лица** – Z5, med `design/face-template.webp`
+6. **1b-4 Страница клиента** – HE1, E2, E3, E4. Én app; hemmelig lenke per besøk (`/p/<kode>`), uten innlogging, kan trekkes tilbake, ikke indekserbar (`noindex`). Klienten ser dato, preparater, foto av klistremerke og råd – ikke mengde eller notater. *Eget domene anbefales før 1b-4.*
+7. **MVP 2 …** videre etter nummer
 
-**Ikke i MVP 1b:** beregning av neste dato, kontrollbesøk og kurstrinn (MVP 2), påminnelser (MVP 2 og 4), filer (MVP 1c), strukturerte soner (MVP 6) og alt under «Позже». Ikke bygg det ennå.
+VS2 er fjernet (hjemmepleie er ikke lenger i besøket – erstattet av «Уход», UH1/UH2 i 1c). Katalogen i `preparaty_ru.md`.
+
+**MVP 1b ferdig når:** Loya har registrert en behandling med ansiktsskisse og sendt siden til klienten, og den åpnes riktig på telefonen på klientens språk.
+
+**Ikke bygg før det står for tur:** beregning av neste dato, kontrollbesøk og kurstrinn (MVP 2), påminnelser (MVP 2 og 4), strukturerte soner (MVP 6) og alt under «Позже». MVP 8 (klientkonto) og MVP 11 (hjemmepleie) er fjernet.
 
 **MVP 1a er ferdig (✅):** innlogging, klientliste, hele «Карта клиента» og besøk. Kontrollpunktet «Заметки больше не нужны» venter på Loyas bekreftelse.
 
@@ -104,7 +114,7 @@ Hvert felt: fritekst er alltid tillatt (også «?» for usikkerhet). Hurtigvalg 
 6. **Ранее проведённые процедуры:**
    - В салоне: чистка, пилинг, SMAS, биоревитализация, ботокс, филлеры губ, полимолочная кислота
    - Инъекционные вмешательства
-7. **Визиты** (nyeste øverst): Дата · Препараты (fra katalogen eller manuelt, flere) + Количество (fritekst) · Фото наклейки (1–3 per besøk) · Заметки (interne) · Рекомендации после процедуры (fylles fra katalogen på klientens språk, kan redigeres; redigert tekst overskrives aldri uten «Обновить рекомендации?»)
+7. **Визиты** (nyeste øverst): Дата · Препараты (fra katalogen eller manuelt, flere) + Количество (fritekst) · Фото наклейки (1–3 per besøk) · Заметки (interne) · Рекомендации после процедуры (fylles fra katalogen på klientens språk, kan redigeres; redigert tekst overskrives aldri uten «Обновить рекомендации?»; hos legen sammenfoldet til én linje, AL1-varsel alltid synlig)
 8. **План процедур** (fritekst) – i klientkortet, ikke i besøket (PP1)
 
 + **Заметки** (fritekst) og **AL2:** allergier og medisiner vises tydelig øverst i kortet når de er fylt ut.
@@ -112,7 +122,7 @@ Hvert felt: fritekst er alltid tillatt (også «?» for usikkerhet). Hurtigvalg 
 ## Design – «LOA – Aesthetic Medicine»
 
 - **Mobil først (iPhone), mørk modus følger systeminnstillingen.** Rolig, eksklusiv, beige/gull.
-- Bruk Loyas ord: **«клиент», «Карта клиента»** (ikke «пациент»).
+- Bruk Loyas ord: **«клиент», «Карта клиента»** (ikke «пациент») – også for klienter på behandling (1c).
 
 **Farger** – CSS-variabler i `src/app/globals.css`, brukt som Tailwind-tokens (`bg-bg`, `bg-surface`, `text-ink`, `text-muted`, `border-line`, `border-field`, `text-gold`, `text-accent`, `bg-primary`/`text-on-primary`, `bg-alert`/`text-on-alert`). Ingen `neutral-*`/`red-*` eller `dark:`-klasser i komponentene.
 
