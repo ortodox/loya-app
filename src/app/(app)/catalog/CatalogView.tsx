@@ -54,7 +54,7 @@ export function CatalogView({ types, preparations }: { types: CatalogTypeRow[]; 
             <h2 className={card.heading}>{t("types")}</h2>
             <Link
               href="/catalog/types/new"
-              className="inline-flex min-h-11 items-center rounded-full bg-primary px-4 text-sm font-semibold text-on-primary"
+              className={ui.addButton}
             >
               {t("newType")}
             </Link>

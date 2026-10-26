@@ -35,12 +35,12 @@
     "title": "Клієнти",
     "empty": "Поки немає клієнтів.",
     "emptyCta": "Створити першого клієнта",
-    "new": "Новий клієнт",
     "search": "Пошук",
     "noResults": "Нікого не знайдено",
     "age": "{age, plural, one {# рік} few {# роки} many {# років} other {# року}}",
     "count": "{count, plural, one {# клієнт} few {# клієнти} many {# клієнтів} other {# клієнта}}",
-    "allergyTag": "Алергія"
+    "allergyTag": "Алергія",
+    "newButton": "+ Новий клієнт"
   },
   "language": {
     "ru": "Русский",
@@ -208,10 +208,8 @@
     "motto": "SCIENCE · BEAUTY · CONFIDENCE"
   },
   "catalog": {
-    "title": "Каталог",
-    "nav": "Каталог",
-    "back": "Клієнти",
-    "backToCatalog": "Каталог",
+    "title": "Препарати",
+    "backToCatalog": "Препарати",
     "search": "Пошук препарату",
     "noResults": "Нічого не знайдено",
     "types": "Типи процедур",
@@ -227,7 +225,7 @@
     "noZones": "Зони не вибрано",
     "preparations": "Препарати",
     "noPreparations": "Поки немає препаратів.",
-    "newPreparation": "+ Новий препарат",
+    "newPreparation": "+ Препарат",
     "newPreparationTitle": "Новий препарат",
     "editPreparationTitle": "Змінити препарат",
     "favorite": "Часто використовую",
@@ -298,5 +296,10 @@
       "unitRequired": "Виберіть одиницю.",
       "duplicate": "Препарат із такою назвою вже є в цьому типі."
     }
+  },
+  "tabs": {
+    "label": "Розділи",
+    "clients": "Клієнти",
+    "preparations": "Препарати"
   }
 }

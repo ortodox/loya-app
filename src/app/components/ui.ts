@@ -10,9 +10,9 @@ export const ui = {
   link: "inline-flex min-h-11 items-center text-sm text-accent underline",
   error: "text-sm font-medium text-on-alert",
   muted: "text-sm text-muted",
-  /** Round 44×44 button, e.g. «+». */
-  roundButton:
-    "flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-2xl leading-none text-on-primary",
+  /** «+ Новый клиент», «+ Препарат»: always with text, at least 44 px high. */
+  addButton:
+    "inline-flex min-h-11 shrink-0 items-center rounded-full bg-primary px-4 text-sm font-semibold text-on-primary",
   /** Small outlined label, e.g. country code. */
   tag: "inline-flex items-center rounded-full border border-field px-2 py-0.5 text-xs font-semibold tracking-wide text-muted",
   alertTag: "inline-flex items-center rounded-full bg-alert px-2 py-0.5 text-xs font-semibold text-on-alert",

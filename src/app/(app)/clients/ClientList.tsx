@@ -26,6 +26,15 @@ export function ClientList({ clients }: { clients: ClientSummary[] }) {
 
   return (
     <>
+      <input
+        type="search"
+        enterKeyHint="search"
+        placeholder={t("search")}
+        aria-label={t("search")}
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        className={ui.input}
+      />
       <ul className={`${card.surface} flex flex-col`}>
         {shown.map((c) => (
           <li key={c.id} className="border-b border-line last:border-b-0">
@@ -49,20 +58,6 @@ export function ClientList({ clients }: { clients: ClientSummary[] }) {
         {shown.length === 0 && <li className={`${ui.muted} px-4 py-6 text-center`}>{t("noResults")}</li>}
       </ul>
 
-      {/* Search at the bottom, like Apple Notes. */}
-      <div className="fixed inset-x-0 bottom-0 border-t border-line bg-bg/95 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
-        <div className="mx-auto max-w-2xl">
-          <input
-            type="search"
-            enterKeyHint="search"
-            placeholder={t("search")}
-            aria-label={t("search")}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className={ui.input}
-          />
-        </div>
-      </div>
     </>
   );
 }

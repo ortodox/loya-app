@@ -143,7 +143,7 @@ export async function ClientCardView({ data, visits }: { data: ClientCard; visit
           <h2 className={card.heading}>{t("visits.title")}</h2>
           <Link
             href={`/clients/${id}/visits/new`}
-            className="inline-flex min-h-11 items-center rounded-full bg-primary px-4 text-sm font-semibold text-on-primary"
+            className={ui.addButton}
           >
             {t("visits.new")}
           </Link>

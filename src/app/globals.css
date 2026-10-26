@@ -7,6 +7,8 @@
  */
 :root {
   color-scheme: light;
+  /* Home indicator area in standalone (PWA) mode; used by the body and the tab bar. */
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
   --bg: #f4ece2;
   --surface: #fbf7f2;
   --line: #eadfd2;
@@ -61,8 +63,7 @@ body {
   color: var(--ink);
   font-family: var(--font-sans);
   /* Room for the notch / home indicator when launched from the home screen. */
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
-    env(safe-area-inset-left);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) var(--safe-bottom) env(safe-area-inset-left);
 }
 
 :focus-visible {

@@ -132,11 +132,14 @@ Hvert felt: fritekst er alltid tillatt (også «?» for usikkerhet). Hurtigvalg 
 - **Montserrat 400/500/600** (`font-sans`, standard): all annen tekst.
 
 **Regler:**
-- Alle knapper og trykkflater er **minst 44 px høye** (`min-h-11`, runde knapper `size-11`).
+- Alle knapper og trykkflater er **minst 44 px høye** (`min-h-11`).
+- **Ikonknapper har alltid tekst** («+ Новый клиент», «+ Препарат»), unntatt helt standard symboler som «‹ tilbake».
+- **Fanelinje nederst** (iOS-stil, `TabBar`): ikon + tekst, aktiv fane i `accent`, minst 44 px, over hjemindikatoren (`--safe-bottom` = `env(safe-area-inset-bottom)`). Fanene står i `src/config/navigation.ts` – en ny fane (f.eks. «Наблюдение», MVP 3) er én linje der + tekst i `messages/*.json` + ikon. Fanelinjen vises bare på hovedsidene, aldri i skjemaer (`/new`, `/edit`).
 - Felt har radius **14 px**, kort radius **18 px**. Felles klasser i `src/app/components/ui.ts`.
 - Datoer `DD.MM.YYYY`.
 - **Innlogging:** stor «LOA» i gull serif med liten firkantet stjerne over og tynn bue under, «AESTHETIC MEDICINE» med bred bokstavavstand, linje med stjerne, «SCIENCE · BEAUTY · CONFIDENCE» (`BrandHero`). Skjema i kort under.
-- **Klientliste** (som Apple Notater): liten «LOA» øverst til venstre, rund «+» til høyre, stor serif-overskrift «Клиенты» med antall under. Listen i ett kort; hver rad: navn (fet), dato · alder, utdrag; til høyre landskode og eventuelt rød «Аллергия». **Søk nederst.**
+- **Klientliste** (som Apple Notater): liten «LOA» øverst til venstre, «+ Новый клиент» til høyre, stor serif-overskrift «Клиенты» med antall under, **søk rett under overskriften**. Listen i ett kort; hver rad: navn (fet), dato · alder, utdrag; til høyre landskode og eventuelt rød «Аллергия».
+- **Препараты** (katalogen, URL `/catalog`): liten «LOA» og «+ Препарат» øverst, serif-overskrift «Препараты», søk i preparater, typene i ett kort.
 - **Klientkort:** liten «КАРТА КЛИЕНТА» over navnet (serif), under: alder · første besøk, landskode + land, by. Allergivarsel som avrundet boks med varseltrekant øverst. Hver seksjon i eget kort med serif-overskrift; etikett/verdi-rader som i notatet; «—» når tomt. Жалобы som piller (valgt = mørk fylt med ✓). Kliniske seksjoner som rader som kan åpnes, med kort sammendrag under tittelen.
 - **PWA-ikon:** midlertidig «LOA» i gull serif på #F4ECE2 (`public/icon-*.png`, `apple-touch-icon.png`, `src/app/icon.png`). Temafarge #F4ECE2 (mørk: #1E1814). Bytt ut når `design/loa-icon.png` finnes.
 
