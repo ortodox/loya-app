@@ -35,12 +35,12 @@
     "title": "Clients",
     "empty": "No clients yet.",
     "emptyCta": "Create the first client",
-    "new": "New client",
     "search": "Search",
     "noResults": "No one found",
     "age": "{age, plural, one {# year} other {# years}}",
     "count": "{count, plural, one {# client} other {# clients}}",
-    "allergyTag": "Allergy"
+    "allergyTag": "Allergy",
+    "newButton": "+ New client"
   },
   "language": {
     "ru": "Русский",
@@ -208,10 +208,8 @@
     "motto": "SCIENCE · BEAUTY · CONFIDENCE"
   },
   "catalog": {
-    "title": "Catalogue",
-    "nav": "Catalogue",
-    "back": "Clients",
-    "backToCatalog": "Catalogue",
+    "title": "Preparations",
+    "backToCatalog": "Preparations",
     "search": "Search preparations",
     "noResults": "Nothing found",
     "types": "Procedure types",
@@ -227,7 +225,7 @@
     "noZones": "No zones selected",
     "preparations": "Preparations",
     "noPreparations": "No preparations yet.",
-    "newPreparation": "+ New preparation",
+    "newPreparation": "+ Preparation",
     "newPreparationTitle": "New preparation",
     "editPreparationTitle": "Edit preparation",
     "favorite": "Use often",
@@ -298,5 +296,10 @@
       "unitRequired": "Choose a unit.",
       "duplicate": "A preparation with this name already exists in this type."
     }
+  },
+  "tabs": {
+    "label": "Sections",
+    "clients": "Clients",
+    "preparations": "Preparations"
   }
 }

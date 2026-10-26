@@ -60,7 +60,7 @@ export async function TypeView({ detail }: { detail: TypeDetail }) {
           <h2 className={card.heading}>{t("preparations")}</h2>
           <Link
             href={`/catalog/preparations/new?type=${type.id}`}
-            className="inline-flex min-h-11 items-center rounded-full bg-primary px-4 text-sm font-semibold text-on-primary"
+            className={ui.addButton}
           >
             {t("newPreparation")}
           </Link>

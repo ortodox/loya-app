@@ -35,12 +35,12 @@
     "title": "Klienci",
     "empty": "Brak klientów.",
     "emptyCta": "Utwórz pierwszego klienta",
-    "new": "Nowy klient",
     "search": "Szukaj",
     "noResults": "Nikogo nie znaleziono",
     "age": "{age, plural, one {# rok} few {# lata} many {# lat} other {# roku}}",
     "count": "{count, plural, one {# klient} few {# klientów} many {# klientów} other {# klienta}}",
-    "allergyTag": "Alergia"
+    "allergyTag": "Alergia",
+    "newButton": "+ Nowy klient"
   },
   "language": {
     "ru": "Русский",
@@ -208,10 +208,8 @@
     "motto": "SCIENCE · BEAUTY · CONFIDENCE"
   },
   "catalog": {
-    "title": "Katalog",
-    "nav": "Katalog",
-    "back": "Klienci",
-    "backToCatalog": "Katalog",
+    "title": "Preparaty",
+    "backToCatalog": "Preparaty",
     "search": "Szukaj preparatu",
     "noResults": "Nic nie znaleziono",
     "types": "Rodzaje zabiegów",
@@ -227,7 +225,7 @@
     "noZones": "Nie wybrano stref",
     "preparations": "Preparaty",
     "noPreparations": "Brak preparatów.",
-    "newPreparation": "+ Nowy preparat",
+    "newPreparation": "+ Preparat",
     "newPreparationTitle": "Nowy preparat",
     "editPreparationTitle": "Edytuj preparat",
     "favorite": "Często używam",
@@ -298,5 +296,10 @@
       "unitRequired": "Wybierz jednostkę.",
       "duplicate": "Preparat o tej nazwie już jest w tym rodzaju."
     }
+  },
+  "tabs": {
+    "label": "Sekcje",
+    "clients": "Klienci",
+    "preparations": "Preparaty"
   }
 }
