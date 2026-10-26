@@ -23,8 +23,10 @@ All SQL under kjøres i **Supabase → SQL Editor → New query**. Bytt ut det s
 ```sql
 -- De siste kopiene: når, hvorfor og hvor mange rader
 select taken_at, reason,
-       count(*) filter (where table_name = 'clients') as klienter,
-       count(*) filter (where table_name = 'visits')  as besok
+       count(*) filter (where table_name = 'clients')         as klienter,
+       count(*) filter (where table_name = 'visits')          as besok,
+       count(*) filter (where table_name = 'procedure_types') as typer,
+       count(*) filter (where table_name = 'preparations')    as preparater
 from backup.snapshots
 group by taken_at, reason
 order by taken_at desc
@@ -62,7 +64,8 @@ En gang i måneden, for en kopi utenfor Supabase:
 1. Supabase → **Table Editor**.
 2. Velg tabellen **clients** i listen til venstre.
 3. Trykk **⋯** ved tabellnavnet (eller høyreklikk) → **Export data** → **Export table as CSV**.
-4. Gjør det samme for tabellen **visits**.
+4. Gjør det samme for tabellene **visits**, **procedure_types**, **preparations**, **zones** og
+   **procedure_type_zones** (katalogen).
 5. Gi filene navn med dato, f.eks. `clients_2026-11-01.csv` og `visits_2026-11-01.csv`.
 
 **Viktig:** filene inneholder helseopplysninger. Lagre dem kryptert (f.eks. kryptert disk eller
@@ -224,6 +227,80 @@ commit;
 - Hvis noe feiler, stopper alt og ingenting endres. Kjør `rollback;` og si fra.
 - Når nye kolonner legges til i `clients` eller `visits`, må listen etter `do update set` her oppdateres
   i samme PR som migreringen.
+
+## 6b. Gjenopprett katalogen
+
+Kopiene inneholder også katalogen: behandlingstyper, soner, sonene per type og preparater.
+SQL-en setter dem tilbake til siste kopi før `TIDSPUNKT`. Klienter og besøk røres ikke.
+
+```sql
+begin;
+
+select backup.take_snapshot('før gjenoppretting av katalogen');
+
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.zones
+select (jsonb_populate_record(null::public.zones, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t and s.table_name = 'zones'
+on conflict (id) do update set
+  code = excluded.code, name = excluded.name, zone_group = excluded.zone_group,
+  sort_order = excluded.sort_order, active = excluded.active;
+
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.procedure_types
+select (jsonb_populate_record(null::public.procedure_types, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t and s.table_name = 'procedure_types'
+on conflict (id) do update set
+  code = excluded.code, name = excluded.name, sort_order = excluded.sort_order,
+  dose_text = excluded.dose_text, dose_unit = excluded.dose_unit,
+  course_min = excluded.course_min, course_max = excluded.course_max,
+  interval_min = excluded.interval_min, interval_max = excluded.interval_max,
+  interval_unit = excluded.interval_unit,
+  maintenance_min = excluded.maintenance_min, maintenance_max = excluded.maintenance_max,
+  maintenance_unit = excluded.maintenance_unit, maintenance_as_needed = excluded.maintenance_as_needed,
+  control_after_days = excluded.control_after_days,
+  advice = excluded.advice, advice_review = excluded.advice_review, active = excluded.active;
+
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.procedure_type_zones
+select (jsonb_populate_record(null::public.procedure_type_zones, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t and s.table_name = 'procedure_type_zones'
+on conflict do nothing;
+
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.preparations
+select (jsonb_populate_record(null::public.preparations, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t and s.table_name = 'preparations'
+on conflict (id) do update set
+  procedure_type_id = excluded.procedure_type_id, name = excluded.name,
+  manufacturer = excluded.manufacturer, favorite = excluded.favorite,
+  dose_text = excluded.dose_text, dose_unit = excluded.dose_unit,
+  course_min = excluded.course_min, course_max = excluded.course_max,
+  interval_min = excluded.interval_min, interval_max = excluded.interval_max,
+  interval_unit = excluded.interval_unit,
+  maintenance_min = excluded.maintenance_min, maintenance_max = excluded.maintenance_max,
+  maintenance_unit = excluded.maintenance_unit, maintenance_as_needed = excluded.maintenance_as_needed,
+  control_after_days = excluded.control_after_days,
+  advice = excluded.advice, advice_review = excluded.advice_review, active = excluded.active;
+
+commit;
+```
+
+- Typer, soner og preparater som ble **lagt til etter** `TIDSPUNKT`, blir liggende. Det samme gjelder soner som ble
+  lagt til en type.
+- Når nye kolonner legges til i katalogtabellene, må listene etter `do update set` her oppdateres i samme PR.
 
 ## 7. Plass og opprydding
 

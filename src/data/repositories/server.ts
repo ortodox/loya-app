@@ -1,4 +1,5 @@
 import { createClient } from "@/data/supabase/server";
+import { supabaseCatalogRepository } from "./catalog-supabase";
 import { supabaseClientRepository } from "./clients-supabase";
 import { supabaseVisitRepository } from "./visits-supabase";
 
@@ -9,4 +10,8 @@ export async function clientRepository() {
 
 export async function visitRepository() {
   return supabaseVisitRepository(await createClient());
+}
+
+export async function catalogRepository() {
+  return supabaseCatalogRepository(await createClient());
 }

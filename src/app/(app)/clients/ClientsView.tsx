@@ -9,14 +9,20 @@ import { ClientList } from "./ClientList";
 
 export async function ClientsView({ clients }: { clients: ClientSummary[] }) {
   const t = await getTranslations("clients");
+  const tc = await getTranslations("catalog");
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-5 px-5 pt-4 pb-28">
       <header className="flex items-center justify-between gap-4">
         <BrandMark />
-        <Link href="/clients/new" aria-label={t("new")} className={ui.roundButton}>
-          +
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href="/catalog" className={ui.textButton}>
+            {tc("nav")}
+          </Link>
+          <Link href="/clients/new" aria-label={t("new")} className={ui.roundButton}>
+            +
+          </Link>
+        </div>
       </header>
       <div>
         <h1 className="font-serif text-5xl leading-tight text-ink">{t("title")}</h1>
