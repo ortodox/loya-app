@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Anamnesis, Client, ClientInput } from "@/logic/client";
+import { parseDirection } from "@/logic/rules/courses";
 import type { ClientRepository } from "./clients";
 import { isLocale } from "@/logic/locale";
 
@@ -18,12 +19,14 @@ type ClientRow = {
   notes: string | null;
   procedure_plan: string | null;
   anamnesis_confirmed_at: string | null;
+  direction: string[] | null;
   updated_at: string;
   visits?: { visit_date: string }[];
+  treatment_courses?: { status: "active" | "completed"; start_date: string; end_date: string }[];
 };
 
 const columns =
-  "id, full_name, card_date, age_at_registration, birth_date, phone, email, residence_country, residence_city, language, anamnesis, notes, procedure_plan, anamnesis_confirmed_at, updated_at";
+  "id, full_name, card_date, age_at_registration, birth_date, phone, email, residence_country, residence_city, language, anamnesis, notes, procedure_plan, anamnesis_confirmed_at, direction, updated_at";
 
 function toClient(row: ClientRow): Client {
   return {
@@ -42,6 +45,8 @@ function toClient(row: ClientRow): Client {
     procedurePlan: row.procedure_plan,
     anamnesisConfirmedAt: row.anamnesis_confirmed_at,
     visitDates: (row.visits ?? []).map((v) => v.visit_date),
+    direction: parseDirection(row.direction ?? []),
+    courses: (row.treatment_courses ?? []).map((c) => ({ status: c.status, startDate: c.start_date, endDate: c.end_date })),
     updatedAt: row.updated_at,
   };
 }
@@ -60,13 +65,15 @@ function toRow(input: ClientInput) {
     anamnesis: input.anamnesis,
     notes: input.notes,
     procedure_plan: input.procedurePlan,
+    direction: input.direction.length > 0 ? input.direction : null,
   };
 }
 
 /** Supabase-backed client storage. RLS limits every query to the signed-in doctor. */
 export function supabaseClientRepository(supabase: SupabaseClient): ClientRepository {
-  // VS1/VP2: all visit dates, so the list can show the last visit and the next appointment.
-  const withVisits = () => supabase.from("clients").select(`${columns}, visits(visit_date)`);
+  // VS1/VP2/LE4: all visit dates and course dates – last visit, next appointment, «На лечении».
+  const withVisits = () =>
+    supabase.from("clients").select(`${columns}, visits(visit_date), treatment_courses(status, start_date, end_date)`);
 
   return {
     async list() {
@@ -91,6 +98,16 @@ export function supabaseClientRepository(supabase: SupabaseClient): ClientReposi
       const { data, error } = await supabase
         .from("clients")
         .update(toRow(input))
+        .eq("id", id)
+        .select("id");
+      if (error) throw error;
+      return data.length > 0;
+    },
+
+    async setDirection(id, direction) {
+      const { data, error } = await supabase
+        .from("clients")
+        .update({ direction: direction.length > 0 ? direction : null })
         .eq("id", id)
         .select("id");
       if (error) throw error;

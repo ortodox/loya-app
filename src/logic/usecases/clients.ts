@@ -3,6 +3,8 @@ import { currentAge } from "@/logic/rules/age";
 import { parseClientForm, type ClientForm, type ClientInputErrors } from "@/logic/rules/client-input";
 import { lastActivityDate, notesExcerpt, sortNewestFirst, visitTimeline } from "@/logic/rules/client-list";
 import { safetyAlerts, type SafetyAlert } from "@/logic/rules/safety-alert";
+import { treatmentStatus, type TreatmentStatus } from "@/logic/rules/courses";
+import type { Direction } from "@/logic/course";
 import type { ClientRepository } from "@/data/repositories/clients";
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -21,6 +23,10 @@ export type ClientSummary = {
   phone: string | null;
   /** VP2: the next planned visit («Запись: 31.10»). */
   nextVisitDate: IsoDate | null;
+  /** DM1: ✨ / 🩺 in the list and the filter. */
+  direction: Direction[];
+  /** LE4: «🩺 На лечении · N дн.» / «Курс закончился»; null when no active course. */
+  treatment: TreatmentStatus | null;
 };
 
 /** PR2/VP2: all clients for the list, newest first. Search runs in the UI with `matchesClient`. */
@@ -39,6 +45,8 @@ export async function listClients(repo: ClientRepository, today: IsoDate): Promi
     excerpt: notesExcerpt(c.notes),
     phone: c.phone,
     nextVisitDate: c.nextVisitDate,
+    direction: c.direction,
+    treatment: treatmentStatus(c.courses, today),
   }));
 }
 

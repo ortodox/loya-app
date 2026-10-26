@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { applySnapshot, clearDraft, readDraft, snapshotForm, writeDraft } from "@/app/components/draft";
 import { Chevron } from "@/app/components/Icons";
-import { card, disclosure, formSection, ui } from "@/app/components/ui";
+import { card, disclosure, formSection, pill, ui } from "@/app/components/ui";
 import { locales } from "@/config/locales";
+import { directions } from "@/logic/course";
 import type { CountryOption } from "@/logic/rules/country";
 import { AnamnesisFields } from "./AnamnesisFields";
 import type { ClientForm as ClientFormValues, ClientFormField } from "@/logic/rules/client-input";
@@ -235,6 +236,27 @@ export function ClientForm({ title, initial, cancelHref, action, countries, open
               defaultValue={v.residenceCity}
               className={ui.input}
             />
+          </fieldset>
+
+          {/* DM1: «Косметология», «Дерматология» or both. */}
+          <fieldset className="flex flex-col gap-2">
+            <legend className={`${card.label} mb-2`}>{t("direction.label")}</legend>
+            <div className="flex flex-wrap gap-2">
+              {directions.map((d) => (
+                <label key={d} className="cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="direction"
+                    value={d}
+                    defaultChecked={(v.direction ?? []).includes(d)}
+                    className="peer sr-only"
+                  />
+                  <span className={`${pill.base} ${pill.off} peer-checked:border-primary peer-checked:bg-primary peer-checked:text-on-primary peer-focus-visible:ring-2`}>
+                    {t(`direction.${d}`)}
+                  </span>
+                </label>
+              ))}
+            </div>
           </fieldset>
 
           <label className="flex flex-col gap-2">

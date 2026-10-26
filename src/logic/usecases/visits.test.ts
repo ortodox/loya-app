@@ -34,6 +34,8 @@ const client = (cid: string, fullName: string, extra: Partial<Client> = {}): Cli
   procedurePlan: null,
   anamnesisConfirmedAt: null,
   visitDates: [],
+  direction: [],
+  courses: [],
   updatedAt: "2026-01-01T00:00:00Z",
   ...extra,
 });
@@ -60,6 +62,7 @@ function memory() {
     get: async (cid) => clients.find((c) => c.id === cid) ?? null,
     create: async () => ({ id: "x" }),
     update: async () => true,
+    setDirection: async () => true,
     confirmAnamnesis: async (cid, date) => {
       const c = clients.find((x) => x.id === cid);
       if (c) c.anamnesisConfirmedAt = date;

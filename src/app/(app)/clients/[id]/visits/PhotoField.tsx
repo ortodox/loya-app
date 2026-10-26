@@ -16,15 +16,22 @@ type Props = {
   onRemoveExisting: (id: string) => void;
   onAdd: (photos: NewPhoto[]) => void;
   onRemoveNew: (key: string) => void;
+  /** How many photos fit (LOT1: 3 per visit; LE3: 3 per save). */
+  max?: number;
+  /** LE3: own button text and hint for prescription photos. */
+  addLabel?: string;
+  hint?: string;
 };
 
-/** LOT1: 1–3 sticker photos for the whole visit – camera or library, compressed before upload. */
-export function PhotoField({ existing, removed, added, onRemoveExisting, onAdd, onRemoveNew }: Props) {
+/** LOT1/LE3: photos from the camera or library, compressed on the phone before upload. */
+export function PhotoField(props: Props) {
+  const { existing, removed, added, onRemoveExisting, onAdd, onRemoveNew } = props;
+  const { max = maxPhotosPerVisit, addLabel, hint } = props;
   const t = useTranslations("visits");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const kept = existing.filter((p) => !removed.includes(p.id));
-  const free = maxPhotosPerVisit - kept.length - added.length;
+  const free = max - kept.length - added.length;
 
   async function choose(files: FileList | null) {
     setError(null);
@@ -64,7 +71,7 @@ export function PhotoField({ existing, removed, added, onRemoveExisting, onAdd, 
       </ul>
       {free > 0 && (
         <label className={`${ui.addButton} cursor-pointer self-start`}>
-          {busy ? t("compressing") : t("addPhoto")}
+          {busy ? t("compressing") : (addLabel ?? t("addPhoto"))}
           <input
             type="file"
             accept="image/*"
@@ -78,7 +85,7 @@ export function PhotoField({ existing, removed, added, onRemoveExisting, onAdd, 
           />
         </label>
       )}
-      <p className="text-sm text-muted">{t("photosHint")}</p>
+      <p className="text-sm text-muted">{hint ?? t("photosHint")}</p>
       {error && <p className={ui.error}>{error}</p>}
     </div>
   );

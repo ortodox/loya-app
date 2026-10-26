@@ -44,7 +44,16 @@
     "created": "Клиент сохранён.",
     "addVisit": "+ Добавить визит",
     "later": "Позже",
-    "nextVisit": "Запись: {date}"
+    "nextVisit": "Запись: {date}",
+    "filter": {
+      "all": "Все",
+      "cosmetology": "Косметология",
+      "dermatology": "Дерматология",
+      "treatment": "На лечении"
+    },
+    "onTreatment": "🩺 На лечении · {count} дн.",
+    "filterLabel": "Показать клиентов",
+    "treatmentEnded": "🩺 Курс закончился"
   },
   "language": {
     "ru": "Русский",
@@ -372,5 +381,56 @@
   "draft": {
     "restored": "Восстановлен несохранённый черновик.",
     "discard": "Сбросить черновик"
+  },
+  "courses": {
+    "title": "Лечение",
+    "add": "+ Курс лечения",
+    "newTitle": "Новый курс",
+    "editTitle": "Изменить курс",
+    "diagnosis": "Диагноз",
+    "prescription": "Назначение",
+    "prescriptionHint": "Что, сколько, по какой схеме. Рецепт выписывается в другой системе.",
+    "startDate": "Начало",
+    "endDate": "Окончание (примерно)",
+    "labControl": "Контроль анализов",
+    "labEvery": "Каждые",
+    "units": {
+      "days": "дн.",
+      "weeks": "нед.",
+      "months": "мес."
+    },
+    "lastLabDate": "Последние анализы (если уже сданы)",
+    "photos": "Фото рецептов",
+    "photosHint": "Можно добавлять при каждом продлении – до 3 фото за раз.",
+    "addPhoto": "+ Фото рецепта",
+    "daysLeft": "{count, plural, one {Остался # день} few {Осталось # дня} many {Осталось # дней} other {Осталось # дня}}",
+    "ended": "Курс закончился {date}",
+    "complete": "Завершить курс",
+    "extend": "Продлить",
+    "extendTo": "Новая дата окончания",
+    "nextLabs": "Следующие анализы: ~{date}",
+    "labsOverdue": "Анализы: срок прошёл ~{date}",
+    "labsDone": "Анализы сданы ✓",
+    "lastLabs": "последние {date}",
+    "interval": "Контроль анализов: каждые {value} {unit}",
+    "completedList": "Завершённые курсы ({count})",
+    "completedOn": "завершён {date}",
+    "edit": "Изменить",
+    "empty": "Нет активного курса лечения.",
+    "photoAdded": "добавлено {date}",
+    "errors": {
+      "diagnosisRequired": "Введите диагноз.",
+      "dateInvalid": "Неверная дата.",
+      "endRequired": "Укажите примерную дату окончания.",
+      "endBeforeStart": "Окончание не может быть раньше начала.",
+      "labIntervalInvalid": "Укажите интервал, например 2,5 мес.",
+      "tooManyPhotos": "Не больше 3 фото за раз.",
+      "photoInvalid": "Не удалось обработать фото. Попробуйте другое."
+    }
+  },
+  "direction": {
+    "label": "Направление",
+    "cosmetology": "✨ Косметология",
+    "dermatology": "🩺 Дерматология"
   }
 }

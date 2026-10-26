@@ -31,6 +31,7 @@ function readForm(formData: FormData): ClientForm {
   return {
     ...Object.fromEntries(clientFormFields.map((f) => [f, str(formData.get(f))])),
     anamnesis,
+    direction: formData.getAll("direction").map(str),
   };
 }
 

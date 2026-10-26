@@ -44,7 +44,16 @@
     "created": "Клієнта збережено.",
     "addVisit": "+ Додати візит",
     "later": "Пізніше",
-    "nextVisit": "Запис: {date}"
+    "nextVisit": "Запис: {date}",
+    "filter": {
+      "all": "Усі",
+      "cosmetology": "Косметологія",
+      "dermatology": "Дерматологія",
+      "treatment": "На лікуванні"
+    },
+    "onTreatment": "🩺 На лікуванні · {count} дн.",
+    "filterLabel": "Показати клієнтів",
+    "treatmentEnded": "🩺 Курс закінчився"
   },
   "language": {
     "ru": "Русский",
@@ -372,5 +381,56 @@
   "draft": {
     "restored": "Відновлено незбережену чернетку.",
     "discard": "Скинути чернетку"
+  },
+  "courses": {
+    "title": "Лікування",
+    "add": "+ Курс лікування",
+    "newTitle": "Новий курс",
+    "editTitle": "Змінити курс",
+    "diagnosis": "Діагноз",
+    "prescription": "Призначення",
+    "prescriptionHint": "Що, скільки, за якою схемою. Рецепт виписується в іншій системі.",
+    "startDate": "Початок",
+    "endDate": "Закінчення (приблизно)",
+    "labControl": "Контроль аналізів",
+    "labEvery": "Кожні",
+    "units": {
+      "days": "дн.",
+      "weeks": "тиж.",
+      "months": "міс."
+    },
+    "lastLabDate": "Останні аналізи (якщо вже здані)",
+    "photos": "Фото рецептів",
+    "photosHint": "Можна додавати при кожному продовженні – до 3 фото за раз.",
+    "addPhoto": "+ Фото рецепта",
+    "daysLeft": "{count, plural, one {Залишився # день} few {Залишилося # дні} many {Залишилося # днів} other {Залишилося # дня}}",
+    "ended": "Курс закінчився {date}",
+    "complete": "Завершити курс",
+    "extend": "Продовжити",
+    "extendTo": "Нова дата закінчення",
+    "nextLabs": "Наступні аналізи: ~{date}",
+    "labsOverdue": "Аналізи: термін минув ~{date}",
+    "labsDone": "Аналізи здано ✓",
+    "lastLabs": "останні {date}",
+    "interval": "Контроль аналізів: кожні {value} {unit}",
+    "completedList": "Завершені курси ({count})",
+    "completedOn": "завершено {date}",
+    "edit": "Змінити",
+    "empty": "Немає активного курсу лікування.",
+    "photoAdded": "додано {date}",
+    "errors": {
+      "diagnosisRequired": "Введіть діагноз.",
+      "dateInvalid": "Неправильна дата.",
+      "endRequired": "Вкажіть приблизну дату закінчення.",
+      "endBeforeStart": "Закінчення не може бути раніше початку.",
+      "labIntervalInvalid": "Вкажіть інтервал, наприклад 2,5 міс.",
+      "tooManyPhotos": "Не більше 3 фото за раз.",
+      "photoInvalid": "Не вдалося обробити фото. Спробуйте інше."
+    }
+  },
+  "direction": {
+    "label": "Напрям",
+    "cosmetology": "✨ Косметологія",
+    "dermatology": "🩺 Дерматологія"
   }
 }
