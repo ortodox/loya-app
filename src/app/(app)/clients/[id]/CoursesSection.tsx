@@ -4,6 +4,7 @@ import { Chevron } from "@/app/components/Icons";
 import { card, disclosure, ui } from "@/app/components/ui";
 import type { IsoDate } from "@/logic/client";
 import type { TreatmentCourse } from "@/logic/course";
+import type { ClientDocument } from "@/logic/document";
 import { courseProgress, nextLabDate } from "@/logic/rules/courses";
 import { formatIsoDate } from "@/logic/rules/dates";
 import { completeCourseAction, extendCourseAction, labsDoneAction, setLastLabAction } from "./courses/actions";
@@ -14,14 +15,19 @@ type Props = {
   completed: TreatmentCourse[];
   photoUrls: Record<string, string>;
   today: IsoDate;
+  /** LE8: lab results attached to each course, with links to open them. */
+  labDocuments?: Record<string, ClientDocument[]>;
+  documentUrls?: Record<string, string>;
 };
 
 const smallButton = "inline-flex min-h-11 items-center justify-center rounded-[14px] border border-field px-4 text-sm font-medium text-accent";
 
 /** LE5/LE9: «Лечение» in the client card – the active course(s) and the finished ones. */
-export async function CoursesSection({ clientId, active, completed, photoUrls, today }: Props) {
+export async function CoursesSection(props: Props) {
+  const { clientId, active, completed, photoUrls, today, labDocuments = {}, documentUrls = {} } = props;
   const t = await getTranslations("courses");
   const save = (await getTranslations("form"))("save");
+  const open = (await getTranslations("documents"))("open");
   const locale = await getLocale();
   const number = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 });
 
@@ -42,6 +48,29 @@ export async function CoursesSection({ clientId, active, completed, photoUrls, t
           </li>
         ))}
       </ul>
+    );
+
+  // LE8: «Анализы» – documents attached to the course, newest first.
+  const labs = (course: TreatmentCourse) =>
+    (labDocuments[course.id] ?? []).length > 0 && (
+      <div className="flex flex-col gap-1">
+        <h4 className="text-sm font-semibold text-muted">{t("labDocs")}</h4>
+        <ul className="flex flex-col">
+          {labDocuments[course.id].map((d) => (
+            <li key={d.id} className="flex items-center justify-between gap-3">
+              <span className="min-w-0 truncate text-sm text-ink">
+                {d.mimeType === "application/pdf" ? "📄" : "🖼️"} {formatIsoDate(d.documentDate)}
+                {d.title && ` · ${d.title}`}
+              </span>
+              {documentUrls[d.storagePath] && (
+                <a href={documentUrls[d.storagePath]} target="_blank" rel="noreferrer" className={`${ui.textButton} shrink-0 text-sm`}>
+                  {open}
+                </a>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
     );
 
   function activeCourse(course: TreatmentCourse) {
@@ -141,6 +170,8 @@ export async function CoursesSection({ clientId, active, completed, photoUrls, t
           </div>
         )}
 
+        {labs(course)}
+
         {/* LE3: prescription photos, newest first. */}
         {photos(course)}
       </article>
@@ -178,6 +209,7 @@ export async function CoursesSection({ clientId, active, completed, photoUrls, t
                   </div>
                 </div>
                 {course.prescription && <p className="text-sm whitespace-pre-wrap text-ink">{course.prescription}</p>}
+                {labs(course)}
                 {photos(course)}
               </li>
             ))}
