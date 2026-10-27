@@ -3,8 +3,10 @@ import {
   addInterval,
   courseProgress,
   matchesFilter,
+  toggleFilter,
   nextLabDate,
   parseCourseForm,
+  parseLastLabDate,
   parseDirection,
   parseIntervalValue,
   splitCourses,
@@ -26,13 +28,19 @@ describe("DM1: направление", () => {
     expect(withDermatology([])).toEqual(["dermatology"]);
   });
 
-  it("DM1/LE4: filters the client list by direction and by «На лечении»", () => {
-    const derm = { direction: ["dermatology"] as const, treatment: { daysLeft: 12, ended: false } };
-    const cosm = { direction: ["cosmetology"] as const, treatment: null };
-    expect([derm, cosm].filter((c) => matchesFilter(c, "cosmetology"))).toEqual([cosm]);
-    expect([derm, cosm].filter((c) => matchesFilter(c, "dermatology"))).toEqual([derm]);
-    expect([derm, cosm].filter((c) => matchesFilter(c, "treatment"))).toEqual([derm]);
-    expect([derm, cosm].filter((c) => matchesFilter(c, "all"))).toHaveLength(2);
+  it("DM1: filters the client list by direction; no filter shows everyone", () => {
+    const derm = { direction: ["dermatology"] as const };
+    const cosm = { direction: ["cosmetology"] as const };
+    const none = { direction: [] as const };
+    expect([derm, cosm, none].filter((c) => matchesFilter(c, "cosmetology"))).toEqual([cosm]);
+    expect([derm, cosm, none].filter((c) => matchesFilter(c, "dermatology"))).toEqual([derm]);
+    expect([derm, cosm, none].filter((c) => matchesFilter(c, null))).toHaveLength(3);
+  });
+
+  it("DM1: tapping a direction chooses it, tapping it again clears it", () => {
+    expect(toggleFilter(null, "dermatology")).toBe("dermatology");
+    expect(toggleFilter("dermatology", "dermatology")).toBeNull();
+    expect(toggleFilter("dermatology", "cosmetology")).toBe("cosmetology");
   });
 });
 
@@ -152,5 +160,19 @@ describe("LE9: завершённые курсы", () => {
     ]);
     expect(active.map((x) => x.id)).toEqual(["a2", "a1"]);
     expect(completed.map((x) => x.id)).toEqual(["new", "old"]);
+  });
+});
+
+describe("LE6: изменить или очистить дату последних анализов", () => {
+  it("LE6: an empty date clears it, so the next tests are counted from the start again", () => {
+    expect(parseLastLabDate("", today)).toEqual({ ok: true, date: null });
+    const course = { startDate: "2026-09-01", labInterval: { value: 2.5, unit: "months" as const }, lastLabDate: null };
+    expect(nextLabDate(course)).toBe("2026-11-16");
+  });
+
+  it("LE6: another date can be chosen, but not one in the future", () => {
+    expect(parseLastLabDate("2026-10-05", today)).toEqual({ ok: true, date: "2026-10-05" });
+    expect(parseLastLabDate("2026-12-01", today)).toEqual({ ok: false });
+    expect(parseLastLabDate("05.10.2026", today)).toEqual({ ok: false });
   });
 });

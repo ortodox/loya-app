@@ -46,10 +46,8 @@
     "later": "Пізніше",
     "nextVisit": "Запис: {date}",
     "filter": {
-      "all": "Усі",
       "cosmetology": "Косметологія",
-      "dermatology": "Дерматологія",
-      "treatment": "На лікуванні"
+      "dermatology": "Дерматологія"
     },
     "onTreatment": "🩺 На лікуванні · {count} дн.",
     "filterLabel": "Показати клієнтів",
@@ -426,7 +424,9 @@
       "labIntervalInvalid": "Вкажіть інтервал, наприклад 2,5 міс.",
       "tooManyPhotos": "Не більше 3 фото за раз.",
       "photoInvalid": "Не вдалося обробити фото. Спробуйте інше."
-    }
+    },
+    "lastLabEdit": "Змінити дату",
+    "clear": "✕ Очистити"
   },
   "direction": {
     "label": "Напрям",

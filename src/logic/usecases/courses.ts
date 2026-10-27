@@ -4,6 +4,7 @@ import {
   maxCoursePhotos,
   maxCoursePhotosPerSave,
   parseCourseForm,
+  parseLastLabDate,
   splitCourses,
   withDermatology,
   type CourseForm,
@@ -142,4 +143,18 @@ export async function markLabsDone(deps: Pick<CourseDeps, "courses">, clientId: 
   const course = await courseOf(deps.courses, clientId, courseId);
   if (!course || !course.labInterval) return false;
   return deps.courses.patch(course.id, { lastLabDate: today });
+}
+
+/** LE6: change or clear «Последние анализы»; cleared = the next tests are counted from the start again. */
+export async function setLastLabDate(
+  deps: Pick<CourseDeps, "courses">,
+  clientId: string,
+  courseId: string,
+  text: string,
+  today: IsoDate,
+): Promise<boolean> {
+  const course = await courseOf(deps.courses, clientId, courseId);
+  const parsed = parseLastLabDate(text, today);
+  if (!course || !course.labInterval || !parsed.ok) return false;
+  return deps.courses.patch(course.id, { lastLabDate: parsed.date });
 }

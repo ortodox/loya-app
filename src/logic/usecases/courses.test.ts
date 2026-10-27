@@ -11,6 +11,7 @@ import {
   listCoursesForCard,
   markLabsDone,
   saveCourse,
+  setLastLabDate,
 } from "./courses";
 import type { PhotoUpload } from "./visits";
 
@@ -165,6 +166,18 @@ describe("LE6: контроль анализов", () => {
     const { id: kid } = (await saveCourse(m.deps, clientA, null, form, noPhotos, today)) as { id: string };
     expect(await markLabsDone(m.deps, clientA, kid, today)).toBe(true);
     expect(m.courses[0]).toMatchObject({ lastLabDate: today, labInterval: { value: 2.5, unit: "months" } });
+  });
+
+  it("LE6: the last tests date can be changed or cleared", async () => {
+    const m = memory();
+    const form = { ...course, labEnabled: "1", labValue: "2,5", labUnit: "months", lastLabDate: "2026-10-01" };
+    const { id: kid } = (await saveCourse(m.deps, clientA, null, form, noPhotos, today)) as { id: string };
+    expect(await setLastLabDate(m.deps, clientA, kid, "2026-10-10", today)).toBe(true);
+    expect(m.courses[0].lastLabDate).toBe("2026-10-10");
+    expect(await setLastLabDate(m.deps, clientA, kid, "", today)).toBe(true);
+    expect(m.courses[0].lastLabDate).toBeNull();
+    expect(await setLastLabDate(m.deps, clientA, kid, "2027-01-01", today)).toBe(false);
+    expect(await setLastLabDate(m.deps, clientB, kid, "", today)).toBe(false);
   });
 
   it("LE6: nothing to mark without lab control", async () => {

@@ -6,7 +6,7 @@ import type { IsoDate } from "@/logic/client";
 import type { TreatmentCourse } from "@/logic/course";
 import { courseProgress, nextLabDate } from "@/logic/rules/courses";
 import { formatIsoDate } from "@/logic/rules/dates";
-import { completeCourseAction, extendCourseAction, labsDoneAction } from "./courses/actions";
+import { completeCourseAction, extendCourseAction, labsDoneAction, setLastLabAction } from "./courses/actions";
 
 type Props = {
   clientId: string;
@@ -109,11 +109,35 @@ export async function CoursesSection({ clientId, active, completed, photoUrls, t
                 ? t("labsOverdue", { date: formatIsoDate(nextLabs) })
                 : t("nextLabs", { date: formatIsoDate(nextLabs) })}
             </p>
-            <form action={labsDoneAction.bind(null, clientId, course.id)}>
-              <button type="submit" className={smallButton}>
-                {t("labsDone")}
-              </button>
-            </form>
+            <div className="flex flex-wrap items-start gap-2">
+              <form action={labsDoneAction.bind(null, clientId, course.id)}>
+                <button type="submit" className={smallButton}>
+                  {t("labsDone")}
+                </button>
+              </form>
+              {/* LE6: another date for the last tests, or clear it (then counted from the start). */}
+              <details className="group/lab">
+                <summary className={`${smallButton} cursor-pointer list-none [&::-webkit-details-marker]:hidden`}>
+                  {t("lastLabEdit")}
+                </summary>
+                <form action={setLastLabAction.bind(null, clientId, course.id)} className="mt-2 flex flex-col gap-2">
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs text-muted">{t("lastLabDate")}</span>
+                    <input name="lastLabDate" type="date" max={today} defaultValue={course.lastLabDate ?? ""} className={ui.input} />
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    <button type="submit" name="intent" value="save" className={ui.addButton}>
+                      {save}
+                    </button>
+                    {course.lastLabDate && (
+                      <button type="submit" name="intent" value="clear" className={`${smallButton} text-on-alert`}>
+                        {t("clear")}
+                      </button>
+                    )}
+                  </div>
+                </form>
+              </details>
+            </div>
           </div>
         )}
 
