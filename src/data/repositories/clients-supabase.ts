@@ -20,13 +20,15 @@ type ClientRow = {
   procedure_plan: string | null;
   anamnesis_confirmed_at: string | null;
   direction: string[] | null;
+  care_text: string | null;
+  care_updated_at: string | null;
   updated_at: string;
   visits?: { visit_date: string }[];
   treatment_courses?: { status: "active" | "completed"; start_date: string; end_date: string }[];
 };
 
 const columns =
-  "id, full_name, card_date, age_at_registration, birth_date, phone, email, residence_country, residence_city, language, anamnesis, notes, procedure_plan, anamnesis_confirmed_at, direction, updated_at";
+  "id, full_name, card_date, age_at_registration, birth_date, phone, email, residence_country, residence_city, language, anamnesis, notes, procedure_plan, anamnesis_confirmed_at, direction, care_text, care_updated_at, updated_at";
 
 function toClient(row: ClientRow): Client {
   return {
@@ -46,6 +48,8 @@ function toClient(row: ClientRow): Client {
     anamnesisConfirmedAt: row.anamnesis_confirmed_at,
     visitDates: (row.visits ?? []).map((v) => v.visit_date),
     direction: parseDirection(row.direction ?? []),
+    careText: row.care_text,
+    careUpdatedAt: row.care_updated_at,
     courses: (row.treatment_courses ?? []).map((c) => ({ status: c.status, startDate: c.start_date, endDate: c.end_date })),
     updatedAt: row.updated_at,
   };

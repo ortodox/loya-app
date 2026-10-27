@@ -426,11 +426,65 @@
       "photoInvalid": "Could not process the photo. Try another one."
     },
     "lastLabEdit": "Change date",
-    "clear": "✕ Clear"
+    "clear": "✕ Clear",
+    "labDocs": "Lab results"
   },
   "direction": {
     "label": "Direction",
     "cosmetology": "✨ Cosmetology",
     "dermatology": "🩺 Dermatology"
+  },
+  "care": {
+    "title": "Home care",
+    "edit": "Edit",
+    "add": "+ Home care",
+    "editTitle": "Home care",
+    "updated": "Updated: {date}",
+    "empty": "No home care prescribed yet.",
+    "textLabel": "Prescribed home care",
+    "textHint": "Morning, evening, products, scheme – as you like.",
+    "photos": "Photos of products and scheme",
+    "photosHint": "Camera or library – up to 3 photos at a time.",
+    "addPhoto": "+ Photo",
+    "openPhoto": "Open photo",
+    "errors": {
+      "tooManyPhotos": "At most 3 photos at a time.",
+      "photoInvalid": "Could not process the photo. Try another one."
+    }
+  },
+  "documents": {
+    "title": "Documents and lab results",
+    "add": "+ Document",
+    "newTitle": "New document",
+    "file": "File – photo or PDF, up to 20 MB",
+    "chooseFile": "Choose file",
+    "changeFile": "Other file",
+    "fileTitle": "Title (optional)",
+    "fileTitleHint": "E.g. “Blood chemistry”",
+    "date": "Date",
+    "course": "Attach to course",
+    "courseNone": "Do not attach",
+    "markLabs": "Mark lab tests as done?",
+    "markLabsHint": "The course's last lab tests date becomes the document date.",
+    "upload": "Upload",
+    "uploading": "Uploading…",
+    "empty": "No documents yet.",
+    "open": "Open",
+    "pdf": "PDF",
+    "image": "Photo",
+    "delete": "Delete",
+    "confirmDelete": "Delete the file? It cannot be restored.",
+    "confirmYes": "Delete",
+    "confirmNo": "Cancel",
+    "deleteFailed": "Could not delete.",
+    "inCourse": "Course: {diagnosis}",
+    "size": "{size} MB",
+    "errors": {
+      "fileInvalid": "You can upload a photo or PDF up to 20 MB.",
+      "dateInvalid": "Invalid date.",
+      "fileRequired": "Choose a file.",
+      "uploadFailed": "Could not upload the file. Check the connection and try again.",
+      "notFound": "Client not found."
+    }
   }
 }

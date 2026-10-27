@@ -426,11 +426,65 @@
       "photoInvalid": "Nie udało się przetworzyć zdjęcia. Spróbuj innego."
     },
     "lastLabEdit": "Zmień datę",
-    "clear": "✕ Wyczyść"
+    "clear": "✕ Wyczyść",
+    "labDocs": "Badania"
   },
   "direction": {
     "label": "Kierunek",
     "cosmetology": "✨ Kosmetologia",
     "dermatology": "🩺 Dermatologia"
+  },
+  "care": {
+    "title": "Pielęgnacja",
+    "edit": "Zmień",
+    "add": "+ Pielęgnacja",
+    "editTitle": "Pielęgnacja",
+    "updated": "Zaktualizowano: {date}",
+    "empty": "Pielęgnacja domowa nie została jeszcze zalecona.",
+    "textLabel": "Zalecona pielęgnacja domowa",
+    "textHint": "Rano, wieczorem, kosmetyki, schemat – jak wygodnie.",
+    "photos": "Zdjęcia kosmetyków i schematu",
+    "photosHint": "Aparat lub galeria – do 3 zdjęć naraz.",
+    "addPhoto": "+ Zdjęcie",
+    "openPhoto": "Otwórz zdjęcie",
+    "errors": {
+      "tooManyPhotos": "Najwyżej 3 zdjęcia naraz.",
+      "photoInvalid": "Nie udało się przetworzyć zdjęcia. Spróbuj innego."
+    }
+  },
+  "documents": {
+    "title": "Dokumenty i badania",
+    "add": "+ Dokument",
+    "newTitle": "Nowy dokument",
+    "file": "Plik – zdjęcie lub PDF, do 20 MB",
+    "chooseFile": "Wybierz plik",
+    "changeFile": "Inny plik",
+    "fileTitle": "Nazwa (opcjonalnie)",
+    "fileTitleHint": "Np. „Biochemia krwi”",
+    "date": "Data",
+    "course": "Przypisz do kursu",
+    "courseNone": "Nie przypisuj",
+    "markLabs": "Oznaczyć badania jako wykonane?",
+    "markLabsHint": "Data ostatnich badań w kursie będzie datą dokumentu.",
+    "upload": "Prześlij",
+    "uploading": "Przesyłanie…",
+    "empty": "Brak dokumentów.",
+    "open": "Otwórz",
+    "pdf": "PDF",
+    "image": "Zdjęcie",
+    "delete": "Usuń",
+    "confirmDelete": "Usunąć plik? Nie będzie można go przywrócić.",
+    "confirmYes": "Usuń",
+    "confirmNo": "Anuluj",
+    "deleteFailed": "Nie udało się usunąć.",
+    "inCourse": "Kurs: {diagnosis}",
+    "size": "{size} MB",
+    "errors": {
+      "fileInvalid": "Można przesłać zdjęcie lub PDF do 20 MB.",
+      "dateInvalid": "Nieprawidłowa data.",
+      "fileRequired": "Wybierz plik.",
+      "uploadFailed": "Nie udało się przesłać pliku. Sprawdź internet i spróbuj ponownie.",
+      "notFound": "Nie znaleziono klienta."
+    }
   }
 }

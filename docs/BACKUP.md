@@ -27,6 +27,7 @@ select taken_at, reason,
        count(*) filter (where table_name = 'visits')          as besok,
        count(*) filter (where table_name = 'visit_photos')    as bilder,
        count(*) filter (where table_name = 'treatment_courses') as kurer,
+       count(*) filter (where table_name = 'client_documents') as dokumenter,
        count(*) filter (where table_name = 'procedure_types') as typer,
        count(*) filter (where table_name = 'preparations')    as preparater
 from backup.snapshots
@@ -152,7 +153,9 @@ on conflict (id) do update set
   residence_city      = excluded.residence_city,
   procedure_plan      = excluded.procedure_plan,
   anamnesis_confirmed_at = excluded.anamnesis_confirmed_at,
-  direction           = excluded.direction;
+  direction           = excluded.direction,
+  care_text           = excluded.care_text,
+  care_updated_at     = excluded.care_updated_at;
 
 with valgt as (
   select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
@@ -283,6 +286,37 @@ where s.taken_at = valgt.t
               where o.bucket_id = 'visit-photos' and o.name = s.row_data ->> 'storage_path')
 on conflict (id) do nothing;
 
+-- Care photos (UH2) – only where the image file still exists in Storage
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.client_care_photos
+select (jsonb_populate_record(null::public.client_care_photos, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t
+  and s.table_name = 'client_care_photos'
+  and s.row_data ->> 'client_id' = 'KLIENT_ID'
+  and exists (select 1 from storage.objects o
+              where o.bucket_id = 'visit-photos' and o.name = s.row_data ->> 'storage_path')
+on conflict (id) do nothing;
+
+-- Documents and lab results (DK1, LE8) – only where the file still exists in Storage
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.client_documents
+select (jsonb_populate_record(null::public.client_documents, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t
+  and s.table_name = 'client_documents'
+  and s.row_data ->> 'client_id' = 'KLIENT_ID'
+  and exists (select 1 from storage.objects o
+              where o.bucket_id = 'client-documents' and o.name = s.row_data ->> 'storage_path')
+on conflict (id) do update set
+  title         = excluded.title,
+  document_date = excluded.document_date,
+  course_id     = excluded.course_id;
+
 commit;
 ```
 
@@ -322,7 +356,9 @@ on conflict (id) do update set
   residence_city      = excluded.residence_city,
   procedure_plan      = excluded.procedure_plan,
   anamnesis_confirmed_at = excluded.anamnesis_confirmed_at,
-  direction           = excluded.direction;
+  direction           = excluded.direction,
+  care_text           = excluded.care_text,
+  care_updated_at     = excluded.care_updated_at;
 
 with valgt as (
   select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
@@ -371,6 +407,35 @@ where s.taken_at = valgt.t
               where o.bucket_id = 'visit-photos' and o.name = s.row_data ->> 'storage_path')
 on conflict (id) do nothing;
 
+-- Care photos (UH2) – only where the image file still exists in Storage
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.client_care_photos
+select (jsonb_populate_record(null::public.client_care_photos, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t
+  and s.table_name = 'client_care_photos'
+  and exists (select 1 from storage.objects o
+              where o.bucket_id = 'visit-photos' and o.name = s.row_data ->> 'storage_path')
+on conflict (id) do nothing;
+
+-- Documents and lab results (DK1, LE8) – only where the file still exists in Storage
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.client_documents
+select (jsonb_populate_record(null::public.client_documents, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t
+  and s.table_name = 'client_documents'
+  and exists (select 1 from storage.objects o
+              where o.bucket_id = 'client-documents' and o.name = s.row_data ->> 'storage_path')
+on conflict (id) do update set
+  title         = excluded.title,
+  document_date = excluded.document_date,
+  course_id     = excluded.course_id;
+
 commit;
 ```
 
@@ -382,7 +447,7 @@ commit;
 - Hvis noe feiler, stopper alt og ingenting endres. Kjør `rollback;` og si fra.
 - Når nye kolonner legges til i `clients`, `visits`, `visit_items` eller `treatment_courses`, må listen etter `do update set` her oppdateres
   i samme PR som migreringen.
-- **Bilder:** bilderader (etiketter og resepter) legges bare tilbake når bildefilen fortsatt finnes i Storage (se punkt 8).
+- **Bilder og dokumenter:** rader for etiketter, resepter, «Уход» og dokumenter legges bare tilbake når filen fortsatt finnes i Storage (se punkt 8).
 
 ## 6b. Gjenopprett katalogen
 
@@ -469,7 +534,7 @@ select pg_size_pretty(pg_total_relation_size('backup.snapshots'));
 select backup.cleanup();
 ```
 
-## 8. Bilder av preparatetiketter og resepter (Storage)
+## 8. Bilder og dokumenter i Storage
 
 Bildene fra besøkene («Фото наклейки») ligger i Supabase Storage, i den private bøtten **visit-photos**,
 under `<lege-id>/<besøk-id>/<fil>.jpg`. **Bildefilene er ikke med i kopiene i databasen** – kopiene inneholder
@@ -477,6 +542,14 @@ bare radene i `visit_photos` (hvilket besøk og hvilken fil). Sletter appen et b
 
 **Bilder av resepter** i behandlingskurer (LE3) ligger i samme bøtte, under `<lege-id>/courses/<kur-id>/<fil>.jpg`,
 med radene i `course_photos`. De er heller ikke med i kopiene – last dem ned på samme måte (mappen **courses**).
+
+**Bilder i «Уход»** (UH2) ligger også i **visit-photos**, under `<lege-id>/care/<klient-id>/<fil>.jpg`, med radene i
+`client_care_photos` (mappen **care**).
+
+**Dokumenter og analyser** (DK1) ligger i en egen privat bøtte, **client-documents**, under
+`<lege-id>/<klient-id>/<fil>` (bilder og PDF, maks 20 MB per fil), med radene i `client_documents` (tittel, dato,
+eventuell kur). **Filene er ikke med i kopiene i databasen.** Last dem ned på samme måte: Supabase → **Storage** →
+**client-documents** → mappen med din bruker-id → mappen for klienten → merk filene → **Download**.
 
 **Last ned bildene manuelt** (f.eks. sammen med den månedlige CSV-eksporten):
 
@@ -497,6 +570,16 @@ from public.visit_photos p
 join public.visits v on v.id = p.visit_id
 join public.clients c on c.id = v.client_id
 order by v.visit_date desc;
+
+-- Dokumenter: hvilken klient, tittel, dato og fil
+select c.full_name, d.document_date, d.title, d.mime_type, d.storage_path
+from public.client_documents d
+join public.clients c on c.id = d.client_id
+order by d.document_date desc;
+
+-- Hvor mye plass dokumentene tar
+select count(*) as filer, pg_size_pretty(sum((metadata ->> 'size')::bigint)) as storrelse
+from storage.objects where bucket_id = 'client-documents';
 
 -- Bilder av resepter: hvilken kur og hvilken klient
 select c.full_name, k.diagnosis, k.start_date, p.storage_path

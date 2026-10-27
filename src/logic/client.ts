@@ -38,6 +38,9 @@ export type Client = {
   direction: Direction[];
   /** LE4: the client's treatment courses, for «На лечении» in the list. */
   courses: CourseSummary[];
+  /** UH1: «Уход» – home care written by the doctor, and when it last changed. */
+  careText: string | null;
+  careUpdatedAt: IsoDate | null;
   updatedAt: string;
 };
 

@@ -26,6 +26,8 @@ function client(overrides: Partial<Client>): Client {
     visitDates: [],
     direction: [],
     courses: [],
+    careText: null,
+    careUpdatedAt: null,
     updatedAt: "2025-01-01T00:00:00Z",
     ...overrides,
   };

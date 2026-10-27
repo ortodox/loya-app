@@ -12,7 +12,11 @@ import { contactLinks } from "@/logic/rules/contacts";
 import { hasArchive, isPlanned, lastCompletedVisit, splitVisits } from "@/logic/rules/visits";
 import type { TreatmentCourse } from "@/logic/course";
 import type { ClientCard } from "@/logic/usecases/clients";
+import type { Care, ClientDocument } from "@/logic/document";
+import { documentsByCourse } from "@/logic/rules/documents";
+import { CareSection } from "./CareSection";
 import { CoursesSection } from "./CoursesSection";
+import { DocumentsSection } from "./DocumentsSection";
 
 type Props = {
   data: ClientCard;
@@ -25,9 +29,14 @@ type Props = {
   today: IsoDate;
   /** LE5/LE9: treatment courses with prescription thumbnails. */
   courses: { active: TreatmentCourse[]; completed: TreatmentCourse[]; photoUrls: Record<string, string> };
+  /** UH1/UH2. */
+  care: { care: Care; photoUrls: Record<string, string> };
+  /** DK1/DK3/LE8. */
+  documents: { documents: ClientDocument[]; urls: Record<string, string> };
 };
 
-export async function ClientCardView({ data, visits, photoUrls, created = false, today, courses }: Props) {
+export async function ClientCardView(props: Props) {
+  const { data, visits, photoUrls, created = false, today, courses, care, documents } = props;
   const t = await getTranslations();
   const locale = await getLocale();
   const { client, age, alerts } = data;
@@ -275,8 +284,20 @@ export async function ClientCardView({ data, visits, photoUrls, created = false,
         <p className="min-h-6 text-base whitespace-pre-wrap">{client.procedurePlan ?? "—"}</p>
       </section>
 
-      {/* LE5/LE9: treatment courses. MVP 1c-2: «Уход» (UH1) goes after it. */}
-      <CoursesSection clientId={id} today={today} {...courses} />
+      {/* LE5/LE9/LE8: treatment courses with their lab results. */}
+      <CoursesSection
+        clientId={id}
+        today={today}
+        {...courses}
+        labDocuments={documentsByCourse(documents.documents)}
+        documentUrls={documents.urls}
+      />
+
+      {/* UH1/UH2: home care. */}
+      <CareSection clientId={id} {...care} />
+
+      {/* DK1/DK3/DK5: documents and lab results. */}
+      <DocumentsSection clientId={id} {...documents} courses={[...courses.active, ...courses.completed]} />
 
       {/* PR3: free notes. */}
       <section className={`${card.surface} flex flex-col gap-2 p-4`}>
