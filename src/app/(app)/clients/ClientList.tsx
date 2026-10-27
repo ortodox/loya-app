@@ -4,7 +4,8 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
 import { card, pill, ui } from "@/app/components/ui";
-import { clientFilters, matchesFilter, type ClientFilter } from "@/logic/rules/courses";
+import { directions, type Direction } from "@/logic/course";
+import { matchesFilter, toggleFilter } from "@/logic/rules/courses";
 import { matchesClient } from "@/logic/rules/client-list";
 import { formatDayMonth, formatIsoDate } from "@/logic/rules/dates";
 import type { ClientSummary } from "@/logic/usecases/clients";
@@ -12,7 +13,7 @@ import type { ClientSummary } from "@/logic/usecases/clients";
 export function ClientList({ clients }: { clients: ClientSummary[] }) {
   const t = useTranslations();
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<ClientFilter>("all");
+  const [filter, setFilter] = useState<Direction | null>(null);
   const shown = clients.filter((c) => matchesFilter(c, filter) && matchesClient(c, query));
 
   if (clients.length === 0) {
@@ -37,17 +38,18 @@ export function ClientList({ clients }: { clients: ClientSummary[] }) {
         onChange={(e) => setQuery(e.target.value)}
         className={ui.input}
       />
-      {/* DM1/LE4: «Все» · «Косметология» · «Дерматология» · «На лечении». */}
-      <div role="group" aria-label={t("clients.filterLabel")} className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1">
-        {clientFilters.map((f) => (
+      {/* DM1: «Косметология» / «Дерматология»; tap again to show everyone. */}
+      <div role="group" aria-label={t("clients.filterLabel")} className="flex flex-wrap gap-2">
+        {directions.map((d) => (
           <button
-            key={f}
+            key={d}
             type="button"
-            aria-pressed={filter === f}
-            onClick={() => setFilter(f)}
-            className={`${pill.base} shrink-0 ${filter === f ? pill.on : pill.off}`}
+            aria-pressed={filter === d}
+            onClick={() => setFilter(toggleFilter(filter, d))}
+            className={`${pill.base} ${filter === d ? pill.on : pill.off}`}
           >
-            {t(`clients.filter.${f}`)}
+            {filter === d && <span aria-hidden>✓</span>}
+            {t(`clients.filter.${d}`)}
           </button>
         ))}
       </div>

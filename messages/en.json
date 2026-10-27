@@ -46,10 +46,8 @@
     "later": "Later",
     "nextVisit": "Booked: {date}",
     "filter": {
-      "all": "All",
       "cosmetology": "Cosmetology",
-      "dermatology": "Dermatology",
-      "treatment": "On treatment"
+      "dermatology": "Dermatology"
     },
     "onTreatment": "🩺 On treatment · {count} d",
     "filterLabel": "Show clients",
@@ -426,7 +424,9 @@
       "labIntervalInvalid": "Enter an interval, e.g. 2.5 mo.",
       "tooManyPhotos": "At most 3 photos at a time.",
       "photoInvalid": "Could not process the photo. Try another one."
-    }
+    },
+    "lastLabEdit": "Change date",
+    "clear": "✕ Clear"
   },
   "direction": {
     "label": "Direction",

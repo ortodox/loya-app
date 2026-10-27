@@ -10,6 +10,7 @@ import {
   extendCourse,
   markLabsDone,
   saveCourse,
+  setLastLabDate,
   type SaveCourseResult,
 } from "@/logic/usecases/courses";
 import type { PhotoUpload } from "@/logic/usecases/visits";
@@ -68,5 +69,12 @@ export async function extendCourseAction(clientId: string, courseId: string, fd:
 /** LE6: «Анализы сданы ✓». */
 export async function labsDoneAction(clientId: string, courseId: string) {
   await markLabsDone(await deps(), clientId, courseId, todayIn(practiceTimeZone));
+  backToCard(clientId);
+}
+
+/** LE6: change or clear «Последние анализы» («Очистить» sends an empty date). */
+export async function setLastLabAction(clientId: string, courseId: string, fd: FormData) {
+  const date = str(fd.get("intent")) === "clear" ? "" : str(fd.get("lastLabDate"));
+  await setLastLabDate(await deps(), clientId, courseId, date, todayIn(practiceTimeZone));
   backToCard(clientId);
 }

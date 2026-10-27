@@ -24,6 +24,7 @@ export function CourseForm({ title, cancelHref, initial, photos, action }: Props
   const [, startTransition] = useTransition();
   const v = state.values;
   const [lab, setLab] = useState(v.labEnabled === "1");
+  const [lastLab, setLastLab] = useState(v.lastLabDate ?? "");
   const [removedPhotos, setRemovedPhotos] = useState<string[]>([]);
   const [newPhotos, setNewPhotos] = useState<NewPhoto[]>([]);
 
@@ -108,7 +109,25 @@ export function CourseForm({ title, cancelHref, initial, photos, action }: Props
             {error("lab")}
             <label className="flex flex-col gap-2">
               <span className={card.label}>{t("courses.lastLabDate")}</span>
-              <input name="lastLabDate" type="date" defaultValue={v.lastLabDate} className={ui.input} />
+              {/* LE6: can be cleared – the next tests are then counted from the start date. */}
+              <span className="flex items-center gap-2">
+                <input
+                  name="lastLabDate"
+                  type="date"
+                  value={lastLab}
+                  onChange={(e) => setLastLab(e.target.value)}
+                  className={`${ui.input} flex-1`}
+                />
+                {lastLab && (
+                  <button
+                    type="button"
+                    onClick={() => setLastLab("")}
+                    className="inline-flex min-h-11 shrink-0 items-center px-2 text-sm font-medium text-on-alert"
+                  >
+                    {t("courses.clear")}
+                  </button>
+                )}
+              </span>
               {error("lastLabDate")}
             </label>
           </>

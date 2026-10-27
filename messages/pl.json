@@ -46,10 +46,8 @@
     "later": "Później",
     "nextVisit": "Wizyta: {date}",
     "filter": {
-      "all": "Wszyscy",
       "cosmetology": "Kosmetologia",
-      "dermatology": "Dermatologia",
-      "treatment": "W leczeniu"
+      "dermatology": "Dermatologia"
     },
     "onTreatment": "🩺 W leczeniu · {count} dni",
     "filterLabel": "Pokaż klientów",
@@ -426,7 +424,9 @@
       "labIntervalInvalid": "Podaj odstęp, np. 2,5 mies.",
       "tooManyPhotos": "Najwyżej 3 zdjęcia naraz.",
       "photoInvalid": "Nie udało się przetworzyć zdjęcia. Spróbuj innego."
-    }
+    },
+    "lastLabEdit": "Zmień datę",
+    "clear": "✕ Wyczyść"
   },
   "direction": {
     "label": "Kierunek",

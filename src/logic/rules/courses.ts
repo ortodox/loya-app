@@ -150,17 +150,14 @@ export function treatmentStatus(courses: readonly CourseSummary[], today: IsoDat
   return { daysLeft, ended };
 }
 
-/** DM1/LE4: the filter above the client list. */
-export const clientFilters = ["all", "cosmetology", "dermatology", "treatment"] as const;
-export type ClientFilter = (typeof clientFilters)[number];
+/** DM1: the filter above the client list – one direction, or none (= all clients). */
+export function matchesFilter(client: { direction: readonly Direction[] }, filter: Direction | null): boolean {
+  return filter === null || client.direction.includes(filter);
+}
 
-export function matchesFilter(
-  client: { direction: readonly Direction[]; treatment: TreatmentStatus | null },
-  filter: ClientFilter,
-): boolean {
-  if (filter === "all") return true;
-  if (filter === "treatment") return client.treatment !== null;
-  return client.direction.includes(filter);
+/** DM1: tapping the chosen direction again clears the filter. */
+export function toggleFilter(current: Direction | null, tapped: Direction): Direction | null {
+  return current === tapped ? null : tapped;
 }
 
 export const isLabUnit = (v: string): v is LabUnit => (labUnits as readonly string[]).includes(v);
@@ -168,3 +165,13 @@ export const isLabUnit = (v: string): v is LabUnit => (labUnits as readonly stri
 /** LE3: prescription photos sent in one save (the request size limit); a course can collect more over time. */
 export const maxCoursePhotosPerSave = 3;
 export const maxCoursePhotos = 30;
+
+/**
+ * LE6: a new «Последние анализы» date – empty clears it (the next tests are then counted from the
+ * start of the course again); otherwise a real date, not in the future.
+ */
+export function parseLastLabDate(text: string | undefined, today: IsoDate): { ok: true; date: IsoDate | null } | { ok: false } {
+  const value = (text ?? "").trim();
+  if (value === "") return { ok: true, date: null };
+  return isIsoDate(value) && value <= today ? { ok: true, date: value } : { ok: false };
+}
