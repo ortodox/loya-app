@@ -40,3 +40,13 @@ export function PreparationsIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+/** Z5: the visit has a face scheme. */
+export function FaceIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden className={`size-4 ${className ?? ""}`} fill="none">
+      <path d="M12 3c-4 0-6 3.5-6 8s2.5 9 6 10c3.5-1 6-5.5 6-10s-2-8-6-8Z" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M9.5 10.5h.01M14.5 10.5h.01M10 15.5c1.2.8 2.8.8 4 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}

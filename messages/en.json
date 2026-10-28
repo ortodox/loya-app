@@ -486,5 +486,33 @@
       "uploadFailed": "Could not upload the file. Check the connection and try again.",
       "notFound": "Client not found."
     }
+  },
+  "scheme": {
+    "title": "Face scheme",
+    "add": "+ Add scheme",
+    "edit": "Edit scheme",
+    "hide": "Collapse",
+    "area": "Face scheme – draw with your finger",
+    "hint": "A short tap is a point, drag your finger for a line.",
+    "color": "Colour",
+    "width": "Width",
+    "colors": {
+      "dark": "Dark",
+      "red": "Red",
+      "blue": "Blue"
+    },
+    "widths": {
+      "thin": "Thin",
+      "thick": "Thick"
+    },
+    "undo": "↶ Undo",
+    "clear": "Clear",
+    "clearAsk": "Clear the whole scheme?",
+    "clearYes": "Clear",
+    "clearNo": "Cancel",
+    "has": "Face scheme",
+    "open": "Open the scheme large",
+    "close": "Collapse the scheme",
+    "fromRepeat": "Scheme from the last visit – you can change or clear it."
   }
 }

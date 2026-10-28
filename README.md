@@ -40,6 +40,7 @@ npm run lint && npm run typecheck
    8. `supabase/migrations/20261029000000_anamnesis_confirmed.sql` (MVP 1b: dato for «Анамнез без изменений ✓»)
    9. `supabase/migrations/20261030000000_treatment_courses.sql` (MVP 1c: retning og behandlingskurer med bilder av resepter)
   10. `supabase/migrations/20261031000000_care_documents.sql` (MVP 1c: «Уход» med bilder, dokumenter og analyser i bøtten `client-documents`)
+  11. `supabase/migrations/20261101000000_face_scheme.sql` (MVP 1b: ansiktsskisse i besøket, lagret som streker)
 
    Kontroller under *Table Editor* at `clients` og `visits` finnes og at RLS står som *enabled*.
 3. **Opprett legens bruker:** *Authentication → Users → Add user* (e-post). Appen oppretter

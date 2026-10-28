@@ -2,6 +2,8 @@ import { isLocale } from "@/logic/locale";
 import type { IsoDate, Visit } from "@/logic/client";
 import type { Locale } from "@/config/locales";
 import { isIsoDate } from "./dates";
+import { parseFaceScheme } from "./face-scheme";
+import type { FaceScheme } from "@/logic/face-scheme";
 
 export const maxPhotosPerVisit = 3;
 export const maxItemsPerVisit = 20;
@@ -27,6 +29,8 @@ export type VisitForm = {
   recommendationsEdited?: string;
   /** AN3: «1» when «Анамнез без изменений ✓» is ticked. */
   anamnesisConfirmed?: string;
+  /** Z5: the scheme as JSON; empty = no scheme. */
+  faceScheme?: string;
   items?: VisitItemForm[];
 };
 
@@ -52,6 +56,7 @@ export type ParsedVisit = {
   recommendationsLang: Locale | null;
   recommendationsEdited: boolean;
   anamnesisConfirmed: boolean;
+  faceScheme: FaceScheme | null;
   items: ParsedVisitItem[];
 };
 
@@ -102,6 +107,7 @@ export function parseVisitForm(
       recommendationsLang: isLocale(form.recommendationsLang) ? form.recommendationsLang : null,
       recommendationsEdited: form.recommendationsEdited === "1" && freeText(form.recommendations) !== null,
       anamnesisConfirmed: form.anamnesisConfirmed === "1",
+      faceScheme: parseFaceScheme(form.faceScheme ?? ""),
       items,
     },
   };

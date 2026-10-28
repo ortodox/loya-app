@@ -32,7 +32,7 @@ describe("VS1: визиты", () => {
   it("VS1: a new visit needs nothing but defaults to today", () => {
     expect(parseVisitForm({}, today)).toEqual({
       ok: true,
-      input: { visitDate: today, notes: null, recommendations: null, recommendationsLang: null, recommendationsEdited: false, anamnesisConfirmed: false, items: [] },
+      input: { visitDate: today, notes: null, recommendations: null, recommendationsLang: null, recommendationsEdited: false, anamnesisConfirmed: false, faceScheme: null, items: [] },
     });
   });
 

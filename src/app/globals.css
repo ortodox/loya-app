@@ -21,6 +21,11 @@
   --on-primary: #f4ece2;
   --alert: #f6e3dc;
   --on-alert: #8a2e1e;
+  /* Z5: pens on the face scheme and the template lines. */
+  --pen-dark: #2a211d;
+  --pen-red: #b3261e;
+  --pen-blue: #1f5fbf;
+  --face-line: #9a8878;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -38,6 +43,10 @@
     --on-primary: #1e1814;
     --alert: #4a2620;
     --on-alert: #f2b8a8;
+    --pen-dark: #f4ece2;
+    --pen-red: #ff8a80;
+    --pen-blue: #8ab4ff;
+    --face-line: #8f7c6b;
   }
 }
 

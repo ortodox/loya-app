@@ -1,6 +1,7 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import Link from "next/link";
-import { Chevron, WarningIcon } from "@/app/components/Icons";
+import { FaceSchemeView } from "@/app/components/face/FaceSchemeView";
+import { Chevron, FaceIcon, WarningIcon } from "@/app/components/Icons";
 import { card, disclosure, pill, ui } from "@/app/components/ui";
 import { clinicalSections, generalDataFields, type GeneralDataField } from "@/config/kartaTemplate";
 import type { IsoDate, Visit } from "@/logic/client";
@@ -78,6 +79,13 @@ export async function ClientCardView(props: Props) {
                 {visit.photos.length > 0 && (
                   <span className="text-sm text-muted">📷 {t("visits.photoCount", { count: visit.photos.length })}</span>
                 )}
+                {/* Z5: the visit has a face scheme. */}
+                {visit.faceScheme && (
+                  <span className="inline-flex items-center self-center text-muted">
+                    <FaceIcon />
+                    <span className="sr-only">{t("scheme.has")}</span>
+                  </span>
+                )}
               </span>
               <span className="truncate text-sm text-muted">
                 {[planned ? t("visits.planned") : null, visit.items.map((i) => i.preparationName).join(", ") || null]
@@ -113,6 +121,19 @@ export async function ClientCardView(props: Props) {
                   </li>
                 ))}
               </ul>
+            )}
+            {/* Z5: thumbnail; tap to see it large. */}
+            {visit.faceScheme && (
+              <details className="group/scheme px-4 pt-2">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
+                  <FaceSchemeView scheme={visit.faceScheme} label={t("scheme.has")} className="w-20 shrink-0 border border-line group-open/scheme:hidden" />
+                  <span className="text-sm font-medium text-accent">
+                    <span className="group-open/scheme:hidden">{t("scheme.open")}</span>
+                    <span className="hidden group-open/scheme:inline">{t("scheme.close")}</span>
+                  </span>
+                </summary>
+                <FaceSchemeView scheme={visit.faceScheme} label={t("scheme.has")} className="mt-2 w-full border border-line" />
+              </details>
             )}
             {visit.notes && (
               <dl>

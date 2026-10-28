@@ -34,6 +34,7 @@ function readForm(fd: FormData): VisitForm {
     recommendationsLang: str(fd.get("recommendationsLang")),
     recommendationsEdited: str(fd.get("recommendationsEdited")),
     anamnesisConfirmed: str(fd.get("anamnesisConfirmed")),
+    faceScheme: str(fd.get("faceScheme")),
     items: readItems(str(fd.get("items"))),
   };
 }

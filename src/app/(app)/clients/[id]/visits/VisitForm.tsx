@@ -4,11 +4,15 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { clearDraft, readDraft, writeDraft } from "@/app/components/draft";
+import { FaceSchemeEditor } from "@/app/components/face/FaceSchemeEditor";
+import { FaceSchemeView } from "@/app/components/face/FaceSchemeView";
 import { WarningIcon } from "@/app/components/Icons";
 import { card, ui } from "@/app/components/ui";
 import { formatIsoDate } from "@/logic/rules/dates";
 import type { Locale } from "@/config/locales";
 import type { Localized } from "@/logic/catalog";
+import type { FaceScheme } from "@/logic/face-scheme";
+import { emptyScheme, isEmptyScheme, parseFaceScheme } from "@/logic/rules/face-scheme";
 import {
   countRecommendations,
   differsFromSuggestion,
@@ -39,6 +43,8 @@ export type VisitFormInitial = {
   recommendationsEdited: boolean;
   /** AN3: «Анамнез без изменений ✓». */
   anamnesisConfirmed: boolean;
+  /** Z5: null = no scheme. */
+  faceScheme: FaceScheme | null;
   items: ItemState[];
   photos: ExistingPhoto[];
 };
@@ -46,7 +52,7 @@ export type VisitFormInitial = {
 /** DR1: what an unsaved «Новый визит» keeps on the phone (photos are not kept). */
 type VisitDraft = Pick<
   VisitFormInitial,
-  "visitDate" | "notes" | "recommendations" | "recommendationsEdited" | "anamnesisConfirmed" | "items"
+  "visitDate" | "notes" | "recommendations" | "recommendationsEdited" | "anamnesisConfirmed" | "faceScheme" | "items"
 >;
 
 type Props = {
@@ -90,6 +96,8 @@ export function VisitForm(props: Props) {
   const [recommendations, setRecommendations] = useState(initial.recommendations);
   const [edited, setEdited] = useState(initial.recommendationsEdited);
   const [anamnesisConfirmed, setAnamnesisConfirmed] = useState(initial.anamnesisConfirmed);
+  const [faceScheme, setFaceScheme] = useState<FaceScheme | null>(initial.faceScheme);
+  const [schemeOpen, setSchemeOpen] = useState(false);
   const [lastSuggested, setLastSuggested] = useState(() => suggest(initial.items));
   const [askWith, setAskWith] = useState<string | null>(null);
   const [adviceOpen, setAdviceOpen] = useState(false);
@@ -106,6 +114,7 @@ export function VisitForm(props: Props) {
     setRecommendations(d.recommendations);
     setEdited(d.recommendationsEdited);
     setAnamnesisConfirmed(d.anamnesisConfirmed === true);
+    setFaceScheme(parseFaceScheme(d.faceScheme ?? null));
     setLastSuggested(suggest(d.items));
     setAskWith(null);
   }
@@ -126,16 +135,17 @@ export function VisitForm(props: Props) {
   // DR1: keep the draft up to date; also after a failed save, since the draft is cleared on submit.
   useEffect(() => {
     if (!draftKey || !draftReady.current) return;
-    const draft: VisitDraft = { visitDate, notes, items, recommendations, recommendationsEdited: edited, anamnesisConfirmed };
+    const draft: VisitDraft = { visitDate, notes, items, recommendations, recommendationsEdited: edited, anamnesisConfirmed, faceScheme };
     const empty =
       notes.trim() === "" &&
       items.length === 0 &&
       recommendations.trim() === "" &&
       !anamnesisConfirmed &&
+      isEmptyScheme(faceScheme) &&
       visitDate === initial.visitDate;
     if (empty) clearDraft(draftKey);
     else writeDraft(draftKey, draft);
-  }, [draftKey, visitDate, notes, items, recommendations, edited, anamnesisConfirmed, initial.visitDate, state]);
+  }, [draftKey, visitDate, notes, items, recommendations, edited, anamnesisConfirmed, faceScheme, initial.visitDate, state]);
 
   /** P5: refill the advice from the catalogue, unless the doctor has edited it – then ask. */
   function changeItems(next: ItemState[]) {
@@ -170,6 +180,7 @@ export function VisitForm(props: Props) {
       ),
     );
     fd.set("recommendationsLang", language);
+    fd.set("faceScheme", isEmptyScheme(faceScheme) ? "" : JSON.stringify(faceScheme));
     for (const p of newPhotos) fd.append("photos", new File([p.blob], `${p.key}.jpg`, { type: "image/jpeg" }));
     for (const id of removedPhotos) fd.append("removePhotoIds", id);
     if (draftKey) clearDraft(draftKey);
@@ -343,6 +354,33 @@ export function VisitForm(props: Props) {
             </button>
           )}
           {error("items")}
+        </section>
+
+        {/* Z5: points and lines on the face template – optional, closed until needed. */}
+        <section className={`${card.surface} flex flex-col gap-3 p-4`}>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className={card.heading}>{t("scheme.title")}</h2>
+            {schemeOpen && (
+              <button type="button" onClick={() => setSchemeOpen(false)} className={`${ui.textButton} text-sm`}>
+                {t("scheme.hide")}
+              </button>
+            )}
+          </div>
+          {schemeOpen ? (
+            <FaceSchemeEditor scheme={faceScheme ?? emptyScheme()} onChange={setFaceScheme} />
+          ) : (
+            <div className="flex items-center gap-3">
+              {faceScheme && !isEmptyScheme(faceScheme) && (
+                <FaceSchemeView scheme={faceScheme} label={t("scheme.has")} className="w-20 shrink-0 border border-line" />
+              )}
+              <button type="button" onClick={() => setSchemeOpen(true)} className={`${ui.addButton} self-center`}>
+                {isEmptyScheme(faceScheme) ? t("scheme.add") : t("scheme.edit")}
+              </button>
+            </div>
+          )}
+          {repeatedFrom && !isEmptyScheme(faceScheme) && !schemeOpen && (
+            <p className="text-sm text-muted">{t("scheme.fromRepeat")}</p>
+          )}
         </section>
 
         {/* LOT1: sticker photos for the whole visit. */}
