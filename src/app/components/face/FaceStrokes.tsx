@@ -1,12 +1,11 @@
-import type { Stroke } from "@/logic/face-scheme";
-import { strokePath } from "@/logic/rules/face-scheme";
-import { templateSize } from "./templates";
+import type { FaceTemplate, Stroke } from "@/logic/face-scheme";
+import { strokePath, templateSpec } from "@/logic/rules/face-scheme";
 
-const { width: W, height: H } = templateSize;
 const colors = { dark: "var(--pen-dark)", red: "var(--pen-red)", blue: "var(--pen-blue)" } as const;
 
-/** Z5: the drawn points (circles) and lines, scaled from 0–1 to the template box. */
-export function FaceStrokes({ strokes }: { strokes: readonly Stroke[] }) {
+/** Z5: the drawn points (circles) and lines, scaled from 0–1 to the box of their own template. */
+export function FaceStrokes({ strokes, template }: { strokes: readonly Stroke[]; template: FaceTemplate }) {
+  const { width: W, height: H } = templateSpec(template);
   return (
     <g>
       {strokes.map((s, i) =>

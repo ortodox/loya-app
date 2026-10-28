@@ -67,6 +67,8 @@ type Props = {
   anamnesisConfirmedAt?: string | null;
   /** RV1: date of the visit whose preparations were copied. */
   repeatedFrom?: string | null;
+  /** Z5: «Схема лица» is cosmetology only – false for clients marked only «Дерматология». */
+  showFaceScheme?: boolean;
   /** DR1: set for a new visit – unsaved text is kept on this phone until it is saved. */
   draftKey?: string;
   action: (state: VisitFormState, fd: FormData) => Promise<VisitFormState>;
@@ -76,7 +78,7 @@ type Props = {
 /** VS1 «Новый визит»: date, preparations + quantity, sticker photos, notes, post-procedure advice. */
 export function VisitForm(props: Props) {
   const { title, cancelHref, initial, options, types, language, alerts, draftKey, action, onDelete } = props;
-  const { anamnesisConfirmedAt = null, repeatedFrom = null } = props;
+  const { anamnesisConfirmedAt = null, repeatedFrom = null, showFaceScheme = true } = props;
   const t = useTranslations();
   const [state, formAction, pending] = useActionState(action, { values: {} });
   const [, startTransition] = useTransition();
@@ -356,32 +358,35 @@ export function VisitForm(props: Props) {
           {error("items")}
         </section>
 
-        {/* Z5: points and lines on the face template – optional, closed until needed. */}
-        <section className={`${card.surface} flex flex-col gap-3 p-4`}>
-          <div className="flex items-center justify-between gap-3">
-            <h2 className={card.heading}>{t("scheme.title")}</h2>
-            {schemeOpen && (
-              <button type="button" onClick={() => setSchemeOpen(false)} className={`${ui.textButton} text-sm`}>
-                {t("scheme.hide")}
-              </button>
-            )}
-          </div>
-          {schemeOpen ? (
-            <FaceSchemeEditor scheme={faceScheme ?? emptyScheme()} onChange={setFaceScheme} />
-          ) : (
-            <div className="flex items-center gap-3">
-              {faceScheme && !isEmptyScheme(faceScheme) && (
-                <FaceSchemeView scheme={faceScheme} label={t("scheme.has")} className="w-20 shrink-0 border border-line" />
+        {/* Z5: points and lines on the face template – cosmetology only, optional, closed until needed.
+            Hidden for clients marked only «Дерматология»; a scheme already on the visit is still kept. */}
+        {showFaceScheme && (
+          <section className={`${card.surface} flex flex-col gap-3 p-4`}>
+            <div className="flex items-center justify-between gap-3">
+              <h2 className={card.heading}>{t("scheme.title")}</h2>
+              {schemeOpen && (
+                <button type="button" onClick={() => setSchemeOpen(false)} className={`${ui.textButton} text-sm`}>
+                  {t("scheme.hide")}
+                </button>
               )}
-              <button type="button" onClick={() => setSchemeOpen(true)} className={`${ui.addButton} self-center`}>
-                {isEmptyScheme(faceScheme) ? t("scheme.add") : t("scheme.edit")}
-              </button>
             </div>
-          )}
-          {repeatedFrom && !isEmptyScheme(faceScheme) && !schemeOpen && (
-            <p className="text-sm text-muted">{t("scheme.fromRepeat")}</p>
-          )}
-        </section>
+            {schemeOpen ? (
+              <FaceSchemeEditor scheme={faceScheme ?? emptyScheme()} onChange={setFaceScheme} />
+            ) : (
+              <div className="flex items-center gap-3">
+                {faceScheme && !isEmptyScheme(faceScheme) && (
+                  <FaceSchemeView scheme={faceScheme} label={t("scheme.has")} className="w-20 shrink-0 border border-line" />
+                )}
+                <button type="button" onClick={() => setSchemeOpen(true)} className={`${ui.addButton} self-center`}>
+                  {isEmptyScheme(faceScheme) ? t("scheme.add") : t("scheme.edit")}
+                </button>
+              </div>
+            )}
+            {repeatedFrom && !isEmptyScheme(faceScheme) && !schemeOpen && (
+              <p className="text-sm text-muted">{t("scheme.fromRepeat")}</p>
+            )}
+          </section>
+        )}
 
         {/* LOT1: sticker photos for the whole visit. */}
         <section className={`${card.surface} flex flex-col gap-3 p-4`}>

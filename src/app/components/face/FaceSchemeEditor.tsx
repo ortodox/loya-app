@@ -3,16 +3,17 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { penColors, penWidths, type FaceScheme, type PenColor, type PenWidth, type Stroke } from "@/logic/face-scheme";
-import { addStroke, clearScheme, finishStroke, normalizePoint, undoStroke } from "@/logic/rules/face-scheme";
+import { addStroke, clearScheme, finishStroke, normalizePoint, templateSpec, undoStroke } from "@/logic/rules/face-scheme";
 import { FaceStrokes } from "./FaceStrokes";
-import { FaceTemplateLines, templateSize } from "./templates";
+import { FaceTemplateBackground } from "./templates";
 
 const swatch = { dark: "var(--pen-dark)", red: "var(--pen-red)", blue: "var(--pen-blue)" } as const;
 const tool = "inline-flex min-h-11 items-center gap-2 rounded-full border px-3 text-sm";
 
 /**
  * Z5: draw on the face template with a finger – a short tap is a dot (injection point), a drag is
- * a line. `touch-action: none` keeps the page from scrolling while drawing.
+ * a line. `touch-action: none` keeps the page from scrolling while drawing. The area keeps the
+ * template's shape and is never taller than the screen, so the whole face and neck are in view.
  */
 export function FaceSchemeEditor({ scheme, onChange }: { scheme: FaceScheme; onChange: (scheme: FaceScheme) => void }) {
   const t = useTranslations("scheme");
@@ -32,6 +33,12 @@ export function FaceSchemeEditor({ scheme, onChange }: { scheme: FaceScheme; onC
     onChange(next);
   };
 
+  // Opening the editor brings the whole drawing area into view.
+  useEffect(() => {
+    area.current?.scrollIntoView({ block: "nearest" });
+  }, []);
+
+  const { width: boxW, height: boxH } = templateSpec(scheme.template);
   const point = (e: React.PointerEvent) => normalizePoint(e.clientX, e.clientY, area.current!.getBoundingClientRect());
 
   function down(e: React.PointerEvent<SVGSVGElement>) {
@@ -60,18 +67,24 @@ export function FaceSchemeEditor({ scheme, onChange }: { scheme: FaceScheme; onC
     <div className="flex flex-col gap-3">
       <svg
         ref={area}
-        viewBox={`0 0 ${templateSize.width} ${templateSize.height}`}
+        viewBox={`0 0 ${boxW} ${boxH}`}
         role="img"
         aria-label={t("area")}
         onPointerDown={down}
         onPointerMove={move}
         onPointerUp={up}
         onPointerCancel={up}
-        style={{ touchAction: "none", WebkitTouchCallout: "none" }}
-        className="block aspect-[3/4] w-full cursor-crosshair rounded-[14px] border border-field bg-surface select-none"
+        style={{
+          touchAction: "none",
+          WebkitTouchCallout: "none",
+          aspectRatio: `${boxW} / ${boxH}`,
+          // As wide as the card, but no taller than the screen minus the form header and the hint.
+          width: `min(100%, calc((100svh - 9rem) * ${boxW} / ${boxH}))`,
+        }}
+        className="mx-auto block cursor-crosshair rounded-[14px] border border-field bg-face-paper select-none"
       >
-        <FaceTemplateLines template={scheme.template} />
-        <FaceStrokes strokes={current ? [...scheme.strokes, current] : scheme.strokes} />
+        <FaceTemplateBackground template={scheme.template} />
+        <FaceStrokes strokes={current ? [...scheme.strokes, current] : scheme.strokes} template={scheme.template} />
       </svg>
       <p className="text-sm text-muted">{t("hint")}</p>
 
@@ -84,7 +97,7 @@ export function FaceSchemeEditor({ scheme, onChange }: { scheme: FaceScheme; onC
             onClick={() => setColor(c)}
             className={`${tool} ${color === c ? "border-primary font-semibold text-ink" : "border-field text-ink"}`}
           >
-            <span aria-hidden className="size-4 rounded-full" style={{ background: swatch[c] }} />
+            <span aria-hidden className="size-4 rounded-full ring-1 ring-field" style={{ background: swatch[c] }} />
             {t(`colors.${c}`)}
           </button>
         ))}
@@ -133,7 +146,7 @@ export function FaceSchemeEditor({ scheme, onChange }: { scheme: FaceScheme; onC
             <button
               type="button"
               onClick={() => {
-                change(clearScheme(latest.current));
+                change(clearScheme());
                 setConfirmClear(false);
               }}
               className="min-h-11 rounded-[14px] bg-on-alert px-3 text-sm font-semibold text-alert"

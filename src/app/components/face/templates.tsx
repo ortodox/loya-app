@@ -1,7 +1,8 @@
 import type { FaceTemplate } from "@/logic/face-scheme";
+import { templateSpec } from "@/logic/rules/face-scheme";
 
-/** Z5: drawing box of every template, in SVG units (3:4, like the paper booklet). */
-export const templateSize = { width: 300, height: 400 } as const;
+/** Z5: the realistic face for «front-photo-v1» (Loya 28.10.2026), made from design/face_cosmetics.PNG, 1024×1536. */
+export const facePhotoSrc = "/templates/face-front.webp";
 
 const line = {
   fill: "none",
@@ -13,7 +14,7 @@ const line = {
 };
 const soft = { ...line, strokeWidth: 1, opacity: 0.6 };
 
-/** A calm line drawing of a face from the front, as in the paper booklet. */
+/** The first line drawing – kept only to show schemes drawn on it («front»), never for new ones. */
 function Front() {
   return (
     <g>
@@ -48,10 +49,13 @@ function Front() {
   );
 }
 
-/** Z5: the template by name – a profile view can be added here later. */
-export function FaceTemplateLines({ template }: { template: FaceTemplate }) {
+/** Z5: the template of a scheme by its id – a profile view can be added here later. */
+export function FaceTemplateBackground({ template }: { template: FaceTemplate }) {
+  const { width, height } = templateSpec(template);
   switch (template) {
     case "front":
       return <Front />;
+    case "front-photo-v1":
+      return <image href={facePhotoSrc} x={0} y={0} width={width} height={height} preserveAspectRatio="none" />;
   }
 }

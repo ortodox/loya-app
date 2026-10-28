@@ -21,10 +21,12 @@
   --on-primary: #f4ece2;
   --alert: #f6e3dc;
   --on-alert: #8a2e1e;
-  /* Z5: pens on the face scheme and the template lines. */
-  --pen-dark: #2a211d;
-  --pen-red: #b3261e;
-  --pen-blue: #1f5fbf;
+  /* Z5: the face scheme is always on light paper (also in dark mode), so the pens stay the same:
+     near-black, bright red and bright blue – clearly visible on skin, never gold or beige. */
+  --face-paper: #fbf7f2;
+  --pen-dark: #141414;
+  --pen-red: #e0001b;
+  --pen-blue: #0050f0;
   --face-line: #9a8878;
 }
 
@@ -43,10 +45,6 @@
     --on-primary: #1e1814;
     --alert: #4a2620;
     --on-alert: #f2b8a8;
-    --pen-dark: #f4ece2;
-    --pen-red: #ff8a80;
-    --pen-blue: #8ab4ff;
-    --face-line: #8f7c6b;
   }
 }
 
@@ -63,6 +61,7 @@
   --color-on-primary: var(--on-primary);
   --color-alert: var(--alert);
   --color-on-alert: var(--on-alert);
+  --color-face-paper: var(--face-paper);
   --font-serif: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
   --font-sans: var(--font-montserrat), Montserrat, -apple-system, BlinkMacSystemFont, sans-serif;
 }

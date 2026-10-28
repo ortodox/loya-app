@@ -53,8 +53,9 @@ export function visitFormProps(data: VisitFormData, locale: Locale, today: strin
     recommendations: visit ? visit.recommendations ?? "" : freshAdvice(),
     recommendationsEdited: visit?.recommendationsEdited ?? false,
     anamnesisConfirmed: false,
-    // Z5/RV1: a repeated visit starts from the last visit's scheme.
-    faceScheme: source?.faceScheme ?? null,
+    // Z5/RV1: a repeated visit starts from the last visit's scheme (on its own template) – not for
+    // clients marked only «Дерматология», who have no «Схема лица».
+    faceScheme: visit ? visit.faceScheme : data.showFaceScheme ? data.repeatFrom?.faceScheme ?? null : null,
     items: rows,
     photos: (visit?.photos ?? []).map((p) => ({ id: p.id, url: data.photoUrls[p.storagePath] ?? null })),
   };
@@ -65,6 +66,7 @@ export function visitFormProps(data: VisitFormData, locale: Locale, today: strin
     language: data.language,
     alerts: data.alerts,
     anamnesisConfirmedAt: data.anamnesisConfirmedAt,
+    showFaceScheme: data.showFaceScheme,
     repeatedFrom: visit ? null : data.repeatFrom?.visitDate ?? null,
   };
 }
