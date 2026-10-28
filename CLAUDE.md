@@ -98,6 +98,12 @@ Regler:
 - Arv: `effectivePreparationSettings` i `src/logic/rules/catalog-settings.ts`. Gruppene dose, kur, intervall, vedlikehold, kontroll og råd arves eller overstyres hver for seg som en helhet. `null` på preparatet = arv.
 - Startdata: `private.seed_catalog(doctor_id)` (idempotent). For en ny lege: `select private.seed_catalog('<user id>');`
 
+**Eksport til Google Drive (EX1 del 1, migrering `20261102000000_export.sql`, veiledning i `docs/EXPORT.md`):**
+- `private.export_settings` – én rad (id = 1) med `secret_hash` (bcrypt) og `updated_at`. Ingen tilgang for anon/authenticated.
+- `private.new_export_secret()` – lager nytt eksportpassord (64 hex), lagrer bare hashen, returnerer passordet én gang. Kun `postgres` (SQL Editor). Kjøres på nytt hvis passordet har lekket.
+- `public.export_all(p_secret)` – `security definer`, kun `execute` for anon. Feil/manglende passord → `not allowed` uten detaljer. Returnerer `{exported_at, tables: {<tabell>: [...]}}` for **alle tabeller i `public` med `doctor_id`** (nye tabeller kommer med automatisk) – bare metadata og filnavn, aldri filinnhold.
+- `scripts/google-drive-export.gs` – Google Apps Script, **ikke en del av appen**. Leser `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `EXPORT_SECRET`, `DRIVE_FOLDER_ID` fra Script Properties, kaller `rpc/export_all` med passordet i body, lager regnearket «LOA eksport ÅÅÅÅ-MM-DD» i «Loya Beauty app» → «Eksport» (mappe via ID) med faner på russisk, flytter bare egne «LOA eksport»-filer eldre enn 30 dager i papirkurven, daglig trigger kl. 03–04 (`setupTrigger`). Anamnese-etikettene er kopiert fra `kartaTemplate.ts`/`messages/ru.json` – **oppdater skriptet når malen endres**, og legg til en fane når en ny tabell skal vises.
+
 **Alle tabeller har `doctor_id`** og **Row Level Security**: en lege ser kun sine egne rader (`doctor_id = auth.uid()`). Forbered for flere leger senere.
 
 Alder (AG1): lagre alder + registreringsdato; vis `alder + (år siden registrering)`. Hvis `birth_date` finnes, bruk den.
@@ -190,6 +196,7 @@ Rekkefølge: **ru (standard)**, uk, pl, en. Alle UI-tekster i `messages/*.json` 
 - **Aldri** `service_role`-nøkkel i klientkode eller i repoet. Hemmeligheter kun i miljøvariabler.
 - **Ingen ekte klientdata i repoet**, seed-filer eller tester – kun oppdiktede navn.
 - Ikke logg personopplysninger.
+- **Eksporten (EX1)** inneholder helseopplysninger i Google Drive: mappen deles ikke, eksportpassordet ligger bare i Script Properties (aldri i repoet), og bare hashen i databasen.
 
 ## Databaseendringer
 
