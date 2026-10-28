@@ -80,6 +80,7 @@ function memory() {
     recommendations: input.recommendations,
     recommendationsLang: input.recommendationsLang,
     recommendationsEdited: input.recommendationsEdited,
+    faceScheme: input.faceScheme,
     items: input.items.map((it, i) => ({ ...it, id: id(n + 500 + i), sortOrder: i })),
     photos: [],
     archive: { homeCareRecommendations: null, procedurePlan: null },
@@ -295,6 +296,23 @@ describe("RV1: повторить прошлый визит", () => {
     expect(data.repeatFrom?.visitDate).toBe("2026-10-01");
     expect(data.repeatFrom?.items.map((i) => [i.preparationName, i.quantity])).toEqual([["Botox", "20+15 ед."]]);
     expect((await getVisitFormData(m.deps, clientA, null))!.repeatFrom).toBeNull();
+  });
+});
+
+describe("Z5: схема лица в визите", () => {
+  const scheme = { template: "front", strokes: [{ color: "red", width: 0.006, points: [[0.4, 0.3]] }] };
+
+  it("Z5: the visit keeps the scheme; an empty one is not saved", async () => {
+    const m = memory();
+    await saveVisit(m.deps, clientA, null, { faceScheme: JSON.stringify(scheme) }, noPhotos, today);
+    await saveVisit(m.deps, clientA, null, { faceScheme: JSON.stringify({ template: "front", strokes: [] }) }, noPhotos, today);
+    expect(m.visits.map((v) => v.faceScheme)).toEqual([scheme, null]);
+  });
+
+  it("Z5/RV1: «Повторить прошлый визит» starts from the last visit's scheme", async () => {
+    const m = memory();
+    await saveVisit(m.deps, clientA, null, { visitDate: "2026-10-01", items: [{ preparationId: botox }], faceScheme: JSON.stringify(scheme) }, noPhotos, today);
+    expect((await getVisitFormData(m.deps, clientA, null, { today }))!.repeatFrom?.faceScheme).toEqual(scheme);
   });
 });
 

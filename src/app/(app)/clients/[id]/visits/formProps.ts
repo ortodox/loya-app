@@ -53,6 +53,8 @@ export function visitFormProps(data: VisitFormData, locale: Locale, today: strin
     recommendations: visit ? visit.recommendations ?? "" : freshAdvice(),
     recommendationsEdited: visit?.recommendationsEdited ?? false,
     anamnesisConfirmed: false,
+    // Z5/RV1: a repeated visit starts from the last visit's scheme.
+    faceScheme: source?.faceScheme ?? null,
     items: rows,
     photos: (visit?.photos ?? []).map((p) => ({ id: p.id, url: data.photoUrls[p.storagePath] ?? null })),
   };

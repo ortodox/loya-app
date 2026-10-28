@@ -1,5 +1,6 @@
 import type { Locale } from "@/config/locales";
 import type { CourseSummary, Direction } from "./course";
+import type { FaceScheme } from "./face-scheme";
 
 /** ISO calendar date, `YYYY-MM-DD`. */
 export type IsoDate = string;
@@ -88,6 +89,8 @@ export type Visit = {
   recommendationsLang: Locale | null;
   /** P5: the doctor edited the advice herself – never replace it without asking. */
   recommendationsEdited: boolean;
+  /** Z5: points and lines drawn on the face template; null = no scheme. */
+  faceScheme: FaceScheme | null;
   items: VisitItem[];
   photos: VisitPhoto[];
   /** Fields of the MVP 1a visit form, kept read-only («Архив»). */
@@ -107,5 +110,7 @@ export type VisitInput = {
   recommendations: string | null;
   recommendationsLang: Locale | null;
   recommendationsEdited: boolean;
+  /** Z5: points and lines drawn on the face template; null = no scheme. */
+  faceScheme: FaceScheme | null;
   items: VisitItemInput[];
 };

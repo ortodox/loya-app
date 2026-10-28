@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Locale } from "@/config/locales";
 import type { Visit, VisitInput } from "@/logic/client";
 import { isLocale } from "@/logic/locale";
+import { parseFaceScheme } from "@/logic/rules/face-scheme";
 import { storedAsEdited } from "@/logic/rules/recommendations";
 import type { VisitRepository } from "./visits";
 
@@ -14,6 +15,7 @@ type VisitRow = {
   recommendations: string | null;
   recommendations_lang: string | null;
   recommendations_edited: boolean | null;
+  face_scheme: unknown;
   home_care_recommendations: string | null;
   procedure_plan: string | null;
   visit_items: {
@@ -28,7 +30,7 @@ type VisitRow = {
 };
 
 const columns =
-  "id, client_id, visit_date, created_at, notes, recommendations, recommendations_lang, recommendations_edited, home_care_recommendations, procedure_plan, " +
+  "id, client_id, visit_date, created_at, notes, recommendations, recommendations_lang, recommendations_edited, face_scheme, home_care_recommendations, procedure_plan, " +
   "visit_items(id, preparation_id, preparation_name, procedure_type_id, quantity, sort_order), " +
   "visit_photos(id, storage_path, sort_order)";
 
@@ -42,6 +44,7 @@ function toVisit(row: VisitRow): Visit {
     recommendations: row.recommendations,
     recommendationsLang: isLocale(row.recommendations_lang) ? (row.recommendations_lang as Locale) : null,
     recommendationsEdited: storedAsEdited(row.recommendations_edited, row.recommendations),
+    faceScheme: parseFaceScheme(row.face_scheme),
     items: [...row.visit_items]
       .sort((a, b) => a.sort_order - b.sort_order)
       .map((i) => ({
@@ -65,6 +68,7 @@ const visitRow = (input: VisitInput) => ({
   recommendations: input.recommendations,
   recommendations_lang: input.recommendationsLang,
   recommendations_edited: input.recommendationsEdited,
+  face_scheme: input.faceScheme,
 });
 
 /** Supabase-backed visit storage. RLS limits every query to the signed-in doctor. */

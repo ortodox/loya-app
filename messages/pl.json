@@ -486,5 +486,33 @@
       "uploadFailed": "Nie udało się przesłać pliku. Sprawdź internet i spróbuj ponownie.",
       "notFound": "Nie znaleziono klienta."
     }
+  },
+  "scheme": {
+    "title": "Schemat twarzy",
+    "add": "+ Dodaj schemat",
+    "edit": "Zmień schemat",
+    "hide": "Zwiń",
+    "area": "Schemat twarzy – rysuj palcem",
+    "hint": "Krótkie dotknięcie – punkt, przeciągnięcie palcem – linia.",
+    "color": "Kolor",
+    "width": "Grubość",
+    "colors": {
+      "dark": "Ciemny",
+      "red": "Czerwony",
+      "blue": "Niebieski"
+    },
+    "widths": {
+      "thin": "Cienka",
+      "thick": "Gruba"
+    },
+    "undo": "↶ Cofnij",
+    "clear": "Wyczyść",
+    "clearAsk": "Wyczyścić cały schemat?",
+    "clearYes": "Wyczyść",
+    "clearNo": "Anuluj",
+    "has": "Schemat twarzy",
+    "open": "Otwórz schemat w dużym rozmiarze",
+    "close": "Zwiń schemat",
+    "fromRepeat": "Schemat z poprzedniej wizyty – można zmienić lub wyczyścić."
   }
 }
