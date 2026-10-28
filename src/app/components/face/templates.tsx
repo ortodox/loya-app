@@ -1,8 +1,8 @@
 import type { FaceTemplate } from "@/logic/face-scheme";
 import { templateSpec } from "@/logic/rules/face-scheme";
 
-/** Z5: the realistic face (Loya 28.10.2026), from design/face_cosmetics.PNG, 1024×1536. */
-export const facePhotoSrc = "/face/front-photo-v1.webp";
+/** Z5: the realistic face for «front-photo-v1» (Loya 28.10.2026), made from design/face_cosmetics.PNG, 1024×1536. */
+export const facePhotoSrc = "/templates/face-front.webp";
 
 const line = {
   fill: "none",
