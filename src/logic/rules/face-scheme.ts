@@ -1,4 +1,6 @@
+import type { Direction } from "@/logic/course";
 import {
+  currentTemplate,
   faceTemplates,
   penColors,
   type FaceScheme,
@@ -37,7 +39,33 @@ export function thinPoints(points: readonly Point[], minDistance = 0.003): Point
   return result.slice(0, maxPointsPerStroke);
 }
 
-export const emptyScheme = (template: FaceTemplate = "front"): FaceScheme => ({ template, strokes: [] });
+/**
+ * Z5: how each template is drawn – the old line drawing (3:4) or the photo (2:3, 1024×1536).
+ * The box is in SVG units; points are 0–1 of the box, so they stay on the same spot of that template.
+ */
+export type TemplateSpec = { kind: "lines" | "photo"; width: number; height: number };
+
+const templateSpecs: Record<FaceTemplate, TemplateSpec> = {
+  front: { kind: "lines", width: 300, height: 400 },
+  "front-photo-v1": { kind: "photo", width: 300, height: 450 },
+};
+
+/** Z5: the template of a stored scheme – schemes saved before templates had versions are «front». */
+export function templateFor(id: unknown): FaceTemplate {
+  return faceTemplates.find((t) => t === id) ?? "front";
+}
+
+export const templateSpec = (template: FaceTemplate): TemplateSpec => templateSpecs[template];
+
+/**
+ * Z5: «Схема лица» belongs to cosmetology. It is shown in the visit unless the client is marked
+ * only «Дерматология»; no direction yet counts as cosmetology (that is where Loya started).
+ */
+export function showsFaceScheme(direction: readonly Direction[] | null | undefined): boolean {
+  return !direction || direction.length === 0 || direction.includes("cosmetology");
+}
+
+export const emptyScheme = (template: FaceTemplate = currentTemplate): FaceScheme => ({ template, strokes: [] });
 
 /** Z5: add a finished stroke (ignored when empty or when the scheme is full). */
 export function addStroke(scheme: FaceScheme, stroke: Stroke): FaceScheme {
@@ -50,8 +78,8 @@ export function undoStroke(scheme: FaceScheme): FaceScheme {
   return { ...scheme, strokes: scheme.strokes.slice(0, -1) };
 }
 
-/** Z5: «Очистить» – the same template without strokes. */
-export const clearScheme = (scheme: FaceScheme): FaceScheme => emptyScheme(scheme.template);
+/** Z5: «Очистить» – nothing is left to keep in place, so the drawing starts again on the current template. */
+export const clearScheme = (): FaceScheme => emptyScheme();
 
 /** Z5: nothing drawn – saved as no scheme at all. */
 export const isEmptyScheme = (scheme: FaceScheme | null | undefined): boolean => !scheme || scheme.strokes.length === 0;
@@ -75,7 +103,7 @@ export function parseFaceScheme(value: unknown): FaceScheme | null {
   }
   if (!data || typeof data !== "object") return null;
   const raw = data as { template?: unknown; strokes?: unknown };
-  const template = faceTemplates.find((t) => t === raw.template) ?? "front";
+  const template = templateFor(raw.template);
   const strokes: Stroke[] = [];
   for (const s of Array.isArray(raw.strokes) ? raw.strokes.slice(0, maxStrokes) : []) {
     const st = (s ?? {}) as { color?: unknown; width?: unknown; points?: unknown };

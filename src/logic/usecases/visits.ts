@@ -3,6 +3,7 @@ import { emptySettings, type Localized, type ProcedureType } from "@/logic/catal
 import type { Client, IsoDate, Visit, VisitItemInput } from "@/logic/client";
 import { effectivePreparationSettings } from "@/logic/rules/catalog-settings";
 import { orderForClient, sortPreparations } from "@/logic/rules/catalog-list";
+import { showsFaceScheme } from "@/logic/rules/face-scheme";
 import { safetyAlerts, type SafetyAlert } from "@/logic/rules/safety-alert";
 import {
   isAcceptablePhoto,
@@ -90,6 +91,8 @@ export type VisitFormData = {
   anamnesisConfirmedAt: IsoDate | null;
   /** Thumbnails of the visit's photos, by storage path. */
   photoUrls: Record<string, string>;
+  /** Z5: «Схема лица» is cosmetology only – hidden for clients marked only «Дерматология». */
+  showFaceScheme: boolean;
 };
 
 /** R1/P5/AL1: everything the «Новый визит» / edit form needs. */
@@ -142,6 +145,7 @@ export async function getVisitFormData(
     visit,
     repeatFrom: visit === null && repeat ? lastCompletedVisit(earlier, repeat.today) : null,
     anamnesisConfirmedAt: client.anamnesisConfirmedAt,
+    showFaceScheme: showsFaceScheme(client.direction),
     photoUrls: visit ? await deps.photos.signedUrls(visit.photos.map((p) => p.storagePath)) : {},
   };
 }

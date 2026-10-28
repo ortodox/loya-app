@@ -1,8 +1,15 @@
-/** Z5: face templates. «front» now; a profile can be added later as another key. */
-export const faceTemplates = ["front"] as const;
+/**
+ * Z5: face templates. «front-photo-v1» is the realistic face (Loya 28.10.2026) used for new schemes;
+ * «front» is the first line drawing, kept only to show schemes drawn on it without moving the points.
+ * A profile can be added later as another key.
+ */
+export const faceTemplates = ["front", "front-photo-v1"] as const;
 export type FaceTemplate = (typeof faceTemplates)[number];
 
-/** Z5: pen colours – stored as names, drawn with theme colours (readable in dark mode too). */
+/** Z5: the template every new scheme is drawn on. */
+export const currentTemplate: FaceTemplate = "front-photo-v1";
+
+/** Z5: pen colours – stored as names; near-black, bright red and bright blue so they show on skin. */
 export const penColors = ["dark", "red", "blue"] as const;
 export type PenColor = (typeof penColors)[number];
 

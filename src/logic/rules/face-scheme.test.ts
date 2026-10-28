@@ -8,7 +8,10 @@ import {
   isEmptyScheme,
   normalizePoint,
   parseFaceScheme,
+  showsFaceScheme,
   strokePath,
+  templateFor,
+  templateSpec,
   thinPoints,
   undoStroke,
 } from "./face-scheme";
@@ -50,8 +53,8 @@ describe("Z5: отменить и очистить", () => {
     expect(undoStroke(emptyScheme()).strokes).toEqual([]);
   });
 
-  it("Z5: «Очистить» keeps the template and removes everything", () => {
-    expect(clearScheme(addStroke(emptyScheme(), line))).toEqual({ template: "front", strokes: [] });
+  it("Z5: «Очистить» removes everything and starts again on the realistic face", () => {
+    expect(clearScheme()).toEqual({ template: "front-photo-v1", strokes: [] });
   });
 });
 
@@ -72,5 +75,43 @@ describe("Z5: пустая схема", () => {
     });
     expect(parseFaceScheme("{not json")).toBeNull();
     expect(parseFaceScheme({ template: "profile", strokes: [line] })?.template).toBe("front");
+  });
+});
+
+describe("Z5: выбор шаблона по template-ID", () => {
+  it("Z5: new schemes are drawn on the realistic face «front-photo-v1»", () => {
+    expect(emptyScheme().template).toBe("front-photo-v1");
+    expect(templateSpec("front-photo-v1")).toEqual({ kind: "photo", width: 300, height: 450 });
+  });
+
+  it("Z5: schemes saved on «front» stay on the old line drawing, so the points do not move", () => {
+    expect(templateFor("front")).toBe("front");
+    expect(templateSpec("front")).toEqual({ kind: "lines", width: 300, height: 400 });
+    const old = { template: "front", strokes: [line] };
+    expect(parseFaceScheme(JSON.stringify(old))).toEqual(old);
+  });
+
+  it("Z5: the photo template keeps the photo's 2:3 shape", () => {
+    const { width, height } = templateSpec("front-photo-v1");
+    expect(width / height).toBeCloseTo(1024 / 1536);
+  });
+
+  it("Z5: a scheme without a known template id is the old «front»", () => {
+    expect(templateFor(undefined)).toBe("front");
+    expect(templateFor("profile")).toBe("front");
+    expect(parseFaceScheme({ template: "front-photo-v1", strokes: [line] })?.template).toBe("front-photo-v1");
+  });
+});
+
+describe("Z5: только косметология", () => {
+  it("Z5: hidden for clients with only «Дерматология»", () => {
+    expect(showsFaceScheme(["dermatology"])).toBe(false);
+  });
+
+  it("Z5: shown for «Косметология», both directions, or no direction", () => {
+    expect(showsFaceScheme(["cosmetology"])).toBe(true);
+    expect(showsFaceScheme(["cosmetology", "dermatology"])).toBe(true);
+    expect(showsFaceScheme([])).toBe(true);
+    expect(showsFaceScheme(null)).toBe(true);
   });
 });

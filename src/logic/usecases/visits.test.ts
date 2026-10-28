@@ -314,6 +314,15 @@ describe("Z5: схема лица в визите", () => {
     await saveVisit(m.deps, clientA, null, { visitDate: "2026-10-01", items: [{ preparationId: botox }], faceScheme: JSON.stringify(scheme) }, noPhotos, today);
     expect((await getVisitFormData(m.deps, clientA, null, { today }))!.repeatFrom?.faceScheme).toEqual(scheme);
   });
+
+  it("Z5: the visit form hides «Схема лица» for a client marked only «Дерматология»", async () => {
+    const m = memory();
+    expect((await getVisitFormData(m.deps, clientA, null))!.showFaceScheme).toBe(true);
+    m.clients[0].direction = ["dermatology"];
+    expect((await getVisitFormData(m.deps, clientA, null))!.showFaceScheme).toBe(false);
+    m.clients[0].direction = ["cosmetology", "dermatology"];
+    expect((await getVisitFormData(m.deps, clientA, null))!.showFaceScheme).toBe(true);
+  });
 });
 
 describe("AN3: анамнез без изменений", () => {
