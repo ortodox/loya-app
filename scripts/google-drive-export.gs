@@ -228,6 +228,11 @@ function buildSheets_(t) {
     var v = visitById[p.visit_id] || {};
     photoRows.push([clientName[v.client_id], 'Фото наклейки (визит)', date_(v.visit_date), p.storage_path, p.sort_order + 1, dateTime_(p.created_at)]);
   });
+  (t.client_photos || []).forEach(function (p) {
+    var c = p.course_id ? courseById[p.course_id] || {} : null;
+    photoRows.push([clientName[p.client_id], c ? 'Фото клиента (курс лечения)' : 'Фото клиента',
+      (c ? c.diagnosis + ' · ' : '') + 'снято ' + date_(p.taken_on), p.storage_path, '', dateTime_(p.created_at)]);
+  });
   sheets.push({
     name: 'Уход и фото',
     header: ['Клиент', 'Вид', 'К чему относится', 'Файл (только имя, без содержимого)', 'Порядок', 'Добавлено'],

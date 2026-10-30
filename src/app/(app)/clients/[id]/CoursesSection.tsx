@@ -4,9 +4,11 @@ import { Chevron } from "@/app/components/Icons";
 import { card, disclosure, ui } from "@/app/components/ui";
 import type { IsoDate } from "@/logic/client";
 import type { TreatmentCourse } from "@/logic/course";
+import type { ClientPhoto } from "@/logic/client-photo";
 import type { ClientDocument } from "@/logic/document";
 import { courseProgress, nextLabDate } from "@/logic/rules/courses";
 import { formatIsoDate } from "@/logic/rules/dates";
+import { ClientPhotoTimeline } from "./ClientPhotoTimeline";
 import { completeCourseAction, extendCourseAction, labsDoneAction, setLastLabAction } from "./courses/actions";
 
 type Props = {
@@ -18,16 +20,20 @@ type Props = {
   /** LE8: lab results attached to each course, with links to open them. */
   labDocuments?: Record<string, ClientDocument[]>;
   documentUrls?: Record<string, string>;
+  /** FK3: photos the client sent during each course, with thumbnails. */
+  clientPhotos?: Record<string, ClientPhoto[]>;
+  clientPhotoUrls?: Record<string, string>;
 };
 
 const smallButton = "inline-flex min-h-11 items-center justify-center rounded-[14px] border border-field px-4 text-sm font-medium text-accent";
 
 /** LE5/LE9: «Лечение» in the client card – the active course(s) and the finished ones. */
 export async function CoursesSection(props: Props) {
-  const { clientId, active, completed, photoUrls, today, labDocuments = {}, documentUrls = {} } = props;
+  const { clientId, active, completed, photoUrls, today, labDocuments = {}, documentUrls = {}, clientPhotos = {}, clientPhotoUrls = {} } = props;
   const t = await getTranslations("courses");
   const save = (await getTranslations("form"))("save");
   const open = (await getTranslations("documents"))("open");
+  const tp = await getTranslations("clientPhotos");
   const locale = await getLocale();
   const number = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 });
 
@@ -73,11 +79,34 @@ export async function CoursesSection(props: Props) {
       </div>
     );
 
+  // FK3: «Фото клиента» during the course, by date taken; «+ Фото» only while the course is active.
+  const progressPhotos = (course: TreatmentCourse, canAdd: boolean) => {
+    const list = clientPhotos[course.id] ?? [];
+    if (!canAdd && list.length === 0) return null;
+    return (
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-3">
+          <h4 className="text-sm font-semibold text-muted">{tp("inCourse")}</h4>
+          {canAdd && (
+            <Link href={`/clients/${clientId}/photos/new?course=${course.id}`} className={smallButton}>
+              {tp("add")}
+            </Link>
+          )}
+        </div>
+        {list.length === 0 ? (
+          <p className={ui.muted}>{tp("courseEmpty")}</p>
+        ) : (
+          <ClientPhotoTimeline clientId={clientId} photos={list} urls={clientPhotoUrls} />
+        )}
+      </div>
+    );
+  };
+
   function activeCourse(course: TreatmentCourse) {
     const progress = courseProgress(course, today);
     const nextLabs = nextLabDate(course);
     return (
-      <article key={course.id} className="flex flex-col gap-3 border-t border-line px-4 py-4">
+      <article key={course.id} id={`course-${course.id}`} className="flex scroll-mt-4 flex-col gap-3 border-t border-line px-4 py-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-col">
             <h3 className="text-lg font-semibold text-ink">{course.diagnosis}</h3>
@@ -170,6 +199,8 @@ export async function CoursesSection(props: Props) {
           </div>
         )}
 
+        {progressPhotos(course, true)}
+
         {labs(course)}
 
         {/* LE3: prescription photos, newest first. */}
@@ -209,6 +240,7 @@ export async function CoursesSection(props: Props) {
                   </div>
                 </div>
                 {course.prescription && <p className="text-sm whitespace-pre-wrap text-ink">{course.prescription}</p>}
+                {progressPhotos(course, false)}
                 {labs(course)}
                 {photos(course)}
               </li>

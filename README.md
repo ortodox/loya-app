@@ -42,6 +42,7 @@ npm run lint && npm run typecheck
   10. `supabase/migrations/20261031000000_care_documents.sql` (MVP 1c: «Уход» med bilder, dokumenter og analyser i bøtten `client-documents`)
   11. `supabase/migrations/20261101000000_face_scheme.sql` (MVP 1b: ansiktsskisse i besøket, lagret som streker)
   12. `supabase/migrations/20261102000000_export.sql` (EX1: nattlig eksport til Google Drive, se `docs/EXPORT.md`)
+  13. `supabase/migrations/20261103000000_client_photos.sql` (FK1–FK4: bilder fra klienten i kortet og i kuren)
 
    Kontroller under *Table Editor* at `clients` og `visits` finnes og at RLS står som *enabled*.
 3. **Opprett legens bruker:** *Authentication → Users → Add user* (e-post). Appen oppretter

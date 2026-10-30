@@ -21,12 +21,14 @@ type Props = {
   /** LE3: own button text and hint for prescription photos. */
   addLabel?: string;
   hint?: string;
+  /** FK2: the original files before compression (compressing drops the date taken). */
+  onFiles?: (files: File[]) => void;
 };
 
 /** LOT1/LE3: photos from the camera or library, compressed on the phone before upload. */
 export function PhotoField(props: Props) {
   const { existing, removed, added, onRemoveExisting, onAdd, onRemoveNew } = props;
-  const { max = maxPhotosPerVisit, addLabel, hint } = props;
+  const { max = maxPhotosPerVisit, addLabel, hint, onFiles } = props;
   const t = useTranslations("visits");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +41,7 @@ export function PhotoField(props: Props) {
     if (list.length === 0) return;
     if (list.length > free) setError(t("errors.tooManyPhotos"));
     setBusy(true);
+    onFiles?.(list.slice(0, free));
     try {
       const photos: NewPhoto[] = [];
       for (const file of list.slice(0, free)) {

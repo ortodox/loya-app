@@ -514,5 +514,32 @@
     "open": "Open the scheme large",
     "close": "Collapse the scheme",
     "fromRepeat": "Scheme from the last visit – you can change or clear it."
+  },
+  "clientPhotos": {
+    "title": "Client photos",
+    "add": "+ Photo",
+    "inCourse": "Client photos",
+    "empty": "No photos yet. Save the photo from the messenger to Photos on the iPhone and add it here.",
+    "courseEmpty": "No photos during treatment yet.",
+    "newTitle": "Client photos",
+    "newTitleCourse": "Photos for the treatment course",
+    "forCourse": "Course: {diagnosis}",
+    "photos": "Photos",
+    "photosHint": "From Photos or the camera – up to 3 photos at a time.",
+    "takenOn": "Date taken",
+    "takenOnHint": "Taken from the photo when it is there, otherwise today. Can be changed.",
+    "count": "{count, plural, one {# photo} other {# photos}}",
+    "open": "Open photo",
+    "delete": "Delete",
+    "confirmDelete": "Delete this photo? It cannot be restored.",
+    "confirmYes": "Delete",
+    "confirmNo": "Cancel",
+    "deleteFailed": "Could not delete.",
+    "errors": {
+      "noPhotos": "Add at least one photo.",
+      "tooManyPhotos": "At most 3 photos at a time.",
+      "photoInvalid": "Could not process the photo. Try another one.",
+      "dateInvalid": "Invalid date – not later than today."
+    }
   }
 }
