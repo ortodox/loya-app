@@ -23,6 +23,7 @@ describe("UI1: навигация – панель вкладок", () => {
       "/clients/new",
       "/clients/abc/edit",
       "/clients/abc/visits/new",
+      "/clients/abc/photos/new",
       "/clients/abc/visits/v1/edit",
       "/catalog/types/new",
       "/catalog/types/abc/edit",

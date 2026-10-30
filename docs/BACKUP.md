@@ -28,6 +28,7 @@ select taken_at, reason,
        count(*) filter (where table_name = 'visit_photos')    as bilder,
        count(*) filter (where table_name = 'treatment_courses') as kurer,
        count(*) filter (where table_name = 'client_documents') as dokumenter,
+       count(*) filter (where table_name = 'client_photos')    as klientbilder,
        count(*) filter (where table_name = 'procedure_types') as typer,
        count(*) filter (where table_name = 'preparations')    as preparater
 from backup.snapshots
@@ -301,6 +302,22 @@ where s.taken_at = valgt.t
               where o.bucket_id = 'visit-photos' and o.name = s.row_data ->> 'storage_path')
 on conflict (id) do nothing;
 
+-- Client photos (FK1–FK4) – only where the image file still exists in Storage
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.client_photos
+select (jsonb_populate_record(null::public.client_photos, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t
+  and s.table_name = 'client_photos'
+  and s.row_data ->> 'client_id' = 'KLIENT_ID'
+  and exists (select 1 from storage.objects o
+              where o.bucket_id = 'visit-photos' and o.name = s.row_data ->> 'storage_path')
+on conflict (id) do update set
+  taken_on  = excluded.taken_on,
+  course_id = excluded.course_id;
+
 -- Documents and lab results (DK1, LE8) – only where the file still exists in Storage
 with valgt as (
   select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
@@ -421,6 +438,21 @@ where s.taken_at = valgt.t
   and exists (select 1 from storage.objects o
               where o.bucket_id = 'visit-photos' and o.name = s.row_data ->> 'storage_path')
 on conflict (id) do nothing;
+
+-- Client photos (FK1–FK4) – only where the image file still exists in Storage
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.client_photos
+select (jsonb_populate_record(null::public.client_photos, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t
+  and s.table_name = 'client_photos'
+  and exists (select 1 from storage.objects o
+              where o.bucket_id = 'visit-photos' and o.name = s.row_data ->> 'storage_path')
+on conflict (id) do update set
+  taken_on  = excluded.taken_on,
+  course_id = excluded.course_id;
 
 -- Documents and lab results (DK1, LE8) – only where the file still exists in Storage
 with valgt as (
@@ -547,6 +579,10 @@ med radene i `course_photos`. De er heller ikke med i kopiene – last dem ned p
 
 **Bilder i «Уход»** (UH2) ligger også i **visit-photos**, under `<lege-id>/care/<klient-id>/<fil>.jpg`, med radene i
 `client_care_photos` (mappen **care**).
+
+**Bilder fra klienten** (FK1–FK4, «Фото клиента» og bilder i en kur) ligger også i **visit-photos**, under
+`<lege-id>/client-photos/<klient-id>/<fil>.jpg`, med radene i `client_photos` (dato, eventuell kur)
+(mappen **client-photos**).
 
 **Dokumenter og analyser** (DK1) ligger i en egen privat bøtte, **client-documents**, under
 `<lege-id>/<klient-id>/<fil>` (bilder og PDF, maks 20 MB per fil), med radene i `client_documents` (tittel, dato,

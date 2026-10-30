@@ -514,5 +514,32 @@
     "open": "Otwórz schemat w dużym rozmiarze",
     "close": "Zwiń schemat",
     "fromRepeat": "Schemat z poprzedniej wizyty – można zmienić lub wyczyścić."
+  },
+  "clientPhotos": {
+    "title": "Zdjęcia klienta",
+    "add": "+ Zdjęcie",
+    "inCourse": "Zdjęcia klienta",
+    "empty": "Brak zdjęć. Zapisz zdjęcie z komunikatora w «Zdjęciach» na iPhonie i dodaj je tutaj.",
+    "courseEmpty": "Brak zdjęć z czasu leczenia.",
+    "newTitle": "Zdjęcia klienta",
+    "newTitleCourse": "Zdjęcia do kuracji",
+    "forCourse": "Kuracja: {diagnosis}",
+    "photos": "Zdjęcia",
+    "photosHint": "Ze «Zdjęć» lub aparat – do 3 zdjęć naraz.",
+    "takenOn": "Data wykonania",
+    "takenOnHint": "Pobierana ze zdjęcia, jeśli jest, w przeciwnym razie dzisiejsza. Można zmienić.",
+    "count": "{count, plural, one {# zdjęcie} few {# zdjęcia} many {# zdjęć} other {# zdjęcia}}",
+    "open": "Otwórz zdjęcie",
+    "delete": "Usuń",
+    "confirmDelete": "Usunąć to zdjęcie? Nie będzie można go przywrócić.",
+    "confirmYes": "Usuń",
+    "confirmNo": "Anuluj",
+    "deleteFailed": "Nie udało się usunąć.",
+    "errors": {
+      "noPhotos": "Dodaj co najmniej jedno zdjęcie.",
+      "tooManyPhotos": "Maksymalnie 3 zdjęcia naraz.",
+      "photoInvalid": "Nie udało się przetworzyć zdjęcia. Spróbuj inne.",
+      "dateInvalid": "Nieprawidłowa data – nie później niż dziś."
+    }
   }
 }

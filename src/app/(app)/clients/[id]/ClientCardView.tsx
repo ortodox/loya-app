@@ -14,8 +14,11 @@ import { hasArchive, isPlanned, lastCompletedVisit, splitVisits } from "@/logic/
 import type { TreatmentCourse } from "@/logic/course";
 import type { ClientCard } from "@/logic/usecases/clients";
 import type { Care, ClientDocument } from "@/logic/document";
+import type { ClientPhoto } from "@/logic/client-photo";
+import { showsClientPhotos, splitClientPhotos } from "@/logic/rules/client-photos";
 import { documentsByCourse } from "@/logic/rules/documents";
 import { CareSection } from "./CareSection";
+import { ClientPhotoTimeline } from "./ClientPhotoTimeline";
 import { CoursesSection } from "./CoursesSection";
 import { DocumentsSection } from "./DocumentsSection";
 
@@ -34,14 +37,17 @@ type Props = {
   care: { care: Care; photoUrls: Record<string, string> };
   /** DK1/DK3/LE8. */
   documents: { documents: ClientDocument[]; urls: Record<string, string> };
+  /** FK1–FK4: photos the client sent – cosmetology here, course photos in «Лечение». */
+  clientPhotos: { photos: ClientPhoto[]; urls: Record<string, string> };
 };
 
 export async function ClientCardView(props: Props) {
-  const { data, visits, photoUrls, created = false, today, courses, care, documents } = props;
+  const { data, visits, photoUrls, created = false, today, courses, care, documents, clientPhotos } = props;
   const t = await getTranslations();
   const locale = await getLocale();
   const { client, age, alerts } = data;
   const id = client.id;
+  const { general: generalPhotos, byCourse: coursePhotos } = splitClientPhotos(clientPhotos.photos);
   const country = client.residenceCountry ? countryName(client.residenceCountry, locale) : null;
   const place = [country, client.residenceCity].filter(Boolean).join(", ") || null;
   const optionLabel = (field: string, option: string) =>
@@ -299,6 +305,23 @@ export async function ClientCardView(props: Props) {
         )}
       </section>
 
+      {/* FK1–FK4: cosmetology photos the client sent, by date taken (course photos are in «Лечение»). */}
+      {showsClientPhotos(client.direction, generalPhotos.length) && (
+        <section id="client-photos" className={`${card.surface} flex scroll-mt-4 flex-col gap-3 p-4`}>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className={card.heading}>{t("clientPhotos.title")}</h2>
+            <Link href={`/clients/${id}/photos/new`} className={ui.addButton}>
+              {t("clientPhotos.add")}
+            </Link>
+          </div>
+          {generalPhotos.length === 0 ? (
+            <p className={ui.muted}>{t("clientPhotos.empty")}</p>
+          ) : (
+            <ClientPhotoTimeline clientId={id} photos={generalPhotos} urls={clientPhotos.urls} />
+          )}
+        </section>
+      )}
+
       {/* PP1: the procedure plan belongs to the client. */}
       <section className={`${card.surface} flex flex-col gap-2 p-4`}>
         <h2 className={card.heading}>{t("card.procedurePlan")}</h2>
@@ -312,6 +335,8 @@ export async function ClientCardView(props: Props) {
         {...courses}
         labDocuments={documentsByCourse(documents.documents)}
         documentUrls={documents.urls}
+        clientPhotos={coursePhotos}
+        clientPhotoUrls={clientPhotos.urls}
       />
 
       {/* UH1/UH2: home care. */}
