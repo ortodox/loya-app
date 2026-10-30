@@ -253,40 +253,6 @@ where s.taken_at = valgt.t
               where o.bucket_id = 'visit-photos' and o.name = s.row_data ->> 'storage_path')
 on conflict (id) do nothing;
 
--- Treatment courses (LE1)
-with valgt as (
-  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
-)
-insert into public.treatment_courses
-select (jsonb_populate_record(null::public.treatment_courses, s.row_data)).*
-from backup.snapshots s, valgt
-where s.taken_at = valgt.t
-  and s.table_name = 'treatment_courses'
-on conflict (id) do update set
-  diagnosis          = excluded.diagnosis,
-  prescription       = excluded.prescription,
-  start_date         = excluded.start_date,
-  end_date           = excluded.end_date,
-  lab_interval_value = excluded.lab_interval_value,
-  lab_interval_unit  = excluded.lab_interval_unit,
-  last_lab_date      = excluded.last_lab_date,
-  status             = excluded.status,
-  completed_at       = excluded.completed_at,
-  created_at         = excluded.created_at;
-
--- Prescription photo rows (LE3) – only where the image file still exists in Storage
-with valgt as (
-  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
-)
-insert into public.course_photos
-select (jsonb_populate_record(null::public.course_photos, s.row_data)).*
-from backup.snapshots s, valgt
-where s.taken_at = valgt.t
-  and s.table_name = 'course_photos'
-  and exists (select 1 from storage.objects o
-              where o.bucket_id = 'visit-photos' and o.name = s.row_data ->> 'storage_path')
-on conflict (id) do nothing;
-
 -- Care photos (UH2) – only where the image file still exists in Storage
 with valgt as (
   select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
@@ -405,6 +371,40 @@ select (jsonb_populate_record(null::public.visit_photos, s.row_data)).*
 from backup.snapshots s, valgt
 where s.taken_at = valgt.t
   and s.table_name = 'visit_photos'
+  and exists (select 1 from storage.objects o
+              where o.bucket_id = 'visit-photos' and o.name = s.row_data ->> 'storage_path')
+on conflict (id) do nothing;
+
+-- Treatment courses (LE1)
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.treatment_courses
+select (jsonb_populate_record(null::public.treatment_courses, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t
+  and s.table_name = 'treatment_courses'
+on conflict (id) do update set
+  diagnosis          = excluded.diagnosis,
+  prescription       = excluded.prescription,
+  start_date         = excluded.start_date,
+  end_date           = excluded.end_date,
+  lab_interval_value = excluded.lab_interval_value,
+  lab_interval_unit  = excluded.lab_interval_unit,
+  last_lab_date      = excluded.last_lab_date,
+  status             = excluded.status,
+  completed_at       = excluded.completed_at,
+  created_at         = excluded.created_at;
+
+-- Prescription photo rows (LE3) – only where the image file still exists in Storage
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.course_photos
+select (jsonb_populate_record(null::public.course_photos, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t
+  and s.table_name = 'course_photos'
   and exists (select 1 from storage.objects o
               where o.bucket_id = 'visit-photos' and o.name = s.row_data ->> 'storage_path')
 on conflict (id) do nothing;
