@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Client, ClientInput } from "@/logic/client";
 import type { ClientRepository } from "@/data/repositories/clients";
-import { clientPictureUrls, createClient, getClientCard, listClients, setMissingDirection, updateClient } from "./clients";
+import { clientPictureUrls, createClient, updateAnamnesisSection, getClientCard, listClients, setMissingDirection, updateClient } from "./clients";
 
 const today = "2026-10-22";
 const id1 = "00000000-0000-4000-8000-000000000001";
@@ -57,6 +57,12 @@ function memoryRepo(initial: Client[] = []): ClientRepository & { rows: Client[]
       const i = rows.findIndex((r) => r.id === id);
       if (i < 0) return false;
       rows[i] = { ...rows[i], direction };
+      return true;
+    },
+    setAnamnesis: async (id, anamnesis) => {
+      const i = rows.findIndex((r) => r.id === id);
+      if (i < 0) return false;
+      rows[i] = { ...rows[i], anamnesis };
       return true;
     },
     confirmAnamnesis: async (id, date) => {
@@ -207,5 +213,19 @@ describe("FK1: фото клиента в списке", () => {
     const urls = await clientPictureUrls({ signedUrls: async (p: string[]) => (asked.push(p), { [p[0]]: "https://signed" }) } as never, list);
     expect(asked).toEqual([["d/client-photos/1/a.jpg"]]);
     expect(urls).toEqual({ "d/client-photos/1/a.jpg": "https://signed" });
+  });
+});
+
+describe("AN3: изменить один раздел анкеты", () => {
+  it("AN3: saves only the chosen section of the client", async () => {
+    const repo = memoryRepo([client({ id: id1, anamnesis: { medications: { text: "Витамин D" }, complaints: { choices: ["acne"], text: "" } } })]);
+    expect(await updateAnamnesisSection(repo, id1, "health", { medications: { text: "Изотретиноин" } })).toBe(true);
+    expect(repo.rows[0].anamnesis).toEqual({ medications: { text: "Изотретиноин" }, complaints: { choices: ["acne"], text: "" } });
+  });
+
+  it("AN3: unknown client or section changes nothing", async () => {
+    const repo = memoryRepo([client({ id: id1 })]);
+    expect(await updateAnamnesisSection(repo, "nope", "health", {})).toBe(false);
+    expect(await updateAnamnesisSection(repo, id1, "nope", {})).toBe(false);
   });
 });
