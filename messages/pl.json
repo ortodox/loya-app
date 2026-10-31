@@ -91,7 +91,12 @@
     "questionnaireHint": "Dane ogólne, dolegliwości, zdrowie, skóra, zabiegi",
     "lastVisit": "Ostatnia wizyta",
     "daysAgo": "{count, plural, =0 {dziś} one {# dzień temu} few {# dni temu} many {# dni temu} other {# dnia temu}}",
-    "loading": "Ładowanie…"
+    "loading": "Ładowanie…",
+    "sections": "Sekcje karty",
+    "actions": "Szybkie akcje",
+    "actionVisit": "+ Wizyta",
+    "actionRepeat": "↺ Powtórz",
+    "actionPhoto": "+ Zdjęcie"
   },
   "form": {
     "titleNew": "Nowy klient",

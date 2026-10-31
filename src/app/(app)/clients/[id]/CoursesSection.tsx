@@ -210,7 +210,7 @@ export async function CoursesSection(props: Props) {
   }
 
   return (
-    <section className={card.surface}>
+    <section id="treatment" className={`${card.surface} scroll-mt-4`}>
       <div className="flex items-center justify-between gap-3 px-4 pt-3 pb-2">
         <h2 className={card.heading}>{t("title")}</h2>
         <Link href={`/clients/${clientId}/courses/new`} className={ui.addButton}>

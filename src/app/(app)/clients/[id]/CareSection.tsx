@@ -9,7 +9,7 @@ export async function CareSection({ clientId, care, photoUrls }: { clientId: str
   const t = await getTranslations("care");
   const empty = !care.text && care.photos.length === 0;
   return (
-    <section className={`${card.surface} flex flex-col gap-3 p-4`}>
+    <section id="care" className={`${card.surface} flex scroll-mt-4 flex-col gap-3 p-4`}>
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col">
           <h2 className={card.heading}>{t("title")}</h2>

@@ -91,7 +91,12 @@
     "questionnaireHint": "Общие данные, жалобы, здоровье, кожа, процедуры",
     "lastVisit": "Последний визит",
     "daysAgo": "{count, plural, =0 {сегодня} one {# день назад} few {# дня назад} many {# дней назад} other {# дня назад}}",
-    "loading": "Загрузка…"
+    "loading": "Загрузка…",
+    "sections": "Разделы карты",
+    "actions": "Быстрые действия",
+    "actionVisit": "+ Визит",
+    "actionRepeat": "↺ Повторить",
+    "actionPhoto": "+ Фото"
   },
   "form": {
     "titleNew": "Новый клиент",

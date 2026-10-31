@@ -19,7 +19,7 @@ export async function DocumentsSection({ clientId, documents, urls, courses }: P
   const t = await getTranslations("documents");
   const diagnosis = new Map(courses.map((c) => [c.id, c.diagnosis]));
   return (
-    <section className={card.surface}>
+    <section id="documents" className={`${card.surface} scroll-mt-4`}>
       <div className="flex items-center justify-between gap-3 px-4 pt-3 pb-2">
         <h2 className={card.heading}>{t("title")}</h2>
         <Link href={`/clients/${clientId}/documents/new`} className={ui.addButton}>
