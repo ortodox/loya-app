@@ -51,7 +51,10 @@
     },
     "onTreatment": "🩺 На лечении · {count} дн.",
     "filterLabel": "Показать клиентов",
-    "treatmentEnded": "🩺 Курс закончился"
+    "treatmentEnded": "🩺 Курс закончился",
+    "today": "Сегодня",
+    "tomorrow": "Завтра",
+    "agendaLabel": "Записи на сегодня и завтра"
   },
   "language": {
     "ru": "Русский",
@@ -85,7 +88,10 @@
     "telegram": "Telegram",
     "viber": "Viber",
     "questionnaire": "Анкета",
-    "questionnaireHint": "Общие данные, жалобы, здоровье, кожа, процедуры"
+    "questionnaireHint": "Общие данные, жалобы, здоровье, кожа, процедуры",
+    "lastVisit": "Последний визит",
+    "daysAgo": "{count, plural, =0 {сегодня} one {# день назад} few {# дня назад} many {# дней назад} other {# дня назад}}",
+    "loading": "Загрузка…"
   },
   "form": {
     "titleNew": "Новый клиент",

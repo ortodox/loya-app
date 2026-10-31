@@ -15,6 +15,10 @@ export function ClientList({ clients }: { clients: ClientSummary[] }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Direction | null>(null);
   const shown = clients.filter((c) => matchesFilter(c, filter) && matchesClient(c, query));
+  // N13 (part): who comes today and tomorrow, above the search.
+  const agenda = (["today", "tomorrow"] as const)
+    .map((day) => ({ day, clients: clients.filter((c) => c.agenda === day) }))
+    .filter((g) => g.clients.length > 0);
 
   if (clients.length === 0) {
     return (
@@ -29,6 +33,24 @@ export function ClientList({ clients }: { clients: ClientSummary[] }) {
 
   return (
     <>
+      {agenda.length > 0 && (
+        <section aria-label={t("clients.agendaLabel")} className={`${card.surface} flex flex-col gap-2 p-4`}>
+          {agenda.map((g) => (
+            <div key={g.day} className="flex flex-col gap-1.5">
+              <h2 className="text-sm font-semibold text-muted">
+                {t(`clients.${g.day}`)} · {g.clients.length}
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {g.clients.map((c) => (
+                  <Link key={c.id} href={`/clients/${c.id}`} className={`${pill.base} ${g.day === "today" ? pill.on : pill.off}`}>
+                    {c.fullName}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
       <input
         type="search"
         enterKeyHint="search"

@@ -7,7 +7,7 @@ import { clinicalSections, generalDataFields, type GeneralDataField } from "@/co
 import type { IsoDate, Visit } from "@/logic/client";
 import { fieldText, normalizeField, sectionHasContent, sectionPreview } from "@/logic/rules/anamnesis";
 import { countryName } from "@/logic/rules/country";
-import { formatIsoDate } from "@/logic/rules/dates";
+import { daysBetween, formatIsoDate } from "@/logic/rules/dates";
 import { countRecommendations } from "@/logic/rules/recommendations";
 import { contactLinks } from "@/logic/rules/contacts";
 import { hasArchive, isPlanned, lastCompletedVisit, splitVisits } from "@/logic/rules/visits";
@@ -74,6 +74,7 @@ export async function ClientCardView(props: Props) {
   const [complaints, ...otherSections] = clinicalSections;
   const { upcoming, past } = splitVisits(visits, today);
   const repeatable = lastCompletedVisit(visits, today) !== null;
+  const lastVisit = past[0] ?? null;
 
   function renderVisit(visit: Visit) {
     const planned = isPlanned(visit, today);
@@ -290,6 +291,46 @@ export async function ClientCardView(props: Props) {
       )}
 
       {/* Loya 26.10.2026: «план процедур и визиты должны быть первыми». */}
+
+      {/* H1: what was done last time, at a glance – preparations with quantity, notes, photos and scheme. */}
+      {lastVisit && (
+        <section className={`${card.surface} flex flex-col gap-2 p-4`}>
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="text-sm font-semibold tracking-wide text-muted uppercase">{t("card.lastVisit")}</h2>
+            <span className="text-sm text-muted">{t("card.daysAgo", { count: daysBetween(lastVisit.visitDate, today) })}</span>
+          </div>
+          <p className="flex items-center gap-2 text-lg font-semibold text-ink">
+            {formatIsoDate(lastVisit.visitDate)}
+            {lastVisit.photos.length > 0 && (
+              <span className="text-sm font-normal text-muted">📷 {t("visits.photoCount", { count: lastVisit.photos.length })}</span>
+            )}
+            {lastVisit.faceScheme && (
+              <span className="inline-flex items-center text-muted">
+                <FaceIcon />
+                <span className="sr-only">{t("scheme.has")}</span>
+              </span>
+            )}
+          </p>
+          {lastVisit.items.length > 0 ? (
+            <ul className="flex flex-col gap-0.5">
+              {lastVisit.items.map((i) => (
+                <li key={i.id} className="text-base text-ink">
+                  {i.preparationName}
+                  {i.quantity && <span className="text-muted"> · {i.quantity}</span>}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className={ui.muted}>{t("visits.noItems")}</p>
+          )}
+          {lastVisit.notes && <p className="line-clamp-2 text-sm whitespace-pre-wrap text-muted">{lastVisit.notes}</p>}
+          {repeatable && (
+            <Link href={`/clients/${id}/visits/new?repeat=1`} className={`${ui.textButton} self-start text-sm`}>
+              {t("visits.repeatLast")}
+            </Link>
+          )}
+        </section>
+      )}
 
       {/* VP2: appointments, soonest first. */}
       {upcoming.length > 0 && (

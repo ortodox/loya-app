@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lastActivityDate, matchesClient, matchesName, notesExcerpt, sortNewestFirst, visitTimeline } from "./client-list";
+import { agendaDay, lastActivityDate, matchesClient, matchesName, notesExcerpt, sortNewestFirst, visitTimeline } from "./client-list";
 
 const row = (name: string, cardDate: string, lastVisitDate: string | null, updatedAt = "t0") => ({
   name,
@@ -68,5 +68,20 @@ describe("VP2: запись на будущую дату", () => {
       next: "2026-10-31",
     });
     expect(visitTimeline([], "2026-10-28")).toEqual({ last: null, next: null });
+  });
+});
+
+describe("N13: сегодня и завтра над списком", () => {
+  const today = "2026-10-31";
+  it("N13: a visit today puts the client in «Сегодня», tomorrow in «Завтра»", () => {
+    expect(agendaDay(["2026-10-01", "2026-10-31"], today)).toBe("today");
+    expect(agendaDay(["2026-11-01"], today)).toBe("tomorrow");
+    expect(agendaDay(["2026-10-31", "2026-11-01"], today)).toBe("today");
+  });
+
+  it("N13: other days are not shown there – also across the month end", () => {
+    expect(agendaDay(["2026-10-30", "2026-11-02"], today)).toBeNull();
+    expect(agendaDay([], today)).toBeNull();
+    expect(agendaDay(["2027-01-01"], "2026-12-31")).toBe("tomorrow");
   });
 });

@@ -1,4 +1,5 @@
 import type { IsoDate } from "@/logic/client";
+import { addDays } from "./dates";
 
 type Dated = { lastVisitDate: IsoDate | null; cardDate: IsoDate };
 
@@ -56,4 +57,10 @@ export function matchesClient(client: { fullName: string; phone: string | null }
 export function notesExcerpt(notes: string | null, maxLength = 80): string {
   const line = (notes ?? "").split("\n").map((l) => l.trim()).find(Boolean) ?? "";
   return line.length > maxLength ? `${line.slice(0, maxLength - 1).trimEnd()}…` : line;
+}
+
+/** N13 (part): the client comes today or tomorrow – shown in «Сегодня» / «Завтра» above the list. */
+export function agendaDay(dates: readonly IsoDate[], today: IsoDate): "today" | "tomorrow" | null {
+  if (dates.includes(today)) return "today";
+  return dates.includes(addDays(today, 1)) ? "tomorrow" : null;
 }

@@ -51,7 +51,10 @@
     },
     "onTreatment": "🩺 W leczeniu · {count} dni",
     "filterLabel": "Pokaż klientów",
-    "treatmentEnded": "🩺 Kurs zakończony"
+    "treatmentEnded": "🩺 Kurs zakończony",
+    "today": "Dziś",
+    "tomorrow": "Jutro",
+    "agendaLabel": "Wizyty dziś i jutro"
   },
   "language": {
     "ru": "Русский",
@@ -85,7 +88,10 @@
     "telegram": "Telegram",
     "viber": "Viber",
     "questionnaire": "Ankieta",
-    "questionnaireHint": "Dane ogólne, dolegliwości, zdrowie, skóra, zabiegi"
+    "questionnaireHint": "Dane ogólne, dolegliwości, zdrowie, skóra, zabiegi",
+    "lastVisit": "Ostatnia wizyta",
+    "daysAgo": "{count, plural, =0 {dziś} one {# dzień temu} few {# dni temu} many {# dni temu} other {# dnia temu}}",
+    "loading": "Ładowanie…"
   },
   "form": {
     "titleNew": "Nowy klient",
