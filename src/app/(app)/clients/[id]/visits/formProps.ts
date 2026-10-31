@@ -1,3 +1,4 @@
+import { thumbUrl } from "@/logic/rules/thumbnails";
 import type { Locale } from "@/config/locales";
 import { localized } from "@/logic/rules/catalog-settings";
 import type { VisitFormData } from "@/logic/usecases/visits";
@@ -57,7 +58,7 @@ export function visitFormProps(data: VisitFormData, locale: Locale, today: strin
     // clients marked only «Дерматология», who have no «Схема лица».
     faceScheme: visit ? visit.faceScheme : data.showFaceScheme ? data.repeatFrom?.faceScheme ?? null : null,
     items: rows,
-    photos: (visit?.photos ?? []).map((p) => ({ id: p.id, url: data.photoUrls[p.storagePath] ?? null })),
+    photos: (visit?.photos ?? []).map((p) => ({ id: p.id, url: thumbUrl(data.photoUrls, p.storagePath) })),
   };
   return {
     options,

@@ -6,6 +6,7 @@ import { safetyAlerts, type SafetyAlert } from "@/logic/rules/safety-alert";
 import { chosenDirection, treatmentStatus, type TreatmentStatus } from "@/logic/rules/courses";
 import type { Direction } from "@/logic/course";
 import type { ClientRepository } from "@/data/repositories/clients";
+import type { PhotoStorage } from "@/data/repositories/photos";
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -29,6 +30,8 @@ export type ClientSummary = {
   treatment: TreatmentStatus | null;
   /** N13 (part): a visit today or tomorrow – «Сегодня» / «Завтра» above the list. */
   agenda: "today" | "tomorrow" | null;
+  /** FK1: the newest client photo, for the round picture (null = initials). */
+  photoPath: string | null;
 };
 
 /** PR2/VP2: all clients for the list, newest first. Search runs in the UI with `matchesClient`. */
@@ -50,6 +53,7 @@ export async function listClients(repo: ClientRepository, today: IsoDate): Promi
     direction: c.direction,
     treatment: treatmentStatus(c.courses, today),
     agenda: agendaDay(c.visitDates, today),
+    photoPath: c.latestPhotoPath ?? null,
   }));
 }
 
@@ -113,4 +117,10 @@ export async function setMissingDirection(repo: ClientRepository, id: string, va
   const client = await repo.get(id);
   if (!client || client.direction.length > 0) return false;
   return repo.setDirection(id, [direction]);
+}
+
+/** FK1: short-lived links for the round pictures in the list (the small copies where they exist). */
+export async function clientPictureUrls(photos: PhotoStorage, clients: readonly ClientSummary[]): Promise<Record<string, string>> {
+  const paths = clients.flatMap((c) => (c.photoPath ? [c.photoPath] : []));
+  return paths.length > 0 ? photos.signedUrls(paths) : {};
 }

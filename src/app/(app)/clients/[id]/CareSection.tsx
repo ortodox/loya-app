@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { thumbUrl } from "@/logic/rules/thumbnails";
 import Link from "next/link";
 import { card, ui } from "@/app/components/ui";
 import type { Care } from "@/logic/document";
@@ -32,7 +33,7 @@ export async function CareSection({ clientId, care, photoUrls }: { clientId: str
                     {/* UH2: open in full size. */}
                     <a href={photoUrls[p.storagePath]} target="_blank" rel="noreferrer" aria-label={t("openPhoto")}>
                       {/* eslint-disable-next-line @next/next/no-img-element -- signed storage URL */}
-                      <img src={photoUrls[p.storagePath]} alt="" className="size-24 rounded-[14px] object-cover" />
+                      <img src={thumbUrl(photoUrls, p.storagePath) ?? undefined} alt="" className="size-24 rounded-[14px] object-cover" />
                     </a>
                   </li>
                 ) : (

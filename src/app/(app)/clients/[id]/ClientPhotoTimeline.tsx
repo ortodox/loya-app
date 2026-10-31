@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { thumbUrl } from "@/logic/rules/thumbnails";
 import type { ClientPhoto } from "@/logic/client-photo";
 import { photoTimeline } from "@/logic/rules/client-photos";
 import { formatIsoDate } from "@/logic/rules/dates";
@@ -18,12 +19,12 @@ export async function ClientPhotoTimeline({ clientId, photos, urls }: { clientId
                 {urls[p.storagePath] ? (
                   <a href={urls[p.storagePath]} target="_blank" rel="noreferrer" aria-label={`${t("open")} ${formatIsoDate(p.takenOn)}`}>
                     {/* eslint-disable-next-line @next/next/no-img-element -- signed storage URL */}
-                    <img src={urls[p.storagePath]} alt="" className="size-24 rounded-[14px] object-cover" />
+                    <img src={thumbUrl(urls, p.storagePath) ?? undefined} alt="" className="size-24 rounded-[14px] object-cover" />
                   </a>
                 ) : (
                   <div className="size-24 rounded-[14px] bg-line" />
                 )}
-                <DeleteClientPhoto clientId={clientId} photoId={p.id} thumbUrl={urls[p.storagePath] ?? null} />
+                <DeleteClientPhoto clientId={clientId} photoId={p.id} thumbUrl={thumbUrl(urls, p.storagePath)} />
               </li>
             ))}
           </ul>

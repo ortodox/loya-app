@@ -3,14 +3,16 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
+import { ClientPicture } from "@/app/components/ClientPicture";
 import { card, pill, ui } from "@/app/components/ui";
+import { thumbUrl } from "@/logic/rules/thumbnails";
 import { directions, type Direction } from "@/logic/course";
 import { matchesFilter, toggleFilter } from "@/logic/rules/courses";
 import { matchesClient } from "@/logic/rules/client-list";
 import { formatDayMonth, formatIsoDate } from "@/logic/rules/dates";
 import type { ClientSummary } from "@/logic/usecases/clients";
 
-export function ClientList({ clients }: { clients: ClientSummary[] }) {
+export function ClientList({ clients, pictureUrls = {} }: { clients: ClientSummary[]; pictureUrls?: Record<string, string> }) {
   const t = useTranslations();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Direction | null>(null);
@@ -79,6 +81,8 @@ export function ClientList({ clients }: { clients: ClientSummary[] }) {
         {shown.map((c) => (
           <li key={c.id} className="border-b border-line last:border-b-0">
             <Link href={`/clients/${c.id}`} className="flex min-h-11 items-start gap-3 px-4 py-3">
+              {/* FK1: the newest client photo, or initials. */}
+              <ClientPicture name={c.fullName} url={c.photoPath ? thumbUrl(pictureUrls, c.photoPath) : null} size="list" />
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="truncate text-base font-semibold text-ink">{c.fullName}</span>
                 <span className="text-sm text-muted">
