@@ -17,8 +17,10 @@ import type { Care, ClientDocument } from "@/logic/document";
 import type { ClientPhoto } from "@/logic/client-photo";
 import { showsClientPhotos, splitClientPhotos } from "@/logic/rules/client-photos";
 import { documentsByCourse } from "@/logic/rules/documents";
+import { deleteWarnings } from "@/logic/rules/trash";
 import { CareSection } from "./CareSection";
 import { ClientPhotoTimeline } from "./ClientPhotoTimeline";
+import { DeleteClient } from "./DeleteClient";
 import { CoursesSection } from "./CoursesSection";
 import { DocumentsSection } from "./DocumentsSection";
 
@@ -439,6 +441,9 @@ export async function ClientCardView(props: Props) {
           })}
         </div>
       </details>
+
+      {/* PR6: at the very bottom – to «Удалённые клиенты» for 30 days, with a warning for planned visits or a course. */}
+      <DeleteClient clientId={id} name={client.fullName} {...deleteWarnings(client, today)} />
     </main>
   );
 }

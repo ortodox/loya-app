@@ -541,5 +541,23 @@
       "photoInvalid": "Could not process the photo. Try another one.",
       "dateInvalid": "Invalid date – not later than today."
     }
+  },
+  "trash": {
+    "delete": "Delete client",
+    "confirm": "Delete the client «{name}»? For 30 days the client can be restored from «Deleted clients»; after that it is deleted for good with visits, photos and documents.",
+    "warnPlanned": "{count, plural, one {The client has # planned visit.} other {The client has # planned visits.}}",
+    "warnCourse": "The client is in a treatment course.",
+    "confirmYes": "Delete",
+    "confirmNo": "Cancel",
+    "failed": "Could not delete. Please try again.",
+    "link": "{count, plural, one {Deleted clients (#)} other {Deleted clients (#)}}",
+    "title": "Deleted clients",
+    "back": "‹ Clients",
+    "hint": "After 30 days a client is deleted for good with visits, photos and documents. Until then it can be restored.",
+    "empty": "No deleted clients.",
+    "deletedOn": "Deleted: {date}",
+    "purgeOn": "Deleted for good: {date}",
+    "restore": "Restore",
+    "restoreFailed": "Could not restore."
   }
 }

@@ -156,7 +156,8 @@ on conflict (id) do update set
   anamnesis_confirmed_at = excluded.anamnesis_confirmed_at,
   direction           = excluded.direction,
   care_text           = excluded.care_text,
-  care_updated_at     = excluded.care_updated_at;
+  care_updated_at     = excluded.care_updated_at,
+  deleted_at          = excluded.deleted_at;
 
 with valgt as (
   select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
@@ -376,7 +377,8 @@ on conflict (id) do update set
   anamnesis_confirmed_at = excluded.anamnesis_confirmed_at,
   direction           = excluded.direction,
   care_text           = excluded.care_text,
-  care_updated_at     = excluded.care_updated_at;
+  care_updated_at     = excluded.care_updated_at,
+  deleted_at          = excluded.deleted_at;
 
 with valgt as (
   select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
@@ -579,6 +581,8 @@ med radene i `course_photos`. De er heller ikke med i kopiene – last dem ned p
 
 **Bilder i «Уход»** (UH2) ligger også i **visit-photos**, under `<lege-id>/care/<klient-id>/<fil>.jpg`, med radene i
 `client_care_photos` (mappen **care**).
+
+**Slettede klienter (PR6):** en klient i «Удалённые клиенты» har `deleted_at` og kan gjenopprettes i appen i 30 dager. Etter 30 dager slettes klienten for godt, med alle rader **og filene i Storage**. Radene finnes da fortsatt i kopiene her (30–90 dager), men bildene og dokumentene kan ikke hentes tilbake.
 
 **Bilder fra klienten** (FK1–FK4, «Фото клиента» og bilder i en kur) ligger også i **visit-photos**, under
 `<lege-id>/client-photos/<klient-id>/<fil>.jpg`, med radene i `client_photos` (dato, eventuell kur)

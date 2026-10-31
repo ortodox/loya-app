@@ -6,6 +6,7 @@ import { supabaseClientRepository } from "./clients-supabase";
 import { supabaseCourseRepository } from "./courses-supabase";
 import { supabaseDocumentRepository, supabaseDocumentStorage } from "./documents-supabase";
 import { supabasePhotoStorage } from "./photos-supabase";
+import { supabaseClientTrashRepository } from "./trash-supabase";
 import { supabaseVisitRepository } from "./visits-supabase";
 
 /** Repositories for server components and server actions, bound to the signed-in doctor. */
@@ -43,4 +44,8 @@ export async function documentStorage() {
 
 export async function clientPhotoRepository() {
   return supabaseClientPhotoRepository(await createClient());
+}
+
+export async function clientTrashRepository() {
+  return supabaseClientTrashRepository(await createClient());
 }

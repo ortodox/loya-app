@@ -77,7 +77,8 @@ function toRow(input: ClientInput) {
 export function supabaseClientRepository(supabase: SupabaseClient): ClientRepository {
   // VS1/VP2/LE4: all visit dates and course dates – last visit, next appointment, «На лечении».
   const withVisits = () =>
-    supabase.from("clients").select(`${columns}, visits(visit_date), treatment_courses(status, start_date, end_date)`);
+    // PR6: clients in «Удалённые клиенты» are left out everywhere.
+    supabase.from("clients").select(`${columns}, visits(visit_date), treatment_courses(status, start_date, end_date)`).is("deleted_at", null);
 
   return {
     async list() {

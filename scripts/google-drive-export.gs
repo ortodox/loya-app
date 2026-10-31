@@ -137,6 +137,7 @@ function removeOldExports_(folder) {
 
 /** The seven tabs in Russian, rows sorted so they are easy to read. */
 function buildSheets_(t) {
+  t = withoutDeletedClients_(t);
   var clients = t.clients || [];
   var visits = t.visits || [];
   var items = t.visit_items || [];
@@ -276,6 +277,31 @@ function buildSheets_(t) {
   });
 
   return sheets;
+}
+
+/** PR6: clients in «Удалённые клиенты» (deleted_at set) and everything of theirs are left out. */
+function withoutDeletedClients_(t) {
+  var gone = {};
+  (t.clients || []).forEach(function (c) { if (c.deleted_at) gone[c.id] = true; });
+  var keep = function (rows, key) { return (rows || []).filter(function (r) { return !gone[r[key]]; }); };
+  var visits = keep(t.visits, 'client_id');
+  var courses = keep(t.treatment_courses, 'client_id');
+  var visitIds = {};
+  visits.forEach(function (v) { visitIds[v.id] = true; });
+  var courseIds = {};
+  courses.forEach(function (c) { courseIds[c.id] = true; });
+  var copy = {};
+  Object.keys(t).forEach(function (k) { copy[k] = t[k]; });
+  copy.clients = (t.clients || []).filter(function (c) { return !c.deleted_at; });
+  copy.visits = visits;
+  copy.treatment_courses = courses;
+  copy.visit_items = (t.visit_items || []).filter(function (i) { return visitIds[i.visit_id]; });
+  copy.visit_photos = (t.visit_photos || []).filter(function (p) { return visitIds[p.visit_id]; });
+  copy.course_photos = (t.course_photos || []).filter(function (p) { return courseIds[p.course_id]; });
+  copy.client_care_photos = keep(t.client_care_photos, 'client_id');
+  copy.client_photos = keep(t.client_photos, 'client_id');
+  copy.client_documents = keep(t.client_documents, 'client_id');
+  return copy;
 }
 
 /** Plain text everywhere (so «+48 …» never turns into a formula), bold frozen header. */
