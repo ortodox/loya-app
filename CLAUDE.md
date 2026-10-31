@@ -177,6 +177,7 @@ Hvert felt: fritekst er alltid tillatt (også «?» for usikkerhet). Hurtigvalg 
 - **Препараты** (katalogen, URL `/catalog`): liten «LOA» og «+ Препарат» øverst, serif-overskrift «Препараты», søk i preparater, typene i ett kort.
 - **Klientkort – rekkefølge** (Loya 26.10.2026: «план процедур и визиты должны быть первыми»):
   1. **Toppen:** liten «КАРТА КЛИЕНТА» over navnet (serif), under: alder · første besøk, landskode + land, by, telefon med «Позвонить», «WhatsApp», «Telegram», «Viber» (KT1). **Allergivarsel (AL2)** rett under, avrundet boks med varseltrekant.
+  0. **Snarveier** rett under toppen: piller «Визиты · Фото клиента · План процедур · Лечение · Уход · Документы и анализы · Заметки · Анкета» som hopper til seksjonen (ankre `#visits`, `#client-photos`, `#plan`, `#treatment`, `#care`, `#documents`, `#notes`, `#anketa`).
   1b. **«Последний визит»** (H1) – siste gjennomførte besøk: dato, «N дней назад», preparater med mengde, 📷/skisse, notater (2 linjer), «↺ Повторить прошлый визит».
   2. **«Предстоящие визиты»** – planlagte besøk (VP2), bare når det finnes noen; «Дополнить визит» når klienten kommer.
   3. **«Визиты»** med «+ Новый визит» og «↺ Повторить прошлый визит» (RV1); nyeste øverst, hver rad kan åpnes.
@@ -188,6 +189,7 @@ Hvert felt: fritekst er alltid tillatt (også «?» for usikkerhet). Hurtigvalg 
   6. **«Заметки»**.
   7. **«Анкета»** nederst, lukket som standard: Общие данные, Жалобы, Состояние здоровья, Состояние кожи, Возрастные изменения, Ранее проведённые процедуры – hver seksjon kan åpnes og viser kort sammendrag; under tittelen «✓ Анамнез подтверждён: <dato>» (AN3).
   8. **«Удалить клиента»** (PR6) helt nederst, rød, bekreftelse i panel nederst på skjermen.
+  - **Fast knapperad** over fanelinjen (`CardActions`): «+ Визит», «↺ Повторить» (når det finnes et besøk å gjenta), «+ Фото» («Фото клиента», eller aktiv kur for klienter med bare «Дерматология») og «WhatsApp» (når telefon finnes).
   - Hver seksjon i eget kort med serif-overskrift; etikett/verdi-rader som i notatet; «—» når tomt. Жалобы som piller (valgt = mørk fylt med ✓).
 - **PWA-ikon:** midlertidig «LOA» i gull serif på #F4ECE2 (`public/icon-*.png`, `apple-touch-icon.png`, `src/app/icon.png`). Temafarge #F4ECE2 (mørk: #1E1814). Bytt ut når `design/loa-icon.png` finnes.
 - **Ansiktsmal (Z5):** realistisk ansikt forfra med hals og skuldre (`public/templates/face-front.webp`, laget fra `design/face_cosmetics.PNG` 1024×1536; SVG-boks 300×450). Tegneflaten har samme sideforhold (2:3), er aldri høyere enn skjermen (hele ansiktet og halsen synlig uten å skrolle) og har `touch-action: none`. Bildet ligger alltid på lys bakgrunn (`bg-face-paper`, også i mørk modus). Penner `--pen-dark` (nesten svart), `--pen-red` (klar rød), `--pen-blue` (klar blå) – like i begge moduser, synlige på hud, aldri gull/beige. Gammel strektegning (`front`, 300×400, linjer i `--face-line`) brukes kun til å vise eldre skjemaer. (`design/face-template.webp` er ikke i bruk.)

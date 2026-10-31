@@ -21,6 +21,7 @@ import { deleteWarnings } from "@/logic/rules/trash";
 import { directions } from "@/logic/course";
 import { setMissingDirectionAction } from "../actions";
 import { CareSection } from "./CareSection";
+import { CardActions } from "./CardActions";
 import { ClientPhotoTimeline } from "./ClientPhotoTimeline";
 import { DeleteClient } from "./DeleteClient";
 import { CoursesSection } from "./CoursesSection";
@@ -75,6 +76,24 @@ export async function ClientCardView(props: Props) {
   const { upcoming, past } = splitVisits(visits, today);
   const repeatable = lastCompletedVisit(visits, today) !== null;
   const lastVisit = past[0] ?? null;
+  const showPhotos = showsClientPhotos(client.direction, generalPhotos.length);
+  const jumps: [anchor: string, label: string][] = [
+    ["visits", t("visits.title")],
+    ...(showPhotos ? ([["client-photos", t("clientPhotos.title")]] as [string, string][]) : []),
+    ["plan", t("card.procedurePlan")],
+    ["treatment", t("courses.title")],
+    ["care", t("care.title")],
+    ["documents", t("documents.title")],
+    ["notes", t("card.notes")],
+    ["anketa", t("card.questionnaire")],
+  ];
+  // The fixed bar: «+ Фото» goes to «Фото клиента», or to the active course for dermatology-only clients.
+  const activeCourse = courses.active[0] ?? null;
+  const photoHref = showPhotos
+    ? `/clients/${id}/photos/new`
+    : activeCourse
+      ? `/clients/${id}/photos/new?course=${activeCourse.id}`
+      : null;
 
   function renderVisit(visit: Visit) {
     const planned = isPlanned(visit, today);
@@ -292,6 +311,19 @@ export async function ClientCardView(props: Props) {
 
       {/* Loya 26.10.2026: «план процедур и визиты должны быть первыми». */}
 
+      {/* Shortcuts: one tap to a section further down the long card. */}
+      <nav aria-label={t("card.sections")} className="-mx-5 overflow-x-auto px-5 [scrollbar-width:none]">
+        <ul className="flex w-max gap-2">
+          {jumps.map(([anchor, label]) => (
+            <li key={anchor}>
+              <a href={`#${anchor}`} className="inline-flex min-h-11 items-center rounded-full border border-field bg-surface px-4 text-sm text-ink">
+                {label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
       {/* H1: what was done last time, at a glance – preparations with quantity, notes, photos and scheme. */}
       {lastVisit && (
         <section className={`${card.surface} flex flex-col gap-2 p-4`}>
@@ -341,7 +373,7 @@ export async function ClientCardView(props: Props) {
       )}
 
       {/* VS1/H1: the visits that took place, newest first. */}
-      <section className={card.surface}>
+      <section id="visits" className={`${card.surface} scroll-mt-4`}>
         <div className="flex items-center justify-between gap-3 px-4 pt-3 pb-2">
           <h2 className={card.heading}>{t("visits.title")}</h2>
           <Link href={`/clients/${id}/visits/new`} className={ui.addButton}>
@@ -364,7 +396,7 @@ export async function ClientCardView(props: Props) {
       </section>
 
       {/* FK1–FK4: cosmetology photos the client sent, by date taken (course photos are in «Лечение»). */}
-      {showsClientPhotos(client.direction, generalPhotos.length) && (
+      {showPhotos && (
         <section id="client-photos" className={`${card.surface} flex scroll-mt-4 flex-col gap-3 p-4`}>
           <div className="flex items-center justify-between gap-3">
             <h2 className={card.heading}>{t("clientPhotos.title")}</h2>
@@ -381,7 +413,7 @@ export async function ClientCardView(props: Props) {
       )}
 
       {/* PP1: the procedure plan belongs to the client. */}
-      <section className={`${card.surface} flex flex-col gap-2 p-4`}>
+      <section id="plan" className={`${card.surface} flex scroll-mt-4 flex-col gap-2 p-4`}>
         <h2 className={card.heading}>{t("card.procedurePlan")}</h2>
         <p className="min-h-6 text-base whitespace-pre-wrap">{client.procedurePlan ?? "—"}</p>
       </section>
@@ -404,13 +436,13 @@ export async function ClientCardView(props: Props) {
       <DocumentsSection clientId={id} {...documents} courses={[...courses.active, ...courses.completed]} />
 
       {/* PR3: free notes. */}
-      <section className={`${card.surface} flex flex-col gap-2 p-4`}>
+      <section id="notes" className={`${card.surface} flex scroll-mt-4 flex-col gap-2 p-4`}>
         <h2 className={card.heading}>{t("card.notes")}</h2>
         <p className="min-h-6 text-base whitespace-pre-wrap">{client.notes ?? "—"}</p>
       </section>
 
       {/* «Анкета»: the template from Loya's note at the bottom, closed by default; each section opens. */}
-      <details className={`group/anketa ${card.surface}`}>
+      <details id="anketa" className={`group/anketa ${card.surface} scroll-mt-4`}>
         <summary className={disclosure.summary}>
           <span className="flex min-w-0 flex-col">
             <span className={card.heading}>{t("card.questionnaire")}</span>
@@ -500,6 +532,9 @@ export async function ClientCardView(props: Props) {
 
       {/* PR6: at the very bottom – to «Удалённые клиенты» for 30 days, with a warning for planned visits or a course. */}
       <DeleteClient clientId={id} name={client.fullName} {...deleteWarnings(client, today)} />
+
+      {/* What is done most often, always within reach above the tab bar. */}
+      <CardActions clientId={id} repeatable={repeatable} photoHref={photoHref} phone={client.phone} />
     </main>
   );
 }

@@ -91,7 +91,12 @@
     "questionnaireHint": "Загальні дані, скарги, здоров’я, шкіра, процедури",
     "lastVisit": "Останній візит",
     "daysAgo": "{count, plural, =0 {сьогодні} one {# день тому} few {# дні тому} many {# днів тому} other {# дня тому}}",
-    "loading": "Завантаження…"
+    "loading": "Завантаження…",
+    "sections": "Розділи картки",
+    "actions": "Швидкі дії",
+    "actionVisit": "+ Візит",
+    "actionRepeat": "↺ Повторити",
+    "actionPhoto": "+ Фото"
   },
   "form": {
     "titleNew": "Новий клієнт",
