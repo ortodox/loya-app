@@ -551,7 +551,7 @@ export async function ClientCardView(props: Props) {
       <DeleteClient clientId={id} name={client.fullName} {...deleteWarnings(client, today)} />
 
       {/* What is done most often, always within reach above the tab bar. */}
-      <CardActions clientId={id} repeatable={repeatable} photoHref={photoHref} phone={client.phone} />
+      <CardActions clientId={id} repeatable={repeatable} photoHref={photoHref} />
     </main>
   );
 }
