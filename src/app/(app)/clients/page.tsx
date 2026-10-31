@@ -1,7 +1,7 @@
 import { practiceTimeZone } from "@/config/time";
-import { clientRepository } from "@/data/repositories/server";
+import { clientRepository, photoStorage } from "@/data/repositories/server";
 import { todayIn } from "@/logic/rules/dates";
-import { listClients } from "@/logic/usecases/clients";
+import { clientPictureUrls, listClients } from "@/logic/usecases/clients";
 import { listDeletedClients, purgeExpiredClients } from "@/logic/usecases/trash";
 import { ClientsView } from "./ClientsView";
 import { trashDeps } from "./trash-deps";
@@ -14,5 +14,6 @@ export default async function ClientsPage() {
     listClients(await clientRepository(), todayIn(practiceTimeZone)),
     listDeletedClients(trash, practiceTimeZone),
   ]);
-  return <ClientsView clients={clients} deletedCount={deleted.length} />;
+  const pictureUrls = await clientPictureUrls(await photoStorage(), clients);
+  return <ClientsView clients={clients} deletedCount={deleted.length} pictureUrls={pictureUrls} />;
 }

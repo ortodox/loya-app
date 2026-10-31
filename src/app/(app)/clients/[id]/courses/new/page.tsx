@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { thumbUrl } from "@/logic/rules/thumbnails";
 import { notFound } from "next/navigation";
 import { practiceTimeZone } from "@/config/time";
 import { todayIn } from "@/logic/rules/dates";
@@ -19,7 +20,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
         title={t("newTitle")}
         cancelHref={`/clients/${id}`}
         initial={courseFormValues(data.course, todayIn(practiceTimeZone))}
-        photos={(data.course?.photos ?? []).map((p) => ({ id: p.id, url: data.photoUrls[p.storagePath] ?? null }))}
+        photos={(data.course?.photos ?? []).map((p) => ({ id: p.id, url: thumbUrl(data.photoUrls, p.storagePath) }))}
         action={saveCourseAction.bind(null, id, null)}
       />
     </main>

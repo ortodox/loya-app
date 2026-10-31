@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Client, ClientInput } from "@/logic/client";
 import type { ClientRepository } from "@/data/repositories/clients";
-import { createClient, getClientCard, listClients, setMissingDirection, updateClient } from "./clients";
+import { clientPictureUrls, createClient, getClientCard, listClients, setMissingDirection, updateClient } from "./clients";
 
 const today = "2026-10-22";
 const id1 = "00000000-0000-4000-8000-000000000001";
@@ -106,8 +106,9 @@ describe("client use cases", () => {
         direction: [],
         treatment: null,
         agenda: null,
+        photoPath: null,
       },
-      { id: id1, fullName: "Старая", date: "2024-03-01", age: 32, residenceCountry: null, allergy: false, excerpt: "", phone: null, nextVisitDate: null, direction: [], treatment: null, agenda: null },
+      { id: id1, fullName: "Старая", date: "2024-03-01", age: 32, residenceCountry: null, allergy: false, excerpt: "", phone: null, nextVisitDate: null, direction: [], treatment: null, agenda: null, photoPath: null },
     ]);
   });
 
@@ -194,5 +195,17 @@ describe("DM1: направление не указано", () => {
     expect(await setMissingDirection(repo, id1, "dermatology")).toBe(false);
     expect(await setMissingDirection(repo, id1, "other")).toBe(false);
     expect(repo.rows[0].direction).toEqual(["cosmetology"]);
+  });
+});
+
+describe("FK1: фото клиента в списке", () => {
+  it("FK1: the list carries the newest client photo and gets links only for clients that have one", async () => {
+    const repo = memoryRepo([client({ id: id1, latestPhotoPath: "d/client-photos/1/a.jpg" }), client({ id: "00000000-0000-4000-8000-000000000002", fullName: "Без фото" })]);
+    const list = await listClients(repo, "2026-10-31");
+    expect(list.map((c) => c.photoPath)).toEqual(expect.arrayContaining(["d/client-photos/1/a.jpg", null]));
+    const asked: string[][] = [];
+    const urls = await clientPictureUrls({ signedUrls: async (p: string[]) => (asked.push(p), { [p[0]]: "https://signed" }) } as never, list);
+    expect(asked).toEqual([["d/client-photos/1/a.jpg"]]);
+    expect(urls).toEqual({ "d/client-photos/1/a.jpg": "https://signed" });
   });
 });

@@ -7,7 +7,8 @@ import { ui } from "@/app/components/ui";
 import type { ClientSummary } from "@/logic/usecases/clients";
 import { ClientList } from "./ClientList";
 
-export async function ClientsView({ clients, deletedCount = 0 }: { clients: ClientSummary[]; deletedCount?: number }) {
+export async function ClientsView(props: { clients: ClientSummary[]; deletedCount?: number; pictureUrls?: Record<string, string> }) {
+  const { clients, deletedCount = 0, pictureUrls = {} } = props;
   const t = await getTranslations("clients");
   const tt = await getTranslations("trash");
 
@@ -23,7 +24,7 @@ export async function ClientsView({ clients, deletedCount = 0 }: { clients: Clie
         <h1 className="font-serif text-5xl leading-tight text-ink">{t("title")}</h1>
         <p className={ui.muted}>{t("count", { count: clients.length })}</p>
       </div>
-      <ClientList clients={clients} />
+      <ClientList clients={clients} pictureUrls={pictureUrls} />
       {/* PR6: deleted clients can be restored for 30 days. */}
       {deletedCount > 0 && (
         <Link href="/clients/deleted" className={`${ui.textButton} self-start text-sm`}>

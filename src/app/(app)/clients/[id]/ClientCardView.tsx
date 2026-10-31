@@ -1,4 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
+import { thumbUrl } from "@/logic/rules/thumbnails";
 import Link from "next/link";
 import { FaceSchemeView } from "@/app/components/face/FaceSchemeView";
 import { Chevron, FaceIcon, WarningIcon } from "@/app/components/Icons";
@@ -15,12 +16,13 @@ import type { TreatmentCourse } from "@/logic/course";
 import type { ClientCard } from "@/logic/usecases/clients";
 import type { Care, ClientDocument } from "@/logic/document";
 import type { ClientPhoto } from "@/logic/client-photo";
-import { showsClientPhotos, splitClientPhotos } from "@/logic/rules/client-photos";
+import { photoTimeline, showsClientPhotos, splitClientPhotos } from "@/logic/rules/client-photos";
 import { documentsByCourse } from "@/logic/rules/documents";
 import { deleteWarnings } from "@/logic/rules/trash";
 import { directions } from "@/logic/course";
 import { setMissingDirectionAction } from "../actions";
 import { CareSection } from "./CareSection";
+import { ClientPicture } from "@/app/components/ClientPicture";
 import { CardActions } from "./CardActions";
 import { ClientPhotoTimeline } from "./ClientPhotoTimeline";
 import { DeleteClient } from "./DeleteClient";
@@ -76,6 +78,7 @@ export async function ClientCardView(props: Props) {
   const { upcoming, past } = splitVisits(visits, today);
   const repeatable = lastCompletedVisit(visits, today) !== null;
   const lastVisit = past[0] ?? null;
+  const newestPhoto = photoTimeline(clientPhotos.photos)[0]?.photos[0] ?? null;
   const showPhotos = showsClientPhotos(client.direction, generalPhotos.length);
   const jumps: [anchor: string, label: string][] = [
     ["visits", t("visits.title")],
@@ -143,7 +146,7 @@ export async function ClientCardView(props: Props) {
                     {photoUrls[p.storagePath] ? (
                       <a href={photoUrls[p.storagePath]} target="_blank" rel="noreferrer" aria-label={t("visits.photos")}>
                         {/* eslint-disable-next-line @next/next/no-img-element -- signed storage URL */}
-                        <img src={photoUrls[p.storagePath]} alt="" className="size-24 rounded-[14px] object-cover" />
+                        <img src={thumbUrl(photoUrls, p.storagePath) ?? undefined} alt="" className="size-24 rounded-[14px] object-cover" />
                       </a>
                     ) : (
                       <div className="size-24 rounded-[14px] bg-line" />
@@ -251,7 +254,11 @@ export async function ClientCardView(props: Props) {
 
       <header className="flex flex-col gap-1">
         <p className="text-xs font-semibold tracking-[0.25em] text-muted uppercase">{t("card.kicker")}</p>
-        <h1 className="font-serif text-4xl leading-tight text-ink">{client.fullName}</h1>
+        <div className="flex items-center gap-3">
+          {/* FK1: the newest photo the client sent, or initials. */}
+          <ClientPicture name={client.fullName} url={newestPhoto ? thumbUrl(clientPhotos.urls, newestPhoto.storagePath) : null} size="card" />
+          <h1 className="min-w-0 font-serif text-4xl leading-tight text-ink">{client.fullName}</h1>
+        </div>
         <p className="text-sm text-muted">
           {[age !== null ? t("clients.age", { age }) : null, t("card.firstVisit", { date: formatIsoDate(client.cardDate) })]
             .filter(Boolean)

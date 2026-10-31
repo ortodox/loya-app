@@ -1,4 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
+import { thumbUrl } from "@/logic/rules/thumbnails";
 import Link from "next/link";
 import { Chevron } from "@/app/components/Icons";
 import { card, disclosure, ui } from "@/app/components/ui";
@@ -45,7 +46,7 @@ export async function CoursesSection(props: Props) {
             {photoUrls[p.storagePath] ? (
               <a href={photoUrls[p.storagePath]} target="_blank" rel="noreferrer" aria-label={t("photos")}>
                 {/* eslint-disable-next-line @next/next/no-img-element -- signed storage URL */}
-                <img src={photoUrls[p.storagePath]} alt="" className="size-24 rounded-[14px] object-cover" />
+                <img src={thumbUrl(photoUrls, p.storagePath) ?? undefined} alt="" className="size-24 rounded-[14px] object-cover" />
               </a>
             ) : (
               <div className="size-24 rounded-[14px] bg-line" />

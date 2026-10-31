@@ -6,6 +6,6 @@ export interface PhotoStorage {
   /** Stores a JPEG in the folder (a visit id, or `courses/<course id>`) and returns its storage path. */
   upload(folder: string, bytes: Uint8Array): Promise<string>;
   remove(paths: string[]): Promise<void>;
-  /** Short-lived links for showing thumbnails; keys are storage paths. */
+  /** Short-lived links; keys are storage paths. Also contains the small copy (`thumbPath`) when it exists. */
   signedUrls(paths: string[]): Promise<Record<string, string>>;
 }

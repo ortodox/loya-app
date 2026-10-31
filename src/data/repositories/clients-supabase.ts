@@ -25,6 +25,7 @@ type ClientRow = {
   updated_at: string;
   visits?: { visit_date: string }[];
   treatment_courses?: { status: "active" | "completed"; start_date: string; end_date: string }[];
+  client_photos?: { storage_path: string }[];
 };
 
 const columns =
@@ -51,6 +52,7 @@ function toClient(row: ClientRow): Client {
     careText: row.care_text,
     careUpdatedAt: row.care_updated_at,
     courses: (row.treatment_courses ?? []).map((c) => ({ status: c.status, startDate: c.start_date, endDate: c.end_date })),
+    latestPhotoPath: row.client_photos?.[0]?.storage_path ?? null,
     updatedAt: row.updated_at,
   };
 }
@@ -78,7 +80,14 @@ export function supabaseClientRepository(supabase: SupabaseClient): ClientReposi
   // VS1/VP2/LE4: all visit dates and course dates – last visit, next appointment, «На лечении».
   const withVisits = () =>
     // PR6: clients in «Удалённые клиенты» are left out everywhere.
-    supabase.from("clients").select(`${columns}, visits(visit_date), treatment_courses(status, start_date, end_date)`).is("deleted_at", null);
+    supabase
+      .from("clients")
+      .select(`${columns}, visits(visit_date), treatment_courses(status, start_date, end_date), client_photos(storage_path)`)
+      .is("deleted_at", null)
+      // FK1: only the newest client photo, for the round picture.
+      .order("taken_on", { referencedTable: "client_photos", ascending: false })
+      .order("created_at", { referencedTable: "client_photos", ascending: false })
+      .limit(1, { referencedTable: "client_photos" });
 
   return {
     async list() {

@@ -42,6 +42,8 @@ export type Client = {
   /** UH1: «Уход» – home care written by the doctor, and when it last changed. */
   careText: string | null;
   careUpdatedAt: IsoDate | null;
+  /** FK1: the newest photo the client sent – shown as a round picture in the list and the card. */
+  latestPhotoPath?: string | null;
   updatedAt: string;
 };
 

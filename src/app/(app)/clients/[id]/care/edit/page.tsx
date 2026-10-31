@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { thumbUrl } from "@/logic/rules/thumbnails";
 import { getCare } from "@/logic/usecases/care";
 import { saveCareAction } from "../actions";
 import { CareForm } from "../CareForm";
@@ -13,7 +14,7 @@ export default async function CarePage({ params }: { params: Promise<{ id: strin
       <CareForm
         cancelHref={`/clients/${id}`}
         text={data.care.text ?? ""}
-        photos={data.care.photos.map((p) => ({ id: p.id, url: data.photoUrls[p.storagePath] ?? null }))}
+        photos={data.care.photos.map((p) => ({ id: p.id, url: thumbUrl(data.photoUrls, p.storagePath) }))}
         action={saveCareAction.bind(null, id)}
       />
     </main>
