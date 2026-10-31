@@ -432,7 +432,9 @@
   "direction": {
     "label": "Kierunek",
     "cosmetology": "✨ Kosmetologia",
-    "dermatology": "🩺 Dermatologia"
+    "dermatology": "🩺 Dermatologia",
+    "missing": "Nie wskazano kierunku",
+    "missingHint": "Wybierz jednym dotknięciem – później można zmienić w «Edytuj»."
   },
   "care": {
     "title": "Pielęgnacja",

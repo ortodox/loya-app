@@ -3,7 +3,7 @@ import { currentAge } from "@/logic/rules/age";
 import { parseClientForm, type ClientForm, type ClientInputErrors } from "@/logic/rules/client-input";
 import { lastActivityDate, notesExcerpt, sortNewestFirst, visitTimeline } from "@/logic/rules/client-list";
 import { safetyAlerts, type SafetyAlert } from "@/logic/rules/safety-alert";
-import { treatmentStatus, type TreatmentStatus } from "@/logic/rules/courses";
+import { chosenDirection, treatmentStatus, type TreatmentStatus } from "@/logic/rules/courses";
 import type { Direction } from "@/logic/course";
 import type { ClientRepository } from "@/data/repositories/clients";
 
@@ -98,4 +98,16 @@ export async function updateClient(
   const parsed = parseClientForm(form, today, existing.anamnesis);
   if (!parsed.ok) return parsed;
   return (await repo.update(id, parsed.input)) ? { ok: true, id } : { ok: false, notFound: true };
+}
+
+/**
+ * DM1: «Направление не указано» in the card – one tap sets the direction of an older client.
+ * Only for a client without a direction; changing it later is done in «Изменить».
+ */
+export async function setMissingDirection(repo: ClientRepository, id: string, value: string): Promise<boolean> {
+  const direction = chosenDirection(value);
+  if (!direction || !uuid.test(id)) return false;
+  const client = await repo.get(id);
+  if (!client || client.direction.length > 0) return false;
+  return repo.setDirection(id, [direction]);
 }

@@ -18,6 +18,8 @@ import type { ClientPhoto } from "@/logic/client-photo";
 import { showsClientPhotos, splitClientPhotos } from "@/logic/rules/client-photos";
 import { documentsByCourse } from "@/logic/rules/documents";
 import { deleteWarnings } from "@/logic/rules/trash";
+import { directions } from "@/logic/course";
+import { setMissingDirectionAction } from "../actions";
 import { CareSection } from "./CareSection";
 import { ClientPhotoTimeline } from "./ClientPhotoTimeline";
 import { DeleteClient } from "./DeleteClient";
@@ -243,7 +245,7 @@ export async function ClientCardView(props: Props) {
           </p>
         )}
         {/* DM1: cosmetology and/or dermatology. */}
-        {client.direction.length > 0 && (
+        {client.direction.length > 0 ? (
           <p className="flex flex-wrap gap-2 text-sm text-ink">
             {client.direction.map((d) => (
               <span key={d} className={ui.tag}>
@@ -251,6 +253,19 @@ export async function ClientCardView(props: Props) {
               </span>
             ))}
           </p>
+        ) : (
+          /* DM1: older clients without a direction – set it with one tap. */
+          <form action={setMissingDirectionAction.bind(null, id)} className="flex flex-col gap-2 rounded-[14px] border border-field p-3">
+            <p className="text-sm font-semibold text-ink">{t("direction.missing")}</p>
+            <div className="flex flex-wrap gap-2">
+              {directions.map((d) => (
+                <button key={d} type="submit" name="direction" value={d} className={`${pill.base} ${pill.off}`}>
+                  {t(`direction.${d}`)}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-muted">{t("direction.missingHint")}</p>
+          </form>
         )}
         {/* KT1: call or write right from the top of the card. */}
         {client.phone && (

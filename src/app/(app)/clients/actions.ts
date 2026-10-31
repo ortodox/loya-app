@@ -8,7 +8,7 @@ import { anamnesisFields } from "@/config/kartaTemplate";
 import type { AnamnesisForm } from "@/logic/rules/anamnesis";
 import { clientFormFields, type ClientForm, type ClientInputErrors } from "@/logic/rules/client-input";
 import { todayIn } from "@/logic/rules/dates";
-import { createClient, updateClient, type SaveClientResult } from "@/logic/usecases/clients";
+import { createClient, setMissingDirection, updateClient, type SaveClientResult } from "@/logic/usecases/clients";
 
 export type ClientFormState = {
   values: ClientForm;
@@ -61,4 +61,15 @@ export async function createClientAction(_: ClientFormState, formData: FormData)
 export async function updateClientAction(id: string, _: ClientFormState, formData: FormData) {
   const repo = await clientRepository();
   return save(formData, (form, today) => updateClient(repo, id, form, today));
+}
+
+/** DM1: «Направление не указано» – one tap in the card sets the direction. */
+export async function setMissingDirectionAction(id: string, formData: FormData) {
+  try {
+    await setMissingDirection(await clientRepository(), id, str(formData.get("direction")));
+  } catch {
+    // The card simply shows the buttons again.
+  }
+  revalidatePath(`/clients/${id}`);
+  revalidatePath("/clients");
 }
