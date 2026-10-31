@@ -8,7 +8,7 @@ import { anamnesisFields } from "@/config/kartaTemplate";
 import type { AnamnesisForm } from "@/logic/rules/anamnesis";
 import { clientFormFields, type ClientForm, type ClientInputErrors } from "@/logic/rules/client-input";
 import { todayIn } from "@/logic/rules/dates";
-import { createClient, setMissingDirection, updateClient, type SaveClientResult } from "@/logic/usecases/clients";
+import { createClient, setMissingDirection, updateAnamnesisSection, updateClient, type SaveClientResult } from "@/logic/usecases/clients";
 
 export type ClientFormState = {
   values: ClientForm;
@@ -72,4 +72,17 @@ export async function setMissingDirectionAction(id: string, formData: FormData) 
   }
   revalidatePath(`/clients/${id}`);
   revalidatePath("/clients");
+}
+
+/** AN3: «Изменить» on one section of «Анкета» – saves only that section, back to «Анкета» in the card. */
+export async function updateAnamnesisSectionAction(id: string, section: string, _: { failed?: boolean }, formData: FormData): Promise<{ failed?: boolean }> {
+  let ok = false;
+  try {
+    ok = await updateAnamnesisSection(await clientRepository(), id, section, readForm(formData).anamnesis ?? {});
+  } catch {
+    ok = false;
+  }
+  if (!ok) return { failed: true };
+  revalidatePath(`/clients/${id}`);
+  redirect(`/clients/${id}#anketa`);
 }

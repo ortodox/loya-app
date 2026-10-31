@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fieldText, isFieldEmpty, parseAnamnesisForm, sectionHasContent, sectionPreview } from "./anamnesis";
+import { fieldText, isFieldEmpty, mergeAnamnesisSection, parseAnamnesisForm, sectionHasContent, sectionPreview } from "./anamnesis";
 import { clinicalSections } from "@/config/kartaTemplate";
 
 describe("JA1: жалобы", () => {
@@ -118,5 +118,35 @@ describe("AN1/SK1: краткое содержание раздела", () => {
 
   it("AN2: keeps «?» and flattens line breaks", () => {
     expect(sectionPreview(health.fields, { allergies: { text: "Порошок ?\nпыльца" } })).toBe("Порошок ? пыльца");
+  });
+});
+
+describe("AN3: изменить один раздел анкеты", () => {
+  const previous = {
+    complaints: { choices: ["acne"], text: "" },
+    medications: { text: "Витамин D" },
+    allergies: { text: "Лидокаин" },
+    skinType: { choices: ["dry"], text: "" },
+    oldKey: { text: "из старого шаблона" },
+  };
+
+  it("AN3: only the fields of the chosen section change", () => {
+    const next = mergeAnamnesisSection(previous, "health", { medications: { text: "Изотретиноин 20 мг" }, allergies: { text: "Лидокаин" } })!;
+    expect(next.medications).toEqual({ text: "Изотретиноин 20 мг" });
+    expect(next.allergies).toEqual({ text: "Лидокаин" });
+    expect(next.complaints).toEqual(previous.complaints);
+    expect(next.skinType).toEqual(previous.skinType);
+    expect(next.oldKey).toEqual(previous.oldKey);
+  });
+
+  it("AN3: an emptied field in the section is removed, quick choices follow the template", () => {
+    const next = mergeAnamnesisSection(previous, "skin", { skinType: { choices: ["oily", "nonsense"] }, skinFeatures: { text: " " } })!;
+    expect(next.skinType).toEqual({ choices: ["oily"], text: "" });
+    expect("skinFeatures" in next).toBe(false);
+    expect(mergeAnamnesisSection(previous, "health", {})!.medications).toBeUndefined();
+  });
+
+  it("AN3: an unknown section is refused", () => {
+    expect(mergeAnamnesisSection(previous, "generalData", {})).toBeNull();
   });
 });

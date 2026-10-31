@@ -2,6 +2,7 @@ import type { Client, IsoDate } from "@/logic/client";
 import { currentAge } from "@/logic/rules/age";
 import { parseClientForm, type ClientForm, type ClientInputErrors } from "@/logic/rules/client-input";
 import { agendaDay, lastActivityDate, notesExcerpt, sortNewestFirst, visitTimeline } from "@/logic/rules/client-list";
+import { mergeAnamnesisSection, type AnamnesisForm } from "@/logic/rules/anamnesis";
 import { safetyAlerts, type SafetyAlert } from "@/logic/rules/safety-alert";
 import { chosenDirection, treatmentStatus, type TreatmentStatus } from "@/logic/rules/courses";
 import type { Direction } from "@/logic/course";
@@ -123,4 +124,13 @@ export async function setMissingDirection(repo: ClientRepository, id: string, va
 export async function clientPictureUrls(photos: PhotoStorage, clients: readonly ClientSummary[]): Promise<Record<string, string>> {
   const paths = clients.flatMap((c) => (c.photoPath ? [c.photoPath] : []));
   return paths.length > 0 ? photos.signedUrls(paths) : {};
+}
+
+/** AN3: «Изменить» on one section of «Анкета» – only that section is saved, nothing else in the card. */
+export async function updateAnamnesisSection(repo: ClientRepository, id: string, sectionKey: string, form: AnamnesisForm): Promise<boolean> {
+  if (!uuid.test(id)) return false;
+  const client = await repo.get(id);
+  if (!client) return false;
+  const anamnesis = mergeAnamnesisSection(client.anamnesis, sectionKey, form);
+  return anamnesis ? repo.setAnamnesis(id, anamnesis) : false;
 }

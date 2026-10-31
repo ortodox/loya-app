@@ -1,4 +1,4 @@
-import { anamnesisFields, type KartaField } from "@/config/kartaTemplate";
+import { anamnesisFields, clinicalSections, type KartaField } from "@/config/kartaTemplate";
 import type { Anamnesis, FieldValue } from "@/logic/client";
 
 /** Raw form values per field: ticked quick choices and the free text. */
@@ -72,4 +72,20 @@ export function sectionPreview(
     .join(" · ")
     .replace(/\s+/g, " ");
   return text.length > maxLength ? `${text.slice(0, maxLength - 1).trimEnd()}…` : text;
+}
+
+/**
+ * AN3: save one section of «Анкета» on its own – its fields are taken from the form (same rules as
+ * the full form), every other field stays exactly as it was.
+ */
+export function mergeAnamnesisSection(previous: Anamnesis, sectionKey: string, form: AnamnesisForm): Anamnesis | null {
+  const section = clinicalSections.find((s) => s.key === sectionKey);
+  if (!section) return null;
+  const parsed = parseAnamnesisForm(form);
+  const result: Anamnesis = { ...previous };
+  for (const field of section.fields) {
+    if (parsed[field.key] !== undefined) result[field.key] = parsed[field.key];
+    else delete result[field.key];
+  }
+  return result;
 }

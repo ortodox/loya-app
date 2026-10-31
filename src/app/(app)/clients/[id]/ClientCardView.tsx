@@ -506,6 +506,10 @@ export async function ClientCardView(props: Props) {
                 })}
               </ul>
               {complaintsValue.text && <p className="whitespace-pre-wrap text-base">{complaintsValue.text}</p>}
+              {/* AN3: change only this section. */}
+              <Link href={`/clients/${id}/anamnesis/${complaints.key}/edit`} className={`${ui.textButton} self-start text-sm`}>
+                {t("card.edit")}
+              </Link>
             </div>
           </details>
 
@@ -531,6 +535,12 @@ export async function ClientCardView(props: Props) {
                     />
                   ))}
                 </dl>
+                {/* AN3: change only this section, e.g. the medications. */}
+                <div className="border-t border-line px-4">
+                  <Link href={`/clients/${id}/anamnesis/${section.key}/edit`} className={`${ui.textButton} text-sm`}>
+                    {t("card.edit")}
+                  </Link>
+                </div>
               </details>
             );
           })}

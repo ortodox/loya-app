@@ -128,6 +128,16 @@ export function supabaseClientRepository(supabase: SupabaseClient): ClientReposi
       return data.length > 0;
     },
 
+    async setAnamnesis(id, anamnesis) {
+      const { data, error } = await supabase
+        .from("clients")
+        .update({ anamnesis })
+        .eq("id", id)
+        .select("id");
+      if (error) throw error;
+      return data.length > 0;
+    },
+
     async confirmAnamnesis(id, date) {
       const { data, error } = await supabase
         .from("clients")

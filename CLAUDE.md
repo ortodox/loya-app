@@ -189,7 +189,7 @@ Hvert felt: fritekst er alltid tillatt (også «?» for usikkerhet). Hurtigvalg 
   5b. **«Уход»** (UH1/UH2) – fritekst, «Обновлено: <dato>», bilder som åpnes i full størrelse.
   5c. **«Документы и анализы»** (DK1/DK3/DK5) – «+ Документ», nyeste øverst, «Открыть» (signert lenke), «Удалить» med bekreftelse.
   6. **«Заметки»**.
-  7. **«Анкета»** nederst, lukket som standard: Общие данные, Жалобы, Состояние здоровья, Состояние кожи, Возрастные изменения, Ранее проведённые процедуры – hver seksjon kan åpnes og viser kort sammendrag; under tittelen «✓ Анамнез подтверждён: <dato>» (AN3).
+  7. **«Анкета»** nederst, lukket som standard (hver klinisk seksjon har «Изменить» → `/clients/[id]/anamnesis/<seksjon>/edit`, som bare lagrer den seksjonen, `mergeAnamnesisSection`, AN3): Общие данные, Жалобы, Состояние здоровья, Состояние кожи, Возрастные изменения, Ранее проведённые процедуры – hver seksjon kan åpnes og viser kort sammendrag; under tittelen «✓ Анамнез подтверждён: <dato>» (AN3).
   8. **«Удалить клиента»** (PR6) helt nederst, rød, bekreftelse i panel nederst på skjermen.
   - **Fast knapperad** over fanelinjen (`CardActions`): «+ Визит», «↺ Повторить» (når det finnes et besøk å gjenta), «+ Фото» («Фото клиента», eller aktiv kur for klienter med bare «Дерматология») og «WhatsApp» (når telefon finnes).
   - Hver seksjon i eget kort med serif-overskrift; etikett/verdi-rader som i notatet; «—» når tomt. Жалобы som piller (valgt = mørk fylt med ✓).

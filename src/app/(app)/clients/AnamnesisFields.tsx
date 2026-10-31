@@ -7,13 +7,14 @@ import { clinicalSections } from "@/config/kartaTemplate";
 import { sectionHasContent, type AnamnesisForm } from "@/logic/rules/anamnesis";
 
 /** JA1, AN1, AN2, SK1, VI1, PH1: one generic form built from the template. */
-export function AnamnesisFields({ values, openFilled }: { values: AnamnesisForm; openFilled: boolean }) {
+export function AnamnesisFields({ values, openFilled, only }: { values: AnamnesisForm; openFilled: boolean; only?: string }) {
   const t = useTranslations("karta");
 
-  return clinicalSections.map((section) => (
+  // AN3: «only» shows one section, open, for editing it on its own.
+  return clinicalSections.filter((s) => !only || s.key === only).map((section) => (
     <details
       key={section.key}
-      open={openFilled && sectionHasContent(section.fields, values)}
+      open={only !== undefined || (openFilled && sectionHasContent(section.fields, values))}
       className={formSection.card}
     >
       <summary className={formSection.summary}>

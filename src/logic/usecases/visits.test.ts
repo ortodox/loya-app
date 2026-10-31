@@ -65,6 +65,7 @@ function memory() {
     create: async () => ({ id: "x" }),
     update: async () => true,
     setDirection: async () => true,
+    setAnamnesis: async () => true,
     confirmAnamnesis: async (cid, date) => {
       const c = clients.find((x) => x.id === cid);
       if (c) c.anamnesisConfirmedAt = date;
