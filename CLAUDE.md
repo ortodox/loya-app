@@ -168,13 +168,16 @@ Hvert felt: fritekst er alltid tillatt (også «?» for usikkerhet). Hurtigvalg 
 - Alle knapper og trykkflater er **minst 44 px høye** (`min-h-11`).
 - **Ikonknapper har alltid tekst** («+ Новый клиент», «+ Препарат»), unntatt helt standard symboler som «‹ tilbake».
 - **Fanelinje nederst** (iOS-stil, `TabBar`): ikon + tekst, aktiv fane i `accent`, minst 44 px, over hjemindikatoren (`--safe-bottom` = `env(safe-area-inset-bottom)`). Fanene står i `src/config/navigation.ts` – en ny fane (f.eks. «Наблюдение», MVP 3) er én linje der + tekst i `messages/*.json` + ikon. Fanelinjen vises bare på hovedsidene, aldri i skjemaer (`/new`, `/edit`).
+- **Lastevisning:** `loading.tsx` med `PageSkeleton` (liste, kort, side) – et trykk gir alltid synlig respons.
+- **Region:** `vercel.json` låser funksjonene til `fra1` (samme region som Supabase). Ikke fjern den – i USA ble appen treg.
 - Felt har radius **14 px**, kort radius **18 px**. Felles klasser i `src/app/components/ui.ts`.
 - Datoer `DD.MM.YYYY`.
 - **Innlogging:** stor «LOA» i gull serif med liten firkantet stjerne over og tynn bue under, «AESTHETIC MEDICINE» med bred bokstavavstand, linje med stjerne, «SCIENCE · BEAUTY · CONFIDENCE» (`BrandHero`). Skjema i kort under.
-- **Klientliste** (som Apple Notater): liten «LOA» øverst til venstre, «+ Новый клиент» til høyre, stor serif-overskrift «Клиенты» med antall under, **søk rett under overskriften**. Under søket to filterpiller «Косметология» / «Дерматология» (DM1): trykk velger, trykk igjen fjerner, ingen valgt = alle. Listen i ett kort; hver rad: navn (fet), dato · alder, «Запись: 31.10», «🩺 На лечении · N дн.» / «Курс закончился», utdrag; til høyre landskode, ✨/🩺 og eventuelt rød «Аллергия».
+- **Klientliste** (som Apple Notater): liten «LOA» øverst til venstre, «+ Новый клиент» til høyre, stor serif-overskrift «Клиенты» med antall under, **søk rett under overskriften**. Under søket to filterpiller «Косметология» / «Дерматология» (DM1): trykk velger, trykk igjen fjerner, ingen valgt = alle. Over søket: **«Сегодня · N» / «Завтра · N»** med navnepiller til kortet (N13 delvis, `agendaDay`), bare når noen kommer. Listen i ett kort; hver rad: navn (fet), dato · alder, «Запись: 31.10», «🩺 На лечении · N дн.» / «Курс закончился», utdrag; til høyre landskode, ✨/🩺 og eventuelt rød «Аллергия».
 - **Препараты** (katalogen, URL `/catalog`): liten «LOA» og «+ Препарат» øverst, serif-overskrift «Препараты», søk i preparater, typene i ett kort.
 - **Klientkort – rekkefølge** (Loya 26.10.2026: «план процедур и визиты должны быть первыми»):
   1. **Toppen:** liten «КАРТА КЛИЕНТА» over navnet (serif), under: alder · første besøk, landskode + land, by, telefon med «Позвонить», «WhatsApp», «Telegram», «Viber» (KT1). **Allergivarsel (AL2)** rett under, avrundet boks med varseltrekant.
+  1b. **«Последний визит»** (H1) – siste gjennomførte besøk: dato, «N дней назад», preparater med mengde, 📷/skisse, notater (2 linjer), «↺ Повторить прошлый визит».
   2. **«Предстоящие визиты»** – planlagte besøk (VP2), bare når det finnes noen; «Дополнить визит» når klienten kommer.
   3. **«Визиты»** med «+ Новый визит» og «↺ Повторить прошлый визит» (RV1); nyeste øverst, hver rad kan åpnes.
   3b. **«Фото клиента»** (FK1–FK4) – kosmetologibilder etter dato (nyeste øverst), «+ Фото», «Удалить» med bekreftelse (panel nederst). Vises ikke hos klienter med bare «Дерматология» (med mindre det alt finnes bilder). Bilder fra en kur står i kuren i «Лечение».

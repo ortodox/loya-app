@@ -105,8 +105,9 @@ describe("client use cases", () => {
         nextVisitDate: null,
         direction: [],
         treatment: null,
+        agenda: null,
       },
-      { id: id1, fullName: "Старая", date: "2024-03-01", age: 32, residenceCountry: null, allergy: false, excerpt: "", phone: null, nextVisitDate: null, direction: [], treatment: null },
+      { id: id1, fullName: "Старая", date: "2024-03-01", age: 32, residenceCountry: null, allergy: false, excerpt: "", phone: null, nextVisitDate: null, direction: [], treatment: null, agenda: null },
     ]);
   });
 

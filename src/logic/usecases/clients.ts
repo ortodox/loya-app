@@ -1,7 +1,7 @@
 import type { Client, IsoDate } from "@/logic/client";
 import { currentAge } from "@/logic/rules/age";
 import { parseClientForm, type ClientForm, type ClientInputErrors } from "@/logic/rules/client-input";
-import { lastActivityDate, notesExcerpt, sortNewestFirst, visitTimeline } from "@/logic/rules/client-list";
+import { agendaDay, lastActivityDate, notesExcerpt, sortNewestFirst, visitTimeline } from "@/logic/rules/client-list";
 import { safetyAlerts, type SafetyAlert } from "@/logic/rules/safety-alert";
 import { chosenDirection, treatmentStatus, type TreatmentStatus } from "@/logic/rules/courses";
 import type { Direction } from "@/logic/course";
@@ -27,6 +27,8 @@ export type ClientSummary = {
   direction: Direction[];
   /** LE4: «🩺 На лечении · N дн.» / «Курс закончился»; null when no active course. */
   treatment: TreatmentStatus | null;
+  /** N13 (part): a visit today or tomorrow – «Сегодня» / «Завтра» above the list. */
+  agenda: "today" | "tomorrow" | null;
 };
 
 /** PR2/VP2: all clients for the list, newest first. Search runs in the UI with `matchesClient`. */
@@ -47,6 +49,7 @@ export async function listClients(repo: ClientRepository, today: IsoDate): Promi
     nextVisitDate: c.nextVisitDate,
     direction: c.direction,
     treatment: treatmentStatus(c.courses, today),
+    agenda: agendaDay(c.visitDates, today),
   }));
 }
 
