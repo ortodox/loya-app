@@ -432,7 +432,9 @@
   "direction": {
     "label": "Direction",
     "cosmetology": "✨ Cosmetology",
-    "dermatology": "🩺 Dermatology"
+    "dermatology": "🩺 Dermatology",
+    "missing": "No direction set",
+    "missingHint": "Choose with one tap – you can change it later in «Edit»."
   },
   "care": {
     "title": "Home care",

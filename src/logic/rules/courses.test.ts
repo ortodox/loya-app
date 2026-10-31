@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   addInterval,
   courseProgress,
+  chosenDirection,
   matchesFilter,
   toggleFilter,
   nextLabDate,
@@ -32,9 +33,21 @@ describe("DM1: направление", () => {
     const derm = { direction: ["dermatology"] as const };
     const cosm = { direction: ["cosmetology"] as const };
     const none = { direction: [] as const };
-    expect([derm, cosm, none].filter((c) => matchesFilter(c, "cosmetology"))).toEqual([cosm]);
+    expect([derm, cosm, none].filter((c) => matchesFilter(c, "cosmetology"))).toEqual([cosm, none]);
     expect([derm, cosm, none].filter((c) => matchesFilter(c, "dermatology"))).toEqual([derm]);
     expect([derm, cosm, none].filter((c) => matchesFilter(c, null))).toHaveLength(3);
+  });
+
+  it("DM1: a client without a direction counts as «Косметология» in the filter until one is set", () => {
+    const none = { direction: [] as const };
+    expect(matchesFilter(none, "cosmetology")).toBe(true);
+    expect(matchesFilter(none, "dermatology")).toBe(false);
+  });
+
+  it("DM1: the card buttons accept only a known direction", () => {
+    expect(chosenDirection("dermatology")).toBe("dermatology");
+    expect(chosenDirection("cosmetology")).toBe("cosmetology");
+    expect(chosenDirection("other")).toBeNull();
   });
 
   it("DM1: tapping a direction chooses it, tapping it again clears it", () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Client, ClientInput } from "@/logic/client";
 import type { ClientRepository } from "@/data/repositories/clients";
-import { createClient, getClientCard, listClients, updateClient } from "./clients";
+import { createClient, getClientCard, listClients, setMissingDirection, updateClient } from "./clients";
 
 const today = "2026-10-22";
 const id1 = "00000000-0000-4000-8000-000000000001";
@@ -178,5 +178,20 @@ describe("client use cases", () => {
       ok: false,
       notFound: true,
     });
+  });
+});
+
+describe("DM1: направление не указано", () => {
+  it("DM1: one tap in the card sets the direction of an older client", async () => {
+    const repo = memoryRepo([client({ id: id1, direction: [] })]);
+    expect(await setMissingDirection(repo, id1, "dermatology")).toBe(true);
+    expect(repo.rows[0].direction).toEqual(["dermatology"]);
+  });
+
+  it("DM1: a client that already has a direction is not changed here, and unknown values are ignored", async () => {
+    const repo = memoryRepo([client({ id: id1, direction: ["cosmetology"] })]);
+    expect(await setMissingDirection(repo, id1, "dermatology")).toBe(false);
+    expect(await setMissingDirection(repo, id1, "other")).toBe(false);
+    expect(repo.rows[0].direction).toEqual(["cosmetology"]);
   });
 });

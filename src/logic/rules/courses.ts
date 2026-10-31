@@ -150,9 +150,18 @@ export function treatmentStatus(courses: readonly CourseSummary[], today: IsoDat
   return { daysLeft, ended };
 }
 
-/** DM1: the filter above the client list – one direction, or none (= all clients). */
+/**
+ * DM1: the filter above the client list – one direction, or none (= all clients). Older clients
+ * without a direction count as «Косметология» until the doctor sets one (as for «Схема лица»).
+ */
 export function matchesFilter(client: { direction: readonly Direction[] }, filter: Direction | null): boolean {
-  return filter === null || client.direction.includes(filter);
+  if (filter === null) return true;
+  return client.direction.length === 0 ? filter === "cosmetology" : client.direction.includes(filter);
+}
+
+/** DM1: one tap in the card on a client without a direction – a known direction, or nothing. */
+export function chosenDirection(value: string): Direction | null {
+  return parseDirection([value])[0] ?? null;
 }
 
 /** DM1: tapping the chosen direction again clears the filter. */
