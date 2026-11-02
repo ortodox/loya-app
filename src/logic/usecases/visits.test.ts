@@ -6,7 +6,7 @@ import type { ClientRepository } from "@/data/repositories/clients";
 import type { PhotoStorage } from "@/data/repositories/photos";
 import type { VisitRepository } from "@/data/repositories/visits";
 import { listClients } from "./clients";
-import { deleteVisit, getVisitFormData, listVisits, listVisitsForCard, saveVisit, type PhotoUpload } from "./visits";
+import { completeReminders, deleteVisit, getVisitFormData, listVisits, listVisitsForCard, saveVisit, type PhotoUpload } from "./visits";
 
 const today = "2026-10-27";
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
@@ -82,6 +82,8 @@ function memory() {
     recommendationsLang: input.recommendationsLang,
     recommendationsEdited: input.recommendationsEdited,
     faceScheme: input.faceScheme,
+    remindOn: input.remindOn,
+    reminderDoneAt: input.reminderDoneAt,
     items: input.items.map((it, i) => ({ ...it, id: id(n + 500 + i), sortOrder: i })),
     photos: [],
     archive: { homeCareRecommendations: null, procedurePlan: null },
@@ -113,6 +115,11 @@ function memory() {
     removePhotos: async (vid, ids) => {
       const v = visits.find((x) => x.id === vid)!;
       v.photos = v.photos.filter((p) => !ids.includes(p.id));
+    },
+    markRemindersDone: async (cid, day, at) => {
+      const due = visits.filter((v) => v.clientId === cid && v.remindOn !== null && v.remindOn <= day && v.reminderDoneAt === null);
+      due.forEach((v) => (v.reminderDoneAt = at));
+      return due.length;
     },
   };
   const catalog: CatalogRepository = {
@@ -356,5 +363,38 @@ describe("H1: история визитов", () => {
       ["Анна Выдуманная", "2026-10-01"],
       ["Вера Примерная", "2025-06-01"],
     ]);
+  });
+});
+
+describe("N7: напомнить через", () => {
+  it("N7: the visit keeps the reminder day, counted from the visit date", async () => {
+    const m = memory();
+    await saveVisit(m.deps, clientA, null, { visitDate: "2026-10-01", remindAfter: "3w" }, noPhotos, today);
+    await saveVisit(m.deps, clientA, null, { visitDate: "2026-10-01", remindAfter: "date", remindOn: "2026-12-24" }, noPhotos, today);
+    await saveVisit(m.deps, clientA, null, { visitDate: "2026-10-01" }, noPhotos, today);
+    expect(m.visits.map((v) => v.remindOn)).toEqual(["2026-10-22", "2026-12-24", null]);
+  });
+
+  it("N7: an own date before the visit is not saved", async () => {
+    const m = memory();
+    const result = await saveVisit(m.deps, clientA, null, { visitDate: "2026-10-01", remindAfter: "date", remindOn: "2026-09-01" }, noPhotos, today);
+    expect(result).toEqual({ ok: false, errors: { reminder: "reminderInvalid" } });
+    expect(m.visits).toHaveLength(0);
+  });
+
+  it("N7: «Готово» closes the due reminders; a new date opens it again", async () => {
+    const m = memory();
+    await saveVisit(m.deps, clientA, null, { visitDate: "2026-10-01", remindAfter: "2w" }, noPhotos, today);
+    await saveVisit(m.deps, clientA, null, { visitDate: "2026-10-01", remindAfter: "6m" }, noPhotos, today);
+    const now = new Date("2026-10-27T12:00:00Z");
+    expect(await completeReminders(m.deps.visits, clientA, today, now)).toBe(true);
+    expect(m.visits.map((v) => v.reminderDoneAt)).toEqual(["2026-10-27T12:00:00.000Z", null]);
+    expect(await completeReminders(m.deps.visits, clientA, today, now)).toBe(false);
+
+    const [first] = m.visits;
+    await saveVisit(m.deps, clientA, first.id, { visitDate: "2026-10-01", remindAfter: "2w" }, noPhotos, today);
+    expect(m.visits[0].reminderDoneAt).toBe("2026-10-27T12:00:00.000Z");
+    await saveVisit(m.deps, clientA, first.id, { visitDate: "2026-10-01", remindAfter: "1m" }, noPhotos, today);
+    expect(m.visits[0]).toMatchObject({ remindOn: "2026-11-01", reminderDoneAt: null });
   });
 });

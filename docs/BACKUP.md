@@ -178,6 +178,8 @@ on conflict (id) do update set
   recommendations_lang      = excluded.recommendations_lang,
   recommendations_edited    = excluded.recommendations_edited,
   face_scheme               = excluded.face_scheme,
+  remind_on                 = excluded.remind_on,
+  reminder_done_at          = excluded.reminder_done_at,
   created_at                = excluded.created_at;
 
 -- Preparations in the visits (R1)
@@ -371,6 +373,8 @@ on conflict (id) do update set
   recommendations_lang      = excluded.recommendations_lang,
   recommendations_edited    = excluded.recommendations_edited,
   face_scheme               = excluded.face_scheme,
+  remind_on                 = excluded.remind_on,
+  reminder_done_at          = excluded.reminder_done_at,
   created_at                = excluded.created_at;
 
 -- Preparations in the visits (R1)

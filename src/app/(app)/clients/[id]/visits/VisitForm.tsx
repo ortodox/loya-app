@@ -7,12 +7,13 @@ import { clearDraft, readDraft, writeDraft } from "@/app/components/draft";
 import { FaceSchemeEditor } from "@/app/components/face/FaceSchemeEditor";
 import { FaceSchemeView } from "@/app/components/face/FaceSchemeView";
 import { WarningIcon } from "@/app/components/Icons";
-import { card, ui } from "@/app/components/ui";
+import { card, pill, ui } from "@/app/components/ui";
 import { formatIsoDate } from "@/logic/rules/dates";
 import type { Locale } from "@/config/locales";
 import type { Localized } from "@/logic/catalog";
 import type { FaceScheme } from "@/logic/face-scheme";
 import { emptyScheme, isEmptyScheme, parseFaceScheme } from "@/logic/rules/face-scheme";
+import { parseReminder, reminderPresets, type ReminderChoice } from "@/logic/rules/reminders";
 import {
   countRecommendations,
   differsFromSuggestion,
@@ -45,6 +46,9 @@ export type VisitFormInitial = {
   anamnesisConfirmed: boolean;
   /** Z5: null = no scheme. */
   faceScheme: FaceScheme | null;
+  /** N7: «Напомнить через» – "" (none), a preset or "date" with `remindOn`. */
+  remindAfter: ReminderChoice;
+  remindOn: string;
   items: ItemState[];
   photos: ExistingPhoto[];
 };
@@ -52,7 +56,7 @@ export type VisitFormInitial = {
 /** DR1: what an unsaved «Новый визит» keeps on the phone (photos are not kept). */
 type VisitDraft = Pick<
   VisitFormInitial,
-  "visitDate" | "notes" | "recommendations" | "recommendationsEdited" | "anamnesisConfirmed" | "faceScheme" | "items"
+  "visitDate" | "notes" | "recommendations" | "recommendationsEdited" | "anamnesisConfirmed" | "faceScheme" | "items" | "remindAfter" | "remindOn"
 >;
 
 type Props = {
@@ -99,6 +103,8 @@ export function VisitForm(props: Props) {
   const [edited, setEdited] = useState(initial.recommendationsEdited);
   const [anamnesisConfirmed, setAnamnesisConfirmed] = useState(initial.anamnesisConfirmed);
   const [faceScheme, setFaceScheme] = useState<FaceScheme | null>(initial.faceScheme);
+  const [remindAfter, setRemindAfter] = useState<ReminderChoice>(initial.remindAfter);
+  const [remindOn, setRemindOn] = useState(initial.remindOn);
   const [schemeOpen, setSchemeOpen] = useState(false);
   const [lastSuggested, setLastSuggested] = useState(() => suggest(initial.items));
   const [askWith, setAskWith] = useState<string | null>(null);
@@ -117,6 +123,8 @@ export function VisitForm(props: Props) {
     setEdited(d.recommendationsEdited);
     setAnamnesisConfirmed(d.anamnesisConfirmed === true);
     setFaceScheme(parseFaceScheme(d.faceScheme ?? null));
+    setRemindAfter(d.remindAfter ?? "");
+    setRemindOn(d.remindOn ?? "");
     setLastSuggested(suggest(d.items));
     setAskWith(null);
   }
@@ -137,17 +145,18 @@ export function VisitForm(props: Props) {
   // DR1: keep the draft up to date; also after a failed save, since the draft is cleared on submit.
   useEffect(() => {
     if (!draftKey || !draftReady.current) return;
-    const draft: VisitDraft = { visitDate, notes, items, recommendations, recommendationsEdited: edited, anamnesisConfirmed, faceScheme };
+    const draft: VisitDraft = { visitDate, notes, items, recommendations, recommendationsEdited: edited, anamnesisConfirmed, faceScheme, remindAfter, remindOn };
     const empty =
       notes.trim() === "" &&
       items.length === 0 &&
       recommendations.trim() === "" &&
       !anamnesisConfirmed &&
       isEmptyScheme(faceScheme) &&
+      remindAfter === "" &&
       visitDate === initial.visitDate;
     if (empty) clearDraft(draftKey);
     else writeDraft(draftKey, draft);
-  }, [draftKey, visitDate, notes, items, recommendations, edited, anamnesisConfirmed, faceScheme, initial.visitDate, state]);
+  }, [draftKey, visitDate, notes, items, recommendations, edited, anamnesisConfirmed, faceScheme, remindAfter, remindOn, initial.visitDate, state]);
 
   /** P5: refill the advice from the catalogue, unless the doctor has edited it – then ask. */
   function changeItems(next: ItemState[]) {
@@ -189,7 +198,7 @@ export function VisitForm(props: Props) {
     startTransition(() => formAction(fd));
   }
 
-  const error = (key: "visitDate" | "items" | "photos") =>
+  const error = (key: "visitDate" | "items" | "photos" | "reminder") =>
     state.errors?.[key] ? (
       <p className={ui.error}>{key === "visitDate" ? t("visits.dateInvalid") : t(`visits.errors.${state.errors[key]}`)}</p>
     ) : null;
@@ -197,6 +206,8 @@ export function VisitForm(props: Props) {
   const allergies = alerts.find((a) => a.field === "allergies")?.text ?? "";
   const conflicts = adviceConflicts(allergies, recommendations);
   const adviceCount = countRecommendations(recommendations);
+  // N7: the day the reminder will come, shown under the choices.
+  const reminder = remindAfter && visitDate ? parseReminder({ remindAfter, remindOn }, visitDate) : null;
 
   return (
     <div className="flex flex-col gap-8">
@@ -409,6 +420,36 @@ export function VisitForm(props: Props) {
             <span className="text-sm text-muted">{t("visits.notesHint")}</span>
             <textarea name="notes" rows={4} value={notes} onChange={(e) => setNotes(e.target.value)} className={ui.input} />
           </label>
+        </section>
+
+        {/* N7: «Напомнить через» – from the visit date; «⏰ Пора» in the list from that day until «Готово». */}
+        <section className={`${card.surface} flex flex-col gap-3 p-4`}>
+          <h2 className={card.heading}>{t("reminders.title")}</h2>
+          <input type="hidden" name="remindAfter" value={remindAfter} />
+          <div role="radiogroup" aria-label={t("reminders.title")} className="flex flex-wrap gap-2">
+            {(["", ...reminderPresets, "date"] as const).map((choice) => (
+              <button
+                key={choice || "none"}
+                type="button"
+                role="radio"
+                aria-checked={remindAfter === choice}
+                onClick={() => setRemindAfter(choice)}
+                className={`${pill.base} ${remindAfter === choice ? pill.on : pill.off}`}
+              >
+                {t(`reminders.choice.${choice || "none"}`)}
+              </button>
+            ))}
+          </div>
+          {remindAfter === "date" && (
+            <label className="flex flex-col gap-2">
+              <span className={card.label}>{t("reminders.ownDate")}</span>
+              <input name="remindOn" type="date" value={remindOn} min={visitDate || undefined} onChange={(e) => setRemindOn(e.target.value)} className={ui.input} />
+            </label>
+          )}
+          {reminder?.ok && reminder.remindOn && (
+            <p className="text-sm text-muted">{t("reminders.willRemind", { date: formatIsoDate(reminder.remindOn) })}</p>
+          )}
+          {error("reminder")}
         </section>
 
         {/* P5: the advice is for the client – one closed line, opened only when tapped. */}

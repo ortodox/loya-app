@@ -4,6 +4,7 @@ import { parseClientForm, type ClientForm, type ClientInputErrors } from "@/logi
 import { agendaDay, lastActivityDate, notesExcerpt, sortNewestFirst, visitTimeline } from "@/logic/rules/client-list";
 import { mergeAnamnesisSection, type AnamnesisForm } from "@/logic/rules/anamnesis";
 import { lastBotoxDate, timeSince, type Elapsed } from "@/logic/rules/botox";
+import { reminderStatus } from "@/logic/rules/reminders";
 import { safetyAlerts, type SafetyAlert } from "@/logic/rules/safety-alert";
 import { chosenDirection, treatmentStatus, type TreatmentStatus } from "@/logic/rules/courses";
 import type { Direction } from "@/logic/course";
@@ -32,6 +33,8 @@ export type ClientSummary = {
   treatment: TreatmentStatus | null;
   /** N13 (part): a visit today or tomorrow – «Сегодня» / «Завтра» above the list. */
   agenda: "today" | "tomorrow" | null;
+  /** N7: «⏰ Пора» – the earliest reminder day that has come and is not «Готово»; null = none. */
+  reminderDue: IsoDate | null;
   /** FK6: the main photo, for the round picture (null = initials). */
   photoPath: string | null;
   /** BO1: time since the last botox injection – «Ботокс · 1 мес. 2 нед.»; null when none. */
@@ -57,6 +60,7 @@ export async function listClients(repo: ClientRepository, today: IsoDate): Promi
     direction: c.direction,
     treatment: treatmentStatus(c.courses, today),
     agenda: agendaDay(c.visitDates, today),
+    reminderDue: reminderStatus(c.openReminders ?? [], today).due,
     photoPath: c.mainPhotoPath ?? null,
     botox: botoxSince(c, today),
   }));
@@ -68,6 +72,8 @@ export type ClientCard = {
   alerts: SafetyAlert[];
   /** BO1: time since the last botox injection; null when none. */
   botox: Elapsed | null;
+  /** N7: «⏰ Пора» (due) with «Готово», and the next reminder still to come. */
+  reminder: { due: IsoDate | null; next: IsoDate | null };
 };
 
 /** The client card with the current age (AG1) and safety alerts (AL2). */
@@ -79,7 +85,7 @@ export async function getClientCard(
   if (!uuid.test(id)) return null;
   const client = await repo.get(id);
   if (!client) return null;
-  return { client, age: currentAge(client, today), alerts: safetyAlerts(client.anamnesis), botox: botoxSince(client, today) };
+  return { client, age: currentAge(client, today), alerts: safetyAlerts(client.anamnesis), botox: botoxSince(client, today), reminder: reminderStatus(client.openReminders ?? [], today) };
 }
 
 export type SaveClientResult =

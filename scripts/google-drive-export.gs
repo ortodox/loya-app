@@ -185,13 +185,13 @@ function buildSheets_(t) {
   sheets.push({
     name: 'Визиты',
     header: ['Клиент', 'Дата визита', 'Статус', 'Препараты', 'Заметки (только для врача)', 'Рекомендации после процедуры',
-      'Язык рекомендаций', 'Схема лица', 'Фото наклейки', 'Архив: домашний уход', 'Архив: план процедур', 'Создано', 'Изменено', 'ID визита', 'ID клиента'],
+      'Язык рекомендаций', 'Схема лица', 'Фото наклейки', 'Напомнить', 'Напоминание: готово', 'Архив: домашний уход', 'Архив: план процедур', 'Создано', 'Изменено', 'ID визита', 'ID клиента'],
     rows: visits.map(function (v) {
       var preps = (itemsByVisit[v.id] || []).sort(function (a, b) { return a.sort_order - b.sort_order; })
         .map(function (i) { return i.preparation_name + (i.quantity ? ' – ' + i.quantity : ''); });
       return [clientName[v.client_id], date_(v.visit_date), iso_(v.visit_date) > today ? 'Запланирован' : 'Проведён',
         preps.join('\n'), v.notes, v.recommendations, LANGUAGES_RU[v.recommendations_lang] || v.recommendations_lang,
-        v.face_scheme ? 'есть' : '', stickers[v.id] || '', v.home_care_recommendations, v.procedure_plan,
+        v.face_scheme ? 'есть' : '', stickers[v.id] || '', date_(v.remind_on), dateTime_(v.reminder_done_at), v.home_care_recommendations, v.procedure_plan,
         dateTime_(v.created_at), dateTime_(v.updated_at), v.id, v.client_id];
     }).sort(byClient),
   });

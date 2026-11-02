@@ -1,4 +1,4 @@
-import type { Visit, VisitInput } from "@/logic/client";
+import type { IsoDate, Visit, VisitInput } from "@/logic/client";
 
 /** Visit storage interface; Supabase implementation in ./visits-supabase, faked in tests. */
 export interface VisitRepository {
@@ -10,4 +10,6 @@ export interface VisitRepository {
   delete(id: string): Promise<boolean>;
   addPhoto(visitId: string, storagePath: string, sortOrder: number): Promise<void>;
   removePhotos(visitId: string, photoIds: string[]): Promise<void>;
+  /** N7: «Готово» – every reminder of the client that is due by `today`; returns how many. */
+  markRemindersDone(clientId: string, today: IsoDate, at: string): Promise<number>;
 }

@@ -3,6 +3,7 @@ import type { Locale } from "@/config/locales";
 import { localized } from "@/logic/rules/catalog-settings";
 import type { VisitFormData } from "@/logic/usecases/visits";
 import { mergeRecommendations } from "@/logic/rules/recommendations";
+import { reminderChoiceFor } from "@/logic/rules/reminders";
 import type { FormOption, FormType, ItemState, VisitFormInitial } from "./VisitForm";
 
 const dose = (text: string | null, unit: string | null) => (text ? [text, unit].filter(Boolean).join(" ") : null);
@@ -57,6 +58,9 @@ export function visitFormProps(data: VisitFormData, locale: Locale, today: strin
     // Z5/RV1: a repeated visit starts from the last visit's scheme (on its own template) – not for
     // clients marked only «Дерматология», who have no «Схема лица».
     faceScheme: visit ? visit.faceScheme : data.showFaceScheme ? data.repeatFrom?.faceScheme ?? null : null,
+    // N7: a repeated visit starts without a reminder.
+    remindAfter: visit ? reminderChoiceFor(visit.visitDate, visit.remindOn) : "",
+    remindOn: visit?.remindOn ?? "",
     items: rows,
     photos: (visit?.photos ?? []).map((p) => ({ id: p.id, url: thumbUrl(data.photoUrls, p.storagePath) })),
   };

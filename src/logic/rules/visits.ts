@@ -3,6 +3,7 @@ import type { IsoDate, Visit } from "@/logic/client";
 import type { Locale } from "@/config/locales";
 import { isIsoDate } from "./dates";
 import { parseFaceScheme } from "./face-scheme";
+import { parseReminder } from "./reminders";
 import type { FaceScheme } from "@/logic/face-scheme";
 
 export const maxPhotosPerVisit = 3;
@@ -31,6 +32,9 @@ export type VisitForm = {
   anamnesisConfirmed?: string;
   /** Z5: the scheme as JSON; empty = no scheme. */
   faceScheme?: string;
+  /** N7: «Напомнить через» – "", a preset ("3w", "4m" …) or "date" with `remindOn`. */
+  remindAfter?: string;
+  remindOn?: string;
   items?: VisitItemForm[];
 };
 
@@ -42,8 +46,9 @@ export type VisitFormError =
   | "tooManyItems"
   | "tooManyPhotos"
   | "photoInvalid"
-  | "preparationNotFound";
-export type VisitInputErrors = Partial<Record<"visitDate" | "items" | "photos", VisitFormError>>;
+  | "preparationNotFound"
+  | "reminderInvalid";
+export type VisitInputErrors = Partial<Record<"visitDate" | "items" | "photos" | "reminder", VisitFormError>>;
 
 export type ParsedVisitItem =
   | { kind: "catalog"; preparationId: string; quantity: string | null }
@@ -57,6 +62,7 @@ export type ParsedVisit = {
   recommendationsEdited: boolean;
   anamnesisConfirmed: boolean;
   faceScheme: FaceScheme | null;
+  remindOn: IsoDate | null;
   items: ParsedVisitItem[];
 };
 
@@ -97,6 +103,10 @@ export function parseVisitForm(
     // A completely empty row is ignored.
   }
 
+  // N7: counted from the visit date.
+  const reminder = errors.visitDate ? null : parseReminder(form, visitDate);
+  if (reminder && !reminder.ok) errors.reminder = "reminderInvalid";
+
   if (Object.keys(errors).length > 0) return { ok: false, errors };
   return {
     ok: true,
@@ -108,6 +118,7 @@ export function parseVisitForm(
       recommendationsEdited: form.recommendationsEdited === "1" && freeText(form.recommendations) !== null,
       anamnesisConfirmed: form.anamnesisConfirmed === "1",
       faceScheme: parseFaceScheme(form.faceScheme ?? ""),
+      remindOn: reminder?.ok ? reminder.remindOn : null,
       items,
     },
   };

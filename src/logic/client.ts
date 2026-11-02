@@ -44,6 +44,8 @@ export type Client = {
   careUpdatedAt: IsoDate | null;
   /** BO1: dates of visits with a botulinum preparation (type «Ботулинотерапия»). */
   botoxDates?: IsoDate[];
+  /** N7: reminder days of the client's visits that are not «Готово» yet. */
+  openReminders?: IsoDate[];
   /** FK6: the photo the doctor marked «Главное фото» (null = initials). */
   mainPhotoId?: string | null;
   /** FK6: its file – shown as a round picture in the list and the card. */
@@ -97,6 +99,10 @@ export type Visit = {
   recommendationsEdited: boolean;
   /** Z5: points and lines drawn on the face template; null = no scheme. */
   faceScheme: FaceScheme | null;
+  /** N7: «Напомнить через» – the day «⏰ Пора» starts; null = no reminder. */
+  remindOn: IsoDate | null;
+  /** N7: when «Готово» was tapped; null = still open. */
+  reminderDoneAt: string | null;
   items: VisitItem[];
   photos: VisitPhoto[];
   /** Fields of the MVP 1a visit form, kept read-only («Архив»). */
@@ -118,5 +124,9 @@ export type VisitInput = {
   recommendationsEdited: boolean;
   /** Z5: points and lines drawn on the face template; null = no scheme. */
   faceScheme: FaceScheme | null;
+  /** N7: null = no reminder. */
+  remindOn: IsoDate | null;
+  /** N7: kept only while the reminder date is unchanged. */
+  reminderDoneAt: string | null;
   items: VisitItemInput[];
 };

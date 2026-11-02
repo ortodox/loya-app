@@ -16,6 +16,8 @@ type VisitRow = {
   recommendations_lang: string | null;
   recommendations_edited: boolean | null;
   face_scheme: unknown;
+  remind_on: string | null;
+  reminder_done_at: string | null;
   home_care_recommendations: string | null;
   procedure_plan: string | null;
   visit_items: {
@@ -30,7 +32,7 @@ type VisitRow = {
 };
 
 const columns =
-  "id, client_id, visit_date, created_at, notes, recommendations, recommendations_lang, recommendations_edited, face_scheme, home_care_recommendations, procedure_plan, " +
+  "id, client_id, visit_date, created_at, notes, recommendations, recommendations_lang, recommendations_edited, face_scheme, remind_on, reminder_done_at, home_care_recommendations, procedure_plan, " +
   "visit_items(id, preparation_id, preparation_name, procedure_type_id, quantity, sort_order), " +
   "visit_photos(id, storage_path, sort_order)";
 
@@ -45,6 +47,8 @@ function toVisit(row: VisitRow): Visit {
     recommendationsLang: isLocale(row.recommendations_lang) ? (row.recommendations_lang as Locale) : null,
     recommendationsEdited: storedAsEdited(row.recommendations_edited, row.recommendations),
     faceScheme: parseFaceScheme(row.face_scheme),
+    remindOn: row.remind_on,
+    reminderDoneAt: row.reminder_done_at,
     items: [...row.visit_items]
       .sort((a, b) => a.sort_order - b.sort_order)
       .map((i) => ({
@@ -69,6 +73,8 @@ const visitRow = (input: VisitInput) => ({
   recommendations_lang: input.recommendationsLang,
   recommendations_edited: input.recommendationsEdited,
   face_scheme: input.faceScheme,
+  remind_on: input.remindOn,
+  reminder_done_at: input.reminderDoneAt,
 });
 
 /** Supabase-backed visit storage. RLS limits every query to the signed-in doctor. */
@@ -146,6 +152,18 @@ export function supabaseVisitRepository(supabase: SupabaseClient): VisitReposito
       if (photoIds.length === 0) return;
       const { error } = await supabase.from("visit_photos").delete().eq("visit_id", visitId).in("id", photoIds);
       if (error) throw error;
+    },
+
+    async markRemindersDone(clientId, today, at) {
+      const { data, error } = await supabase
+        .from("visits")
+        .update({ reminder_done_at: at })
+        .eq("client_id", clientId)
+        .lte("remind_on", today)
+        .is("reminder_done_at", null)
+        .select("id");
+      if (error) throw error;
+      return data.length;
     },
   };
 }

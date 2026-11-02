@@ -25,7 +25,7 @@ type ClientRow = {
   care_updated_at: string | null;
   updated_at: string;
   // PostgREST returns the type as one object (many-to-one); without generated types it is typed as a list.
-  visits?: { visit_date: string; visit_items?: { procedure_types: TypeCode | TypeCode[] | null }[] }[];
+  visits?: { visit_date: string; remind_on?: string | null; reminder_done_at?: string | null; visit_items?: { procedure_types: TypeCode | TypeCode[] | null }[] }[];
   treatment_courses?: { status: "active" | "completed"; start_date: string; end_date: string }[];
   main_photo_id?: string | null;
   // FK6: many-to-one – one object, typed loosely like the type codes above.
@@ -58,6 +58,7 @@ function toClient(row: ClientRow): Client {
     botoxDates: (row.visits ?? [])
       .filter((v) => (v.visit_items ?? []).some((i) => codes(i.procedure_types).includes(botoxTypeCode)))
       .map((v) => v.visit_date),
+    openReminders: (row.visits ?? []).flatMap((v) => (v.remind_on && !v.reminder_done_at ? [v.remind_on] : [])),
     direction: parseDirection(row.direction ?? []),
     careText: row.care_text,
     careUpdatedAt: row.care_updated_at,
@@ -93,7 +94,7 @@ export function supabaseClientRepository(supabase: SupabaseClient): ClientReposi
     // PR6: clients in «Удалённые клиенты» are left out everywhere.
     supabase
       .from("clients")
-      .select(`${columns}, visits(visit_date, visit_items(procedure_types(code))), treatment_courses(status, start_date, end_date), main_photo:client_photos!clients_main_photo_fkey(storage_path)`)
+      .select(`${columns}, visits(visit_date, remind_on, reminder_done_at, visit_items(procedure_types(code))), treatment_courses(status, start_date, end_date), main_photo:client_photos!clients_main_photo_fkey(storage_path)`)
       .is("deleted_at", null);
 
   return {
