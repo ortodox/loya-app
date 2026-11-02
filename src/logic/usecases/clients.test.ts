@@ -113,9 +113,10 @@ describe("client use cases", () => {
         treatment: null,
         agenda: null,
         photoPath: null,
+        reminderDue: null,
         botox: null,
       },
-      { id: id1, fullName: "Старая", date: "2024-03-01", age: 32, residenceCountry: null, allergy: false, excerpt: "", phone: null, nextVisitDate: null, direction: [], treatment: null, agenda: null, photoPath: null, botox: null },
+      { id: id1, fullName: "Старая", date: "2024-03-01", age: 32, residenceCountry: null, allergy: false, excerpt: "", phone: null, nextVisitDate: null, direction: [], treatment: null, agenda: null, photoPath: null, reminderDue: null, botox: null },
     ]);
   });
 
@@ -135,6 +136,13 @@ describe("client use cases", () => {
     const card = await getClientCard(repo, id1, today);
     expect(card?.age).toBe(36);
     expect(card?.alerts).toEqual([{ field: "allergies", text: "Лидокаин" }]);
+  });
+
+  it("N7: «⏰ Пора» in the list and the card from the reminder day, the next one in the card", async () => {
+    const repo = memoryRepo([client({ openReminders: ["2026-11-20", today, "2026-12-01"] }), client({ id: id2, fullName: "Без напоминания" })]);
+    const list = await listClients(repo, today);
+    expect(Object.fromEntries(list.map((c) => [c.id, c.reminderDue]))).toEqual({ [id1]: today, [id2]: null });
+    expect((await getClientCard(repo, id1, today))?.reminder).toEqual({ due: today, next: "2026-11-20" });
   });
 
   it("returns no card for unknown or malformed ids", async () => {

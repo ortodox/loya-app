@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { practiceTimeZone } from "@/config/time";
 import { todayIn } from "@/logic/rules/dates";
 import type { VisitForm, VisitInputErrors, VisitItemForm } from "@/logic/rules/visits";
-import { deleteVisit, saveVisit, type PhotoUpload, type SaveVisitResult } from "@/logic/usecases/visits";
+import { completeReminders, deleteVisit, saveVisit, type PhotoUpload, type SaveVisitResult } from "@/logic/usecases/visits";
 import { visitDeps as deps } from "./deps";
 
 export type VisitFormState = { values: VisitForm; errors?: VisitInputErrors; failed?: boolean };
@@ -35,6 +35,8 @@ function readForm(fd: FormData): VisitForm {
     recommendationsEdited: str(fd.get("recommendationsEdited")),
     anamnesisConfirmed: str(fd.get("anamnesisConfirmed")),
     faceScheme: str(fd.get("faceScheme")),
+    remindAfter: str(fd.get("remindAfter")),
+    remindOn: str(fd.get("remindOn")),
     items: readItems(str(fd.get("items"))),
   };
 }
@@ -79,4 +81,19 @@ export async function deleteVisitAction(clientId: string, visitId: string): Prom
   }
   if (!deleted) return { failed: true };
   backToCard(clientId);
+}
+
+/** N7: «Готово» – «⏰ Пора» goes away for this client. */
+export async function completeRemindersAction(clientId: string): Promise<{ ok: boolean }> {
+  let ok = false;
+  try {
+    ok = await completeReminders((await deps()).visits, clientId, todayIn(practiceTimeZone), new Date());
+  } catch {
+    ok = false;
+  }
+  if (ok) {
+    revalidatePath("/clients");
+    revalidatePath(`/clients/${clientId}`);
+  }
+  return { ok };
 }

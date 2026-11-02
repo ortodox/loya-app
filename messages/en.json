@@ -275,7 +275,8 @@
       "manualTypeRequired": "Choose a procedure type.",
       "preparationNotFound": "Preparation not found in the catalogue.",
       "itemInvalid": "Could not read the preparation.",
-      "tooManyItems": "Too many preparations in one visit."
+      "tooManyItems": "Too many preparations in one visit.",
+      "reminderInvalid": "Choose a date after the visit."
     },
     "adviceTitle": "Advice for the client",
     "adviceCount": "{count, plural, one {# point} other {# points}}",
@@ -582,5 +583,27 @@
     "purgeOn": "Deleted for good: {date}",
     "restore": "Restore",
     "restoreFailed": "Could not restore."
+  },
+  "reminders": {
+    "title": "Remind me in",
+    "choice": {
+      "none": "None",
+      "2w": "2 wks",
+      "3w": "3 wks",
+      "1m": "1 mo",
+      "3m": "3 mo",
+      "4m": "4 mo",
+      "6m": "6 mo",
+      "date": "Own date"
+    },
+    "ownDate": "Reminder date",
+    "willRemind": "I'll remind you on {date} – «⏰ Due» in the client list.",
+    "due": "⏰ Time for the next procedure",
+    "dueSince": "Reminder since {date}",
+    "dueGroup": "⏰ Due",
+    "dueRow": "⏰ Time for a procedure",
+    "next": "⏰ Reminder: {date}",
+    "done": "Done",
+    "doneFailed": "Failed."
   }
 }

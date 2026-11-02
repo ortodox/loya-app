@@ -22,6 +22,8 @@ export function ClientList({ clients, pictureUrls = {} }: { clients: ClientSumma
   const agenda = (["today", "tomorrow"] as const)
     .map((day) => ({ day, clients: clients.filter((c) => c.agenda === day) }))
     .filter((g) => g.clients.length > 0);
+  // N7: «⏰ Пора» – reminders that have come, until «Готово» in the card.
+  const due = clients.filter((c) => c.reminderDue !== null);
 
   if (clients.length === 0) {
     return (
@@ -36,8 +38,22 @@ export function ClientList({ clients, pictureUrls = {} }: { clients: ClientSumma
 
   return (
     <>
-      {agenda.length > 0 && (
-        <section aria-label={t("clients.agendaLabel")} className={`${card.surface} flex flex-col gap-2 p-4`}>
+      {(agenda.length > 0 || due.length > 0) && (
+        <section aria-label={t("clients.agendaLabel")} className={`${card.surface} flex flex-col gap-3 p-4`}>
+          {due.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <h2 className="text-sm font-semibold text-muted">
+                {t("reminders.dueGroup")} · {due.length}
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {due.map((c) => (
+                  <Link key={c.id} href={`/clients/${c.id}`} className={`${pill.base} ${pill.off}`}>
+                    {c.fullName}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
           {agenda.map((g) => (
             <div key={g.day} className="flex flex-col gap-1.5">
               <h2 className="text-sm font-semibold text-muted">
@@ -82,7 +98,7 @@ export function ClientList({ clients, pictureUrls = {} }: { clients: ClientSumma
         {shown.map((c) => (
           <li key={c.id} className="border-b border-line last:border-b-0">
             <Link href={`/clients/${c.id}`} className="flex min-h-11 items-start gap-3 px-4 py-3">
-              {/* FK1: the newest client photo, or initials. */}
+              {/* FK6: the main photo, or initials. */}
               <ClientPicture name={c.fullName} url={c.photoPath ? thumbUrl(pictureUrls, c.photoPath) : null} size="list" />
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="truncate text-base font-semibold text-ink">{c.fullName}</span>
@@ -96,6 +112,8 @@ export function ClientList({ clients, pictureUrls = {} }: { clients: ClientSumma
                     {t("clients.botox", { time: elapsedText((key, values) => t(`clients.${key}`, values), c.botox) })}
                   </span>
                 )}
+                {/* N7: time for the next procedure. */}
+                {c.reminderDue && <span className="text-sm font-semibold text-ink">{t("reminders.dueRow")}</span>}
                 {/* VP2: the next appointment. */}
                 {c.nextVisitDate && (
                   <span className="text-sm font-medium text-accent">{t("clients.nextVisit", { date: formatDayMonth(c.nextVisitDate) })}</span>

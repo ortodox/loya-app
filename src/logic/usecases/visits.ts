@@ -4,6 +4,7 @@ import type { Client, IsoDate, Visit, VisitItemInput } from "@/logic/client";
 import { effectivePreparationSettings } from "@/logic/rules/catalog-settings";
 import { orderForClient, sortPreparations } from "@/logic/rules/catalog-list";
 import { showsFaceScheme } from "@/logic/rules/face-scheme";
+import { keptReminderDone } from "@/logic/rules/reminders";
 import { safetyAlerts, type SafetyAlert } from "@/logic/rules/safety-alert";
 import {
   isAcceptablePhoto,
@@ -207,7 +208,7 @@ export async function saveVisit(
   }
 
   const { anamnesisConfirmed, ...visitFields } = parsed.input;
-  const input = { ...visitFields, items };
+  const input = { ...visitFields, reminderDoneAt: keptReminderDone(existing, visitFields.remindOn), items };
   let id: string;
   if (existing) {
     if (!(await deps.visits.update(existing.id, input))) return { ok: false, notFound: true };
@@ -253,4 +254,10 @@ export async function deleteVisit(deps: Pick<VisitDeps, "visits" | "photos">, cl
   if (!visit) return false;
   await deps.photos.remove(visit.photos.map((p) => p.storagePath));
   return deps.visits.delete(visitId);
+}
+
+/** N7: «Готово» – the client's due reminders are done; «⏰ Пора» goes away. */
+export async function completeReminders(repo: VisitRepository, clientId: string, today: IsoDate, now: Date): Promise<boolean> {
+  if (!uuid.test(clientId)) return false;
+  return (await repo.markRemindersDone(clientId, today, now.toISOString())) > 0;
 }

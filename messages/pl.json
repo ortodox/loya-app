@@ -275,7 +275,8 @@
       "manualTypeRequired": "Wybierz rodzaj zabiegu.",
       "preparationNotFound": "Nie znaleziono preparatu w katalogu.",
       "itemInvalid": "Nie udało się odczytać preparatu.",
-      "tooManyItems": "Za dużo preparatów w jednej wizycie."
+      "tooManyItems": "Za dużo preparatów w jednej wizycie.",
+      "reminderInvalid": "Wybierz datę po wizycie."
     },
     "adviceTitle": "Zalecenia dla klienta",
     "adviceCount": "{count, plural, one {# punkt} few {# punkty} many {# punktów} other {# punktu}}",
@@ -582,5 +583,27 @@
     "purgeOn": "Usunięcie na zawsze: {date}",
     "restore": "Przywróć",
     "restoreFailed": "Nie udało się przywrócić."
+  },
+  "reminders": {
+    "title": "Przypomnij za",
+    "choice": {
+      "none": "Nie",
+      "2w": "2 tyg.",
+      "3w": "3 tyg.",
+      "1m": "1 mies.",
+      "3m": "3 mies.",
+      "4m": "4 mies.",
+      "6m": "6 mies.",
+      "date": "Własna data"
+    },
+    "ownDate": "Data przypomnienia",
+    "willRemind": "Przypomnę {date} – «⏰ Czas» na liście klientów.",
+    "due": "⏰ Czas na kolejny zabieg",
+    "dueSince": "Przypomnienie od {date}",
+    "dueGroup": "⏰ Czas",
+    "dueRow": "⏰ Czas na zabieg",
+    "next": "⏰ Przypomnieć: {date}",
+    "done": "Gotowe",
+    "doneFailed": "Nie udało się."
   }
 }
