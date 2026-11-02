@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
 import { ClientPicture } from "@/app/components/ClientPicture";
+import { elapsedText } from "@/app/components/elapsed";
 import { card, pill, ui } from "@/app/components/ui";
 import { thumbUrl } from "@/logic/rules/thumbnails";
 import { directions, type Direction } from "@/logic/course";
@@ -89,6 +90,12 @@ export function ClientList({ clients, pictureUrls = {} }: { clients: ClientSumma
                   {formatIsoDate(c.date)}
                   {c.age !== null && ` · ${t("clients.age", { age: c.age })}`}
                 </span>
+                {/* BO1: how long the botox has been in, without opening the client. */}
+                {c.botox && (
+                  <span className="text-sm font-medium text-ink">
+                    {t("clients.botox", { time: elapsedText((key, values) => t(`clients.${key}`, values), c.botox) })}
+                  </span>
+                )}
                 {/* VP2: the next appointment. */}
                 {c.nextVisitDate && (
                   <span className="text-sm font-medium text-accent">{t("clients.nextVisit", { date: formatDayMonth(c.nextVisitDate) })}</span>

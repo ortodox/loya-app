@@ -3,6 +3,7 @@ import { currentAge } from "@/logic/rules/age";
 import { parseClientForm, type ClientForm, type ClientInputErrors } from "@/logic/rules/client-input";
 import { agendaDay, lastActivityDate, notesExcerpt, sortNewestFirst, visitTimeline } from "@/logic/rules/client-list";
 import { mergeAnamnesisSection, type AnamnesisForm } from "@/logic/rules/anamnesis";
+import { lastBotoxDate, timeSince, type Elapsed } from "@/logic/rules/botox";
 import { safetyAlerts, type SafetyAlert } from "@/logic/rules/safety-alert";
 import { chosenDirection, treatmentStatus, type TreatmentStatus } from "@/logic/rules/courses";
 import type { Direction } from "@/logic/course";
@@ -33,6 +34,8 @@ export type ClientSummary = {
   agenda: "today" | "tomorrow" | null;
   /** FK1: the newest client photo, for the round picture (null = initials). */
   photoPath: string | null;
+  /** BO1: time since the last botox injection – «Ботокс · 1 мес. 2 нед.»; null when none. */
+  botox: Elapsed | null;
 };
 
 /** PR2/VP2: all clients for the list, newest first. Search runs in the UI with `matchesClient`. */
@@ -55,6 +58,7 @@ export async function listClients(repo: ClientRepository, today: IsoDate): Promi
     treatment: treatmentStatus(c.courses, today),
     agenda: agendaDay(c.visitDates, today),
     photoPath: c.latestPhotoPath ?? null,
+    botox: botoxSince(c, today),
   }));
 }
 
@@ -62,6 +66,8 @@ export type ClientCard = {
   client: Client;
   age: number | null;
   alerts: SafetyAlert[];
+  /** BO1: time since the last botox injection; null when none. */
+  botox: Elapsed | null;
 };
 
 /** The client card with the current age (AG1) and safety alerts (AL2). */
@@ -73,7 +79,7 @@ export async function getClientCard(
   if (!uuid.test(id)) return null;
   const client = await repo.get(id);
   if (!client) return null;
-  return { client, age: currentAge(client, today), alerts: safetyAlerts(client.anamnesis) };
+  return { client, age: currentAge(client, today), alerts: safetyAlerts(client.anamnesis), botox: botoxSince(client, today) };
 }
 
 export type SaveClientResult =
@@ -133,4 +139,10 @@ export async function updateAnamnesisSection(repo: ClientRepository, id: string,
   if (!client) return false;
   const anamnesis = mergeAnamnesisSection(client.anamnesis, sectionKey, form);
   return anamnesis ? repo.setAnamnesis(id, anamnesis) : false;
+}
+
+/** BO1: time since the last botox injection that has taken place, or null. */
+export function botoxSince(client: Pick<Client, "botoxDates">, today: IsoDate): Elapsed | null {
+  const last = lastBotoxDate(client.botoxDates ?? [], today);
+  return last ? timeSince(last, today) : null;
 }

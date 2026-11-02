@@ -54,7 +54,13 @@
     "treatmentEnded": "🩺 Курс закінчився",
     "today": "Сьогодні",
     "tomorrow": "Завтра",
-    "agendaLabel": "Записи на сьогодні та завтра"
+    "agendaLabel": "Записи на сьогодні та завтра",
+    "botox": "💉 Ботокс · {time}",
+    "elapsedToday": "сьогодні",
+    "elapsedDays": "{count} дн.",
+    "elapsedWeeks": "{count} тиж.",
+    "elapsedMonths": "{months} міс.",
+    "elapsedMonthsWeeks": "{months} міс. {weeks} тиж."
   },
   "language": {
     "ru": "Русский",

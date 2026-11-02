@@ -23,6 +23,7 @@ import { directions } from "@/logic/course";
 import { setMissingDirectionAction } from "../actions";
 import { CareSection } from "./CareSection";
 import { ClientPicture } from "@/app/components/ClientPicture";
+import { elapsedText } from "@/app/components/elapsed";
 import { CardActions } from "./CardActions";
 import { ClientPhotoTimeline } from "./ClientPhotoTimeline";
 import { DeleteClient } from "./DeleteClient";
@@ -269,6 +270,12 @@ export async function ClientCardView(props: Props) {
           <p className="flex items-center gap-2 text-sm text-ink">
             {client.residenceCountry && <span className={ui.tag}>{client.residenceCountry}</span>}
             {place}
+          </p>
+        )}
+        {/* BO1: how long the botox has been in. */}
+        {data.botox && (
+          <p className="text-base font-medium text-ink">
+            {t("clients.botox", { time: elapsedText((key, values) => t(`clients.${key}`, values), data.botox) })}
           </p>
         )}
         {/* DM1: cosmetology and/or dermatology. */}

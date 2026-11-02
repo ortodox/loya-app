@@ -54,7 +54,13 @@
     "treatmentEnded": "🩺 Course ended",
     "today": "Today",
     "tomorrow": "Tomorrow",
-    "agendaLabel": "Appointments today and tomorrow"
+    "agendaLabel": "Appointments today and tomorrow",
+    "botox": "💉 Botox · {time}",
+    "elapsedToday": "today",
+    "elapsedDays": "{count} d",
+    "elapsedWeeks": "{count} wk",
+    "elapsedMonths": "{months} mo",
+    "elapsedMonthsWeeks": "{months} mo {weeks} wk"
   },
   "language": {
     "ru": "Русский",
