@@ -554,6 +554,10 @@
     "confirmYes": "Usuń",
     "confirmNo": "Anuluj",
     "deleteFailed": "Nie udało się usunąć.",
+    "setMain": "★ Ustaw jako główne",
+    "unsetMain": "Usuń z głównego",
+    "mainBadge": "★ Główne",
+    "mainFailed": "Nie udało się.",
     "errors": {
       "noPhotos": "Dodaj co najmniej jedno zdjęcie.",
       "tooManyPhotos": "Maksymalnie 3 zdjęcia naraz.",

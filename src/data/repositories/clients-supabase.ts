@@ -27,14 +27,16 @@ type ClientRow = {
   // PostgREST returns the type as one object (many-to-one); without generated types it is typed as a list.
   visits?: { visit_date: string; visit_items?: { procedure_types: TypeCode | TypeCode[] | null }[] }[];
   treatment_courses?: { status: "active" | "completed"; start_date: string; end_date: string }[];
-  client_photos?: { storage_path: string }[];
+  main_photo_id?: string | null;
+  // FK6: many-to-one – one object, typed loosely like the type codes above.
+  main_photo?: { storage_path: string } | { storage_path: string }[] | null;
 };
 
 type TypeCode = { code: string | null };
 const codes = (t: TypeCode | TypeCode[] | null) => (Array.isArray(t) ? t : t ? [t] : []).map((x) => x.code);
 
 const columns =
-  "id, full_name, card_date, age_at_registration, birth_date, phone, email, residence_country, residence_city, language, anamnesis, notes, procedure_plan, anamnesis_confirmed_at, direction, care_text, care_updated_at, updated_at";
+  "id, full_name, card_date, age_at_registration, birth_date, phone, email, residence_country, residence_city, language, anamnesis, notes, procedure_plan, anamnesis_confirmed_at, direction, care_text, care_updated_at, main_photo_id, updated_at";
 
 function toClient(row: ClientRow): Client {
   return {
@@ -60,7 +62,8 @@ function toClient(row: ClientRow): Client {
     careText: row.care_text,
     careUpdatedAt: row.care_updated_at,
     courses: (row.treatment_courses ?? []).map((c) => ({ status: c.status, startDate: c.start_date, endDate: c.end_date })),
-    latestPhotoPath: row.client_photos?.[0]?.storage_path ?? null,
+    mainPhotoId: row.main_photo_id ?? null,
+    mainPhotoPath: (Array.isArray(row.main_photo) ? row.main_photo[0] : row.main_photo)?.storage_path ?? null,
     updatedAt: row.updated_at,
   };
 }
@@ -90,12 +93,8 @@ export function supabaseClientRepository(supabase: SupabaseClient): ClientReposi
     // PR6: clients in «Удалённые клиенты» are left out everywhere.
     supabase
       .from("clients")
-      .select(`${columns}, visits(visit_date, visit_items(procedure_types(code))), treatment_courses(status, start_date, end_date), client_photos(storage_path)`)
-      .is("deleted_at", null)
-      // FK1: only the newest client photo, for the round picture.
-      .order("taken_on", { referencedTable: "client_photos", ascending: false })
-      .order("created_at", { referencedTable: "client_photos", ascending: false })
-      .limit(1, { referencedTable: "client_photos" });
+      .select(`${columns}, visits(visit_date, visit_items(procedure_types(code))), treatment_courses(status, start_date, end_date), main_photo:client_photos!clients_main_photo_fkey(storage_path)`)
+      .is("deleted_at", null);
 
   return {
     async list() {

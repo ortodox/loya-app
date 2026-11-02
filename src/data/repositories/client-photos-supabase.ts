@@ -41,5 +41,12 @@ export function supabaseClientPhotoRepository(supabase: SupabaseClient): ClientP
       if (error) throw error;
       return data.length > 0;
     },
+
+    async setMain(clientId, photoId) {
+      // The foreign key also checks that the photo belongs to this client.
+      const { data, error } = await supabase.from("clients").update({ main_photo_id: photoId }).eq("id", clientId).is("deleted_at", null).select("id");
+      if (error) throw error;
+      return data.length > 0;
+    },
   };
 }

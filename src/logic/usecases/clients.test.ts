@@ -205,9 +205,9 @@ describe("DM1: направление не указано", () => {
   });
 });
 
-describe("FK1: фото клиента в списке", () => {
-  it("FK1: the list carries the newest client photo and gets links only for clients that have one", async () => {
-    const repo = memoryRepo([client({ id: id1, latestPhotoPath: "d/client-photos/1/a.jpg" }), client({ id: "00000000-0000-4000-8000-000000000002", fullName: "Без фото" })]);
+describe("FK6: главное фото в списке", () => {
+  it("FK6: the list carries the main photo and gets links only for clients that have one", async () => {
+    const repo = memoryRepo([client({ id: id1, mainPhotoPath: "d/client-photos/1/a.jpg" }), client({ id: "00000000-0000-4000-8000-000000000002", fullName: "Без фото" })]);
     const list = await listClients(repo, "2026-10-31");
     expect(list.map((c) => c.photoPath)).toEqual(expect.arrayContaining(["d/client-photos/1/a.jpg", null]));
     const asked: string[][] = [];

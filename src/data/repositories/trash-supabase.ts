@@ -38,7 +38,7 @@ export function supabaseClientTrashRepository(supabase: SupabaseClient): ClientT
       const { data, error } = await supabase
         .from("clients")
         .select(
-          "visits(visit_photos(storage_path)), treatment_courses(course_photos(storage_path)), client_care_photos(storage_path), client_photos(storage_path), client_documents(storage_path)",
+          "visits(visit_photos(storage_path)), treatment_courses(course_photos(storage_path)), client_care_photos(storage_path), client_photos!client_photos_client_id_doctor_id_fkey(storage_path), client_documents(storage_path)",
         )
         .eq("id", id)
         .single();

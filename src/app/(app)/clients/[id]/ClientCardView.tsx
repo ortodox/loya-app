@@ -16,7 +16,7 @@ import type { TreatmentCourse } from "@/logic/course";
 import type { ClientCard } from "@/logic/usecases/clients";
 import type { Care, ClientDocument } from "@/logic/document";
 import type { ClientPhoto } from "@/logic/client-photo";
-import { photoTimeline, showsClientPhotos, splitClientPhotos } from "@/logic/rules/client-photos";
+import { mainPhoto, showsClientPhotos, splitClientPhotos } from "@/logic/rules/client-photos";
 import { documentsByCourse } from "@/logic/rules/documents";
 import { deleteWarnings } from "@/logic/rules/trash";
 import { directions } from "@/logic/course";
@@ -79,7 +79,7 @@ export async function ClientCardView(props: Props) {
   const { upcoming, past } = splitVisits(visits, today);
   const repeatable = lastCompletedVisit(visits, today) !== null;
   const lastVisit = past[0] ?? null;
-  const newestPhoto = photoTimeline(clientPhotos.photos)[0]?.photos[0] ?? null;
+  const picture = mainPhoto(generalPhotos, client.mainPhotoId);
   const showPhotos = showsClientPhotos(client.direction, generalPhotos.length);
   const jumps: [anchor: string, label: string][] = [
     ["visits", t("visits.title")],
@@ -256,8 +256,8 @@ export async function ClientCardView(props: Props) {
       <header className="flex flex-col gap-1">
         <p className="text-xs font-semibold tracking-[0.25em] text-muted uppercase">{t("card.kicker")}</p>
         <div className="flex items-center gap-3">
-          {/* FK1: the newest photo the client sent, or initials. */}
-          <ClientPicture name={client.fullName} url={newestPhoto ? thumbUrl(clientPhotos.urls, newestPhoto.storagePath) : null} size="card" />
+          {/* FK6: the main photo, or initials. */}
+          <ClientPicture name={client.fullName} url={picture ? thumbUrl(clientPhotos.urls, picture.storagePath) : null} size="card" />
           <h1 className="min-w-0 font-serif text-4xl leading-tight text-ink">{client.fullName}</h1>
         </div>
         <p className="text-sm text-muted">
@@ -421,7 +421,7 @@ export async function ClientCardView(props: Props) {
           {generalPhotos.length === 0 ? (
             <p className={ui.muted}>{t("clientPhotos.empty")}</p>
           ) : (
-            <ClientPhotoTimeline clientId={id} photos={generalPhotos} urls={clientPhotos.urls} />
+            <ClientPhotoTimeline clientId={id} photos={generalPhotos} urls={clientPhotos.urls} mainPhotoId={client.mainPhotoId} canChooseMain />
           )}
         </section>
       )}

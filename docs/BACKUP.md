@@ -157,7 +157,8 @@ on conflict (id) do update set
   direction           = excluded.direction,
   care_text           = excluded.care_text,
   care_updated_at     = excluded.care_updated_at,
-  deleted_at          = excluded.deleted_at;
+  deleted_at          = excluded.deleted_at,
+  main_photo_id       = excluded.main_photo_id;
 
 with valgt as (
   select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
@@ -285,6 +286,12 @@ on conflict (id) do update set
   taken_on  = excluded.taken_on,
   course_id = excluded.course_id;
 
+-- «Главное фото» (FK6) whose photo was not restored (file gone) – back to initials
+update public.clients c set main_photo_id = null
+where c.id = 'KLIENT_ID'
+  and c.main_photo_id is not null
+  and not exists (select 1 from public.client_photos p where p.id = c.main_photo_id and p.client_id = c.id);
+
 -- Documents and lab results (DK1, LE8) – only where the file still exists in Storage
 with valgt as (
   select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
@@ -344,7 +351,8 @@ on conflict (id) do update set
   direction           = excluded.direction,
   care_text           = excluded.care_text,
   care_updated_at     = excluded.care_updated_at,
-  deleted_at          = excluded.deleted_at;
+  deleted_at          = excluded.deleted_at,
+  main_photo_id       = excluded.main_photo_id;
 
 with valgt as (
   select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
@@ -455,6 +463,11 @@ where s.taken_at = valgt.t
 on conflict (id) do update set
   taken_on  = excluded.taken_on,
   course_id = excluded.course_id;
+
+-- «Главное фото» (FK6) whose photo was not restored (file gone) – back to initials
+update public.clients c set main_photo_id = null
+where c.main_photo_id is not null
+  and not exists (select 1 from public.client_photos p where p.id = c.main_photo_id and p.client_id = c.id);
 
 -- Documents and lab results (DK1, LE8) – only where the file still exists in Storage
 with valgt as (

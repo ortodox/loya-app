@@ -6,4 +6,6 @@ export interface ClientPhotoRepository {
   add(clientId: string, input: ClientPhotoInput): Promise<void>;
   /** FK4: false when the photo is not this client's. */
   remove(clientId: string, photoId: string): Promise<boolean>;
+  /** FK6: «Главное фото» – the photo id, or null for none. False when the client is not found. */
+  setMain(clientId: string, photoId: string | null): Promise<boolean>;
 }
