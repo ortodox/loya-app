@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Anamnesis, Client, ClientInput } from "@/logic/client";
+import { botoxTypeCode } from "@/logic/rules/botox";
 import { parseDirection } from "@/logic/rules/courses";
 import type { ClientRepository } from "./clients";
 import { isLocale } from "@/logic/locale";
@@ -23,10 +24,14 @@ type ClientRow = {
   care_text: string | null;
   care_updated_at: string | null;
   updated_at: string;
-  visits?: { visit_date: string }[];
+  // PostgREST returns the type as one object (many-to-one); without generated types it is typed as a list.
+  visits?: { visit_date: string; visit_items?: { procedure_types: TypeCode | TypeCode[] | null }[] }[];
   treatment_courses?: { status: "active" | "completed"; start_date: string; end_date: string }[];
   client_photos?: { storage_path: string }[];
 };
+
+type TypeCode = { code: string | null };
+const codes = (t: TypeCode | TypeCode[] | null) => (Array.isArray(t) ? t : t ? [t] : []).map((x) => x.code);
 
 const columns =
   "id, full_name, card_date, age_at_registration, birth_date, phone, email, residence_country, residence_city, language, anamnesis, notes, procedure_plan, anamnesis_confirmed_at, direction, care_text, care_updated_at, updated_at";
@@ -48,6 +53,9 @@ function toClient(row: ClientRow): Client {
     procedurePlan: row.procedure_plan,
     anamnesisConfirmedAt: row.anamnesis_confirmed_at,
     visitDates: (row.visits ?? []).map((v) => v.visit_date),
+    botoxDates: (row.visits ?? [])
+      .filter((v) => (v.visit_items ?? []).some((i) => codes(i.procedure_types).includes(botoxTypeCode)))
+      .map((v) => v.visit_date),
     direction: parseDirection(row.direction ?? []),
     careText: row.care_text,
     careUpdatedAt: row.care_updated_at,
@@ -82,7 +90,7 @@ export function supabaseClientRepository(supabase: SupabaseClient): ClientReposi
     // PR6: clients in «Удалённые клиенты» are left out everywhere.
     supabase
       .from("clients")
-      .select(`${columns}, visits(visit_date), treatment_courses(status, start_date, end_date), client_photos(storage_path)`)
+      .select(`${columns}, visits(visit_date, visit_items(procedure_types(code))), treatment_courses(status, start_date, end_date), client_photos(storage_path)`)
       .is("deleted_at", null)
       // FK1: only the newest client photo, for the round picture.
       .order("taken_on", { referencedTable: "client_photos", ascending: false })
@@ -93,13 +101,13 @@ export function supabaseClientRepository(supabase: SupabaseClient): ClientReposi
     async list() {
       const { data, error } = await withVisits();
       if (error) throw error;
-      return (data as ClientRow[]).map(toClient);
+      return (data as unknown as ClientRow[]).map(toClient);
     },
 
     async get(id) {
       const { data, error } = await withVisits().eq("id", id).maybeSingle();
       if (error) throw error;
-      return data ? toClient(data as ClientRow) : null;
+      return data ? toClient(data as unknown as ClientRow) : null;
     },
 
     async create(input) {

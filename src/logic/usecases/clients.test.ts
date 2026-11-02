@@ -113,8 +113,9 @@ describe("client use cases", () => {
         treatment: null,
         agenda: null,
         photoPath: null,
+        botox: null,
       },
-      { id: id1, fullName: "Старая", date: "2024-03-01", age: 32, residenceCountry: null, allergy: false, excerpt: "", phone: null, nextVisitDate: null, direction: [], treatment: null, agenda: null, photoPath: null },
+      { id: id1, fullName: "Старая", date: "2024-03-01", age: 32, residenceCountry: null, allergy: false, excerpt: "", phone: null, nextVisitDate: null, direction: [], treatment: null, agenda: null, photoPath: null, botox: null },
     ]);
   });
 
@@ -227,5 +228,18 @@ describe("AN3: изменить один раздел анкеты", () => {
     const repo = memoryRepo([client({ id: id1 })]);
     expect(await updateAnamnesisSection(repo, "nope", "health", {})).toBe(false);
     expect(await updateAnamnesisSection(repo, id1, "nope", {})).toBe(false);
+  });
+});
+
+describe("BO1: ботокс в списке", () => {
+  it("BO1: the list shows the time since the last botox that took place", async () => {
+    const repo = memoryRepo([client({ id: id1, botoxDates: ["2026-03-01", "2026-09-15", "2026-12-01"] })]);
+    const [row] = await listClients(repo, "2026-11-02");
+    expect(row.botox).toEqual({ unit: "months", months: 1, weeks: 2 });
+  });
+
+  it("BO1: no botox – no line", async () => {
+    const repo = memoryRepo([client({ id: id1 })]);
+    expect((await listClients(repo, "2026-11-02"))[0].botox).toBeNull();
   });
 });
