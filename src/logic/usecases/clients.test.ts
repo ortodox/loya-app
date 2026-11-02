@@ -113,10 +113,11 @@ describe("client use cases", () => {
         treatment: null,
         agenda: null,
         photoPath: null,
+        birthday: false,
         reminderDue: null,
         botox: null,
       },
-      { id: id1, fullName: "Старая", date: "2024-03-01", age: 32, residenceCountry: null, allergy: false, excerpt: "", phone: null, nextVisitDate: null, direction: [], treatment: null, agenda: null, photoPath: null, reminderDue: null, botox: null },
+      { id: id1, fullName: "Старая", date: "2024-03-01", age: 32, residenceCountry: null, allergy: false, excerpt: "", phone: null, nextVisitDate: null, direction: [], treatment: null, agenda: null, photoPath: null, birthday: false, reminderDue: null, botox: null },
     ]);
   });
 
@@ -136,6 +137,14 @@ describe("client use cases", () => {
     const card = await getClientCard(repo, id1, today);
     expect(card?.age).toBe(36);
     expect(card?.alerts).toEqual([{ field: "allergies", text: "Лидокаин" }]);
+  });
+
+  it("BD1: «🎂» in the list and the card only on the birthday, only with a birth date", async () => {
+    const repo = memoryRepo([client({ birthDate: "1990-10-22" }), client({ id: id2, fullName: "Только возраст", ageAtRegistration: 40 })]);
+    const list = await listClients(repo, today);
+    expect(Object.fromEntries(list.map((c) => [c.id, c.birthday]))).toEqual({ [id1]: true, [id2]: false });
+    expect((await getClientCard(repo, id1, today))?.birthday).toBe(true);
+    expect((await getClientCard(repo, id1, "2026-10-23"))?.birthday).toBe(false);
   });
 
   it("N7: «⏰ Пора» in the list and the card from the reminder day, the next one in the card", async () => {

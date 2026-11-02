@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { currentAge } from "./age";
+import { currentAge, isBirthday } from "./age";
 
 const registered = (ageAtRegistration: number | null, cardDate: string) => ({
   birthDate: null,
@@ -39,5 +39,25 @@ describe("AG1: current age", () => {
 
   it("AG1: never goes below the recorded age for a future registration date", () => {
     expect(currentAge(registered(30, "2027-01-01"), "2026-10-22")).toBe(30);
+  });
+});
+
+describe("BD1: день рождения", () => {
+  it("BD1: only on the day itself", () => {
+    expect(isBirthday("1990-11-02", "2026-11-02")).toBe(true);
+    expect(isBirthday("1990-11-03", "2026-11-02")).toBe(false);
+    expect(isBirthday("1990-11-01", "2026-11-02")).toBe(false);
+  });
+  it("BD1: no birth date (only an age) – no birthday", () => {
+    expect(isBirthday(null, "2026-11-02")).toBe(false);
+  });
+  it("BD1: born on 29.02 – 28.02 in other years, 29.02 in leap years", () => {
+    expect(isBirthday("1992-02-29", "2026-02-28")).toBe(true);
+    expect(isBirthday("1992-02-29", "2028-02-28")).toBe(false);
+    expect(isBirthday("1992-02-29", "2028-02-29")).toBe(true);
+  });
+  it("BD1: not on the day of birth itself or with a date in the future", () => {
+    expect(isBirthday("2026-11-02", "2026-11-02")).toBe(false);
+    expect(isBirthday("2030-11-02", "2026-11-02")).toBe(false);
   });
 });

@@ -1,5 +1,5 @@
 import type { Client, IsoDate } from "@/logic/client";
-import { currentAge } from "@/logic/rules/age";
+import { currentAge, isBirthday } from "@/logic/rules/age";
 import { parseClientForm, type ClientForm, type ClientInputErrors } from "@/logic/rules/client-input";
 import { agendaDay, lastActivityDate, notesExcerpt, sortNewestFirst, visitTimeline } from "@/logic/rules/client-list";
 import { mergeAnamnesisSection, type AnamnesisForm } from "@/logic/rules/anamnesis";
@@ -33,6 +33,8 @@ export type ClientSummary = {
   treatment: TreatmentStatus | null;
   /** N13 (part): a visit today or tomorrow – «Сегодня» / «Завтра» above the list. */
   agenda: "today" | "tomorrow" | null;
+  /** BD1: «🎂» – today is the client's birthday. */
+  birthday: boolean;
   /** N7: «⏰ Пора» – the earliest reminder day that has come and is not «Готово»; null = none. */
   reminderDue: IsoDate | null;
   /** FK6: the main photo, for the round picture (null = initials). */
@@ -60,6 +62,7 @@ export async function listClients(repo: ClientRepository, today: IsoDate): Promi
     direction: c.direction,
     treatment: treatmentStatus(c.courses, today),
     agenda: agendaDay(c.visitDates, today),
+    birthday: isBirthday(c.birthDate, today),
     reminderDue: reminderStatus(c.openReminders ?? [], today).due,
     photoPath: c.mainPhotoPath ?? null,
     botox: botoxSince(c, today),
@@ -72,6 +75,8 @@ export type ClientCard = {
   alerts: SafetyAlert[];
   /** BO1: time since the last botox injection; null when none. */
   botox: Elapsed | null;
+  /** BD1: «🎂 Сегодня день рождения». */
+  birthday: boolean;
   /** N7: «⏰ Пора» (due) with «Готово», and the next reminder still to come. */
   reminder: { due: IsoDate | null; next: IsoDate | null };
 };
@@ -85,7 +90,7 @@ export async function getClientCard(
   if (!uuid.test(id)) return null;
   const client = await repo.get(id);
   if (!client) return null;
-  return { client, age: currentAge(client, today), alerts: safetyAlerts(client.anamnesis), botox: botoxSince(client, today), reminder: reminderStatus(client.openReminders ?? [], today) };
+  return { client, age: currentAge(client, today), alerts: safetyAlerts(client.anamnesis), botox: botoxSince(client, today), birthday: isBirthday(client.birthDate, today), reminder: reminderStatus(client.openReminders ?? [], today) };
 }
 
 export type SaveClientResult =
