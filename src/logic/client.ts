@@ -44,8 +44,10 @@ export type Client = {
   careUpdatedAt: IsoDate | null;
   /** BO1: dates of visits with a botulinum preparation (type «Ботулинотерапия»). */
   botoxDates?: IsoDate[];
-  /** FK1: the newest photo the client sent – shown as a round picture in the list and the card. */
-  latestPhotoPath?: string | null;
+  /** FK6: the photo the doctor marked «Главное фото» (null = initials). */
+  mainPhotoId?: string | null;
+  /** FK6: its file – shown as a round picture in the list and the card. */
+  mainPhotoPath?: string | null;
   updatedAt: string;
 };
 

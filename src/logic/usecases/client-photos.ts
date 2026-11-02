@@ -1,6 +1,6 @@
 import type { IsoDate } from "@/logic/client";
 import type { ClientPhoto } from "@/logic/client-photo";
-import { maxClientPhotosPerSave, parseClientPhotoForm, type ClientPhotoForm } from "@/logic/rules/client-photos";
+import { mainPhoto, maxClientPhotosPerSave, parseClientPhotoForm, type ClientPhotoForm } from "@/logic/rules/client-photos";
 import { isAcceptablePhoto } from "@/logic/rules/visits";
 import type { ClientPhotoRepository } from "@/data/repositories/client-photos";
 import type { ClientRepository } from "@/data/repositories/clients";
@@ -84,4 +84,20 @@ export async function deleteClientPhoto(
   if (!photo) return false;
   await deps.photos.remove([photo.storagePath]);
   return deps.clientPhotos.remove(clientId, photo.id);
+}
+
+/**
+ * FK6: «★ Сделать главным» / «Убрать из главного» – one photo from «Фото клиента» (not a course photo),
+ * or none (initials).
+ */
+export async function setMainClientPhoto(
+  deps: Pick<ClientPhotoDeps, "clientPhotos">,
+  clientId: string,
+  photoId: string | null,
+): Promise<boolean> {
+  if (!uuid.test(clientId)) return false;
+  if (photoId === null) return deps.clientPhotos.setMain(clientId, null);
+  if (!uuid.test(photoId)) return false;
+  const photo = mainPhoto(await deps.clientPhotos.listByClient(clientId), photoId);
+  return photo ? deps.clientPhotos.setMain(clientId, photo.id) : false;
 }

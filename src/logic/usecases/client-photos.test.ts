@@ -6,7 +6,7 @@ import type { ClientPhotoRepository } from "@/data/repositories/client-photos";
 import type { ClientRepository } from "@/data/repositories/clients";
 import type { CourseRepository } from "@/data/repositories/courses";
 import type { PhotoStorage } from "@/data/repositories/photos";
-import { addClientPhotos, deleteClientPhoto, getClientPhotoFormData, listClientPhotos } from "./client-photos";
+import { addClientPhotos, deleteClientPhoto, getClientPhotoFormData, listClientPhotos, setMainClientPhoto } from "./client-photos";
 import type { PhotoUpload } from "./visits";
 
 const today = "2026-10-30";
@@ -36,6 +36,12 @@ function memory() {
       if (i >= 0) stored.splice(i, 1);
       return i >= 0;
     },
+    setMain: async (cid, pid) => {
+      const c = clients.find((x) => x.id === cid);
+      if (!c) return false;
+      c.mainPhotoId = pid;
+      return true;
+    },
   };
   const photos: PhotoStorage = {
     upload: async (folder) => {
@@ -46,7 +52,7 @@ function memory() {
     remove: async (paths) => paths.forEach((p) => files.delete(p)),
     signedUrls: async (paths) => Object.fromEntries(paths.map((p) => [p, `https://signed/${p}`])),
   };
-  return { deps: { clients: clientRepo, courses: courseRepo, clientPhotos, photos }, stored, files };
+  return { deps: { clients: clientRepo, courses: courseRepo, clientPhotos, photos }, stored, files, clients };
 }
 
 describe("FK1: фото клиента в карте", () => {
@@ -105,5 +111,28 @@ describe("FK4: удалить фото", () => {
     expect(await deleteClientPhoto(m.deps, clientA, photo.id)).toBe(true);
     expect(m.stored).toHaveLength(0);
     expect(m.files.size).toBe(0);
+  });
+});
+
+describe("FK6: главное фото", () => {
+  it("FK6: marks a photo from «Фото клиента» as main, and «Убрать из главного» leaves initials", async () => {
+    const m = memory();
+    await addClientPhotos(m.deps, clientA, { takenOn: "2026-09-14" }, [jpeg(), jpeg()], today);
+    const second = m.stored[1].id;
+    expect(await setMainClientPhoto(m.deps, clientA, second)).toBe(true);
+    expect(m.clients[0].mainPhotoId).toBe(second);
+    expect(await setMainClientPhoto(m.deps, clientA, null)).toBe(true);
+    expect(m.clients[0].mainPhotoId).toBeNull();
+  });
+
+  it("FK6: not a course photo, and not another client's photo", async () => {
+    const m = memory();
+    await addClientPhotos(m.deps, clientA, { takenOn: "2026-09-14", courseId: activeA }, [jpeg()], today);
+    await addClientPhotos(m.deps, clientB, { takenOn: "2026-09-14" }, [jpeg()], today);
+    const [coursePhoto, otherClients] = m.stored.map((p) => p.id);
+    expect(await setMainClientPhoto(m.deps, clientA, coursePhoto)).toBe(false);
+    expect(await setMainClientPhoto(m.deps, clientA, otherClients)).toBe(false);
+    expect(await setMainClientPhoto(m.deps, clientA, "nope")).toBe(false);
+    expect(m.clients[0].mainPhotoId).toBeUndefined();
   });
 });

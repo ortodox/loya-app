@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   exifDate,
+  mainPhoto,
   parseClientPhotoForm,
   photoTimeline,
   showsClientPhotos,
@@ -90,5 +91,21 @@ describe("FK3: косметология в «Фото клиента», лече
     expect(showsClientPhotos([], 0)).toBe(true);
     expect(showsClientPhotos(["dermatology"], 0)).toBe(false);
     expect(showsClientPhotos(["dermatology"], 2)).toBe(true);
+  });
+});
+
+describe("FK6: главное фото", () => {
+  const photos = [
+    { id: "a", courseId: null },
+    { id: "b", courseId: null },
+    { id: "c", courseId: "course" },
+  ];
+  it("FK6: the chosen photo from «Фото клиента»", () => {
+    expect(mainPhoto(photos, "b")).toEqual({ id: "b", courseId: null });
+  });
+  it("FK6: none chosen, a deleted photo or a course photo – initials", () => {
+    expect(mainPhoto(photos, null)).toBeNull();
+    expect(mainPhoto(photos, "gone")).toBeNull();
+    expect(mainPhoto(photos, "c")).toBeNull();
   });
 });

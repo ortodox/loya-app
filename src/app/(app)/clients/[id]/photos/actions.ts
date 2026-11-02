@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { practiceTimeZone } from "@/config/time";
 import { maxClientPhotosPerSave } from "@/logic/rules/client-photos";
 import { todayIn } from "@/logic/rules/dates";
-import { addClientPhotos, deleteClientPhoto, type AddClientPhotosResult } from "@/logic/usecases/client-photos";
+import { addClientPhotos, deleteClientPhoto, setMainClientPhoto, type AddClientPhotosResult } from "@/logic/usecases/client-photos";
 import type { PhotoUpload } from "@/logic/usecases/visits";
 import { clientPhotoDeps as deps } from "./deps";
 
@@ -40,5 +40,20 @@ export async function deleteClientPhotoAction(clientId: string, photoId: string)
     ok = false;
   }
   if (ok) revalidatePath(`/clients/${clientId}`);
+  return { ok };
+}
+
+/** FK6: «★ Сделать главным» (photoId) / «Убрать из главного» (null). */
+export async function setMainClientPhotoAction(clientId: string, photoId: string | null): Promise<{ ok: boolean }> {
+  let ok = false;
+  try {
+    ok = await setMainClientPhoto(await deps(), clientId, photoId);
+  } catch {
+    ok = false;
+  }
+  if (ok) {
+    revalidatePath(`/clients/${clientId}`);
+    revalidatePath("/clients");
+  }
   return { ok };
 }

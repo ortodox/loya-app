@@ -554,6 +554,10 @@
     "confirmYes": "Delete",
     "confirmNo": "Cancel",
     "deleteFailed": "Could not delete.",
+    "setMain": "★ Make main",
+    "unsetMain": "Remove as main",
+    "mainBadge": "★ Main",
+    "mainFailed": "Failed.",
     "errors": {
       "noPhotos": "Add at least one photo.",
       "tooManyPhotos": "At most 3 photos at a time.",

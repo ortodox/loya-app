@@ -554,6 +554,10 @@
     "confirmYes": "Видалити",
     "confirmNo": "Скасувати",
     "deleteFailed": "Не вдалося видалити.",
+    "setMain": "★ Зробити головним",
+    "unsetMain": "Прибрати з головного",
+    "mainBadge": "★ Головне",
+    "mainFailed": "Не вдалося.",
     "errors": {
       "noPhotos": "Додайте хоча б одне фото.",
       "tooManyPhotos": "Не більше 3 фото за раз.",

@@ -120,3 +120,11 @@ export function splitClientPhotos<T extends Pick<ClientPhoto, "courseId">>(photo
 export function showsClientPhotos(direction: readonly Direction[] | null | undefined, photoCount: number): boolean {
   return photoCount > 0 || showsFaceScheme(direction);
 }
+
+/**
+ * FK6: the «Главное фото» – only a photo in «Фото клиента» (not one from a course). Null when none
+ * is chosen or the chosen one is gone: the list and the card then show initials.
+ */
+export function mainPhoto<T extends Pick<ClientPhoto, "id" | "courseId">>(photos: readonly T[], mainPhotoId: string | null | undefined): T | null {
+  return photos.find((p) => p.id === mainPhotoId && p.courseId === null) ?? null;
+}

@@ -32,7 +32,7 @@ export type ClientSummary = {
   treatment: TreatmentStatus | null;
   /** N13 (part): a visit today or tomorrow – «Сегодня» / «Завтра» above the list. */
   agenda: "today" | "tomorrow" | null;
-  /** FK1: the newest client photo, for the round picture (null = initials). */
+  /** FK6: the main photo, for the round picture (null = initials). */
   photoPath: string | null;
   /** BO1: time since the last botox injection – «Ботокс · 1 мес. 2 нед.»; null when none. */
   botox: Elapsed | null;
@@ -57,7 +57,7 @@ export async function listClients(repo: ClientRepository, today: IsoDate): Promi
     direction: c.direction,
     treatment: treatmentStatus(c.courses, today),
     agenda: agendaDay(c.visitDates, today),
-    photoPath: c.latestPhotoPath ?? null,
+    photoPath: c.mainPhotoPath ?? null,
     botox: botoxSince(c, today),
   }));
 }
