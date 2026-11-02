@@ -273,6 +273,12 @@ export async function ClientCardView(props: Props) {
             {place}
           </p>
         )}
+        {/* BD1: birthday today – call or write with the buttons below. */}
+        {data.birthday && (
+          <p className="text-base font-semibold text-ink">
+            {age !== null ? t("birthday.cardWithAge", { age: t("clients.age", { age }) }) : t("birthday.card")}
+          </p>
+        )}
         {/* BO1: how long the botox has been in. */}
         {data.botox && (
           <p className="text-base font-medium text-ink">

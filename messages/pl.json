@@ -605,5 +605,11 @@
     "next": "⏰ Przypomnieć: {date}",
     "done": "Gotowe",
     "doneFailed": "Nie udało się."
+  },
+  "birthday": {
+    "group": "🎂 Urodziny",
+    "row": "🎂 Urodziny dziś",
+    "card": "🎂 Dziś urodziny",
+    "cardWithAge": "🎂 Dziś urodziny · {age}"
   }
 }

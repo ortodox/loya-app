@@ -24,6 +24,8 @@ export function ClientList({ clients, pictureUrls = {} }: { clients: ClientSumma
     .filter((g) => g.clients.length > 0);
   // N7: «⏰ Пора» – reminders that have come, until «Готово» in the card.
   const due = clients.filter((c) => c.reminderDue !== null);
+  // BD1: birthdays today.
+  const birthdays = clients.filter((c) => c.birthday);
 
   if (clients.length === 0) {
     return (
@@ -38,8 +40,22 @@ export function ClientList({ clients, pictureUrls = {} }: { clients: ClientSumma
 
   return (
     <>
-      {(agenda.length > 0 || due.length > 0) && (
+      {(agenda.length > 0 || due.length > 0 || birthdays.length > 0) && (
         <section aria-label={t("clients.agendaLabel")} className={`${card.surface} flex flex-col gap-3 p-4`}>
+          {birthdays.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <h2 className="text-sm font-semibold text-muted">
+                {t("birthday.group")} · {birthdays.length}
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {birthdays.map((c) => (
+                  <Link key={c.id} href={`/clients/${c.id}`} className={`${pill.base} ${pill.off}`}>
+                    {c.fullName}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
           {due.length > 0 && (
             <div className="flex flex-col gap-1.5">
               <h2 className="text-sm font-semibold text-muted">
@@ -112,6 +128,8 @@ export function ClientList({ clients, pictureUrls = {} }: { clients: ClientSumma
                     {t("clients.botox", { time: elapsedText((key, values) => t(`clients.${key}`, values), c.botox) })}
                   </span>
                 )}
+                {/* BD1: birthday today. */}
+                {c.birthday && <span className="text-sm font-semibold text-ink">{t("birthday.row")}</span>}
                 {/* N7: time for the next procedure. */}
                 {c.reminderDue && <span className="text-sm font-semibold text-ink">{t("reminders.dueRow")}</span>}
                 {/* VP2: the next appointment. */}
