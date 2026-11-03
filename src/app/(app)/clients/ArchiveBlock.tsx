@@ -2,7 +2,7 @@
 
 import { Zip, ZipDeflate, ZipPassThrough } from "fflate";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import ru from "../../../../messages/ru.json";
 import { archiveAssets, renderArchive } from "@/archive/render";
 import { card, ui } from "@/app/components/ui";
@@ -14,6 +14,7 @@ import type { archiveClientAction, archiveSavedAction, archiveStartAction } from
 
 type Status =
   | { step: "idle" }
+  | { step: "starting" }
   | { step: "clients"; done: number; total: number }
   | { step: "packing" }
   | { step: "saved"; missing: number }
@@ -29,9 +30,15 @@ export type ArchiveActions = { start: typeof archiveStartAction; client: typeof 
 export function ArchiveBlock({ last, actions }: { last: { date: IsoDate; days: number; stale: boolean } | null; actions: ArchiveActions }) {
   const t = useTranslations();
   const [status, setStatus] = useState<Status>({ step: "idle" });
-  const busy = status.step === "clients" || status.step === "packing";
+  // One archive at a time: the button is greyed out from the first tap until the file is saved,
+  // and a second tap before React re-renders is ignored too.
+  const running = useRef(false);
+  const busy = status.step === "starting" || status.step === "clients" || status.step === "packing";
 
   async function download() {
+    if (running.current) return;
+    running.current = true;
+    setStatus({ step: "starting" });
     try {
       const start = await actions.start();
       if (!start.ok) throw new Error("start");
@@ -89,6 +96,8 @@ export function ArchiveBlock({ last, actions }: { last: { date: IsoDate; days: n
       setStatus({ step: "saved", missing });
     } catch {
       setStatus({ step: "failed" });
+    } finally {
+      running.current = false;
     }
   }
 
@@ -100,8 +109,10 @@ export function ArchiveBlock({ last, actions }: { last: { date: IsoDate; days: n
       <p className={`text-sm ${last?.stale || !last ? "font-semibold text-on-alert" : "text-muted"}`}>
         {last ? t("archive.last", { date: formatIsoDate(last.date), ago: t("card.daysAgo", { count: last.days }) }) : t("archive.never")}
       </p>
-      <button type="button" onClick={download} disabled={busy} className={`${ui.button} disabled:opacity-60`}>
-        {status.step === "clients"
+      <button type="button" onClick={download} disabled={busy} aria-busy={busy} className={`${ui.button} disabled:cursor-wait disabled:opacity-50`}>
+        {status.step === "starting"
+          ? t("archive.starting")
+          : status.step === "clients"
           ? t("archive.preparing", { done: status.done, total: status.total })
           : status.step === "packing"
             ? t("archive.packing")

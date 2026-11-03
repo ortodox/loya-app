@@ -627,6 +627,7 @@
     "saved": "Archive saved ✓ Check your «Downloads» folder.",
     "missingFiles": "Files that could not be downloaded: {count}. Try again later.",
     "failed": "Could not create the archive. Please try again.",
-    "hint": "Best on a computer. Keep the archive in a safe place without access for others – it contains health data."
+    "hint": "Best on a computer. Keep the archive in a safe place without access for others – it contains health data.",
+    "starting": "Preparing archive…"
   }
 }

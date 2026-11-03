@@ -627,6 +627,7 @@
     "saved": "Archiwum zapisane ✓ Sprawdź folder «Pobrane».",
     "missingFiles": "Nie udało się pobrać plików: {count}. Spróbuj ponownie później.",
     "failed": "Nie udało się utworzyć archiwum. Spróbuj ponownie.",
-    "hint": "Najlepiej na komputerze. Przechowuj archiwum w bezpiecznym miejscu, bez dostępu innych – zawiera dane o zdrowiu."
+    "hint": "Najlepiej na komputerze. Przechowuj archiwum w bezpiecznym miejscu, bez dostępu innych – zawiera dane o zdrowiu.",
+    "starting": "Przygotowanie archiwum…"
   }
 }
