@@ -1,4 +1,5 @@
 import { createClient } from "@/data/supabase/server";
+import { supabaseArchiveLogRepository } from "./archive-log-supabase";
 import { supabaseCatalogRepository } from "./catalog-supabase";
 import { supabaseCareRepository } from "./care-supabase";
 import { supabaseClientPhotoRepository } from "./client-photos-supabase";
@@ -48,4 +49,8 @@ export async function clientPhotoRepository() {
 
 export async function clientTrashRepository() {
   return supabaseClientTrashRepository(await createClient());
+}
+
+export async function archiveLogRepository() {
+  return supabaseArchiveLogRepository(await createClient());
 }
