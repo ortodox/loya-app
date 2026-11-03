@@ -611,5 +611,12 @@
     "row": "🎂 Birthday today",
     "card": "🎂 Birthday today",
     "cardWithAge": "🎂 Birthday today · {age}"
+  },
+  "archive": {
+    "title": "LOA – archive",
+    "created": "Archive created {date} · data as of this day",
+    "readOnly": "Read-only backup. Opens without internet and without the app.",
+    "back": "‹ All clients",
+    "lastVisit": "last visit {date}"
   }
 }

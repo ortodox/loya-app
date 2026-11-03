@@ -89,8 +89,19 @@ export async function getClientCard(
 ): Promise<ClientCard | null> {
   if (!uuid.test(id)) return null;
   const client = await repo.get(id);
-  if (!client) return null;
-  return { client, age: currentAge(client, today), alerts: safetyAlerts(client.anamnesis), botox: botoxSince(client, today), birthday: isBirthday(client.birthDate, today), reminder: reminderStatus(client.openReminders ?? [], today) };
+  return client ? clientCard(client, today) : null;
+}
+
+/** AG1/AL2/BO1/BD1/N7: what the top of the card shows – also used by the archive (EX1). */
+export function clientCard(client: Client, today: IsoDate): ClientCard {
+  return {
+    client,
+    age: currentAge(client, today),
+    alerts: safetyAlerts(client.anamnesis),
+    botox: botoxSince(client, today),
+    birthday: isBirthday(client.birthDate, today),
+    reminder: reminderStatus(client.openReminders ?? [], today),
+  };
 }
 
 export type SaveClientResult =
