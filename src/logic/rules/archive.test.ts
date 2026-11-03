@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { archiveFilePath, archiveFolderName, clientPagePath, fromClientPage, indexLetter, sortByName } from "./archive";
+import { archiveAge, archiveFilePath, archiveFolderName, clientPagePath, fromClientPage, indexLetter, sortByName } from "./archive";
 
 describe("EX1: архив в HTML", () => {
   it("EX1: one folder per backup, one page per client", () => {
@@ -22,5 +22,14 @@ describe("EX1: архив в HTML", () => {
     expect(sorted.map((c) => c.fullName)).toEqual(["анна", "Вера", "Ёлка", "Яна"]);
     expect(indexLetter("анна")).toBe("А");
     expect(indexLetter(" 7 клиент")).toBe("#");
+  });
+});
+
+describe("EX1: последний архив", () => {
+  it("EX1: days since the last archive, red after 14 days, none = never made", () => {
+    expect(archiveAge(null, "2026-11-03")).toBeNull();
+    expect(archiveAge("2026-11-03", "2026-11-03")).toEqual({ date: "2026-11-03", days: 0, stale: false });
+    expect(archiveAge("2026-10-20", "2026-11-03")).toEqual({ date: "2026-10-20", days: 14, stale: false });
+    expect(archiveAge("2026-10-19", "2026-11-03")).toEqual({ date: "2026-10-19", days: 15, stale: true });
   });
 });

@@ -617,6 +617,16 @@
     "created": "Archiwum utworzone {date} · dane na ten dzień",
     "readOnly": "Kopia zapasowa tylko do odczytu. Otwiera się bez internetu i bez aplikacji.",
     "back": "‹ Wszyscy klienci",
-    "lastVisit": "ostatnia wizyta {date}"
+    "lastVisit": "ostatnia wizyta {date}",
+    "blockTitle": "Kopia zapasowa",
+    "last": "Ostatnie archiwum: {date} ({ago})",
+    "never": "Archiwum jeszcze nie zostało utworzone.",
+    "download": "⬇ Pobierz archiwum",
+    "preparing": "Przygotowanie archiwum… {done} z {total}",
+    "packing": "Pakowanie archiwum…",
+    "saved": "Archiwum zapisane ✓ Sprawdź folder «Pobrane».",
+    "missingFiles": "Nie udało się pobrać plików: {count}. Spróbuj ponownie później.",
+    "failed": "Nie udało się utworzyć archiwum. Spróbuj ponownie.",
+    "hint": "Najlepiej na komputerze. Przechowuj archiwum w bezpiecznym miejscu, bez dostępu innych – zawiera dane o zdrowiu."
   }
 }

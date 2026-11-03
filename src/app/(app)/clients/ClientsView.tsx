@@ -4,11 +4,22 @@ import { BrandMark } from "@/app/components/Brand";
 import { LanguageSelect } from "@/app/components/LanguageSelect";
 import { SignOutButton } from "@/app/components/SignOutButton";
 import { ui } from "@/app/components/ui";
+import type { IsoDate } from "@/logic/client";
 import type { ClientSummary } from "@/logic/usecases/clients";
+import { archiveClientAction, archiveSavedAction, archiveStartAction } from "./archive-actions";
+import { ArchiveBlock, type ArchiveActions } from "./ArchiveBlock";
 import { ClientList } from "./ClientList";
 
-export async function ClientsView(props: { clients: ClientSummary[]; deletedCount?: number; pictureUrls?: Record<string, string> }) {
-  const { clients, deletedCount = 0, pictureUrls = {} } = props;
+export async function ClientsView(props: {
+  clients: ClientSummary[];
+  deletedCount?: number;
+  pictureUrls?: Record<string, string>;
+  /** EX1: «Последний архив»; undefined = the block is not shown. */
+  archive?: { date: IsoDate; days: number; stale: boolean } | null;
+  archiveActions?: ArchiveActions;
+}) {
+  const { clients, deletedCount = 0, pictureUrls = {}, archive } = props;
+  const archiveActions = props.archiveActions ?? { start: archiveStartAction, client: archiveClientAction, saved: archiveSavedAction };
   const t = await getTranslations("clients");
   const tt = await getTranslations("trash");
 
@@ -25,6 +36,8 @@ export async function ClientsView(props: { clients: ClientSummary[]; deletedCoun
         <p className={ui.muted}>{t("count", { count: clients.length })}</p>
       </div>
       <ClientList clients={clients} pictureUrls={pictureUrls} />
+      {/* EX1: the backup for people – rarely used, so at the bottom. */}
+      {archive !== undefined && clients.length > 0 && <ArchiveBlock last={archive} actions={archiveActions} />}
       {/* PR6: deleted clients can be restored for 30 days. */}
       {deletedCount > 0 && (
         <Link href="/clients/deleted" className={`${ui.textButton} self-start text-sm`}>

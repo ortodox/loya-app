@@ -1,4 +1,5 @@
 import type { IsoDate } from "@/logic/client";
+import { daysBetween } from "./dates";
 
 /** EX1: the two private Storage buckets whose files are copied into the archive. */
 export type ArchiveBucket = "visit-photos" | "client-documents";
@@ -40,4 +41,14 @@ export function sortByName<T extends { fullName: string }>(clients: readonly T[]
 export function indexLetter(fullName: string): string {
   const first = fullName.trim().charAt(0).toLocaleUpperCase("ru");
   return /\p{L}/u.test(first) ? first : "#";
+}
+
+/** EX1: the archive is old after this many days – the date at the bottom of the list turns red. */
+export const archiveStaleAfterDays = 14;
+
+/** EX1: «Последний архив: 03.11.2026 (7 дней назад)», red when older than 14 days; null = never made. */
+export function archiveAge(date: IsoDate | null, today: IsoDate): { date: IsoDate; days: number; stale: boolean } | null {
+  if (!date) return null;
+  const days = Math.max(0, daysBetween(date, today));
+  return { date, days, stale: days > archiveStaleAfterDays };
 }

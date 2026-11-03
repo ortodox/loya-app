@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Client, Visit } from "@/logic/client";
 import type { TreatmentCourse } from "@/logic/course";
 import type { ArchiveDeps } from "./archive";
-import { collectArchive } from "./archive";
+import { collectArchive, getArchiveClient, lastArchiveDate, listArchiveClients, recordArchive } from "./archive";
 
 const today = "2026-11-03";
 const client = (id: string, fullName: string, extra: Partial<Client> = {}) =>
@@ -49,5 +49,28 @@ describe("EX1: архив в HTML", () => {
       { bucket: "visit-photos", storagePath: "d/client-photos/a/f.jpg", archivePath: "filer/visit-photos/client-photos/a/f.jpg" },
       { bucket: "client-documents", storagePath: "d/a/x.pdf", archivePath: "filer/client-documents/a/x.pdf" },
     ]);
+  });
+});
+
+describe("EX1: «Скачать архив» по одному клиенту", () => {
+  const ids = { a: "aaaaaaaa-0000-4000-8000-000000000001" };
+  it("EX1: the list A–Я, then one client with her files; unknown ids give nothing", async () => {
+    const d = deps();
+    expect(await listArchiveClients(d.clients)).toEqual([{ id: "a", fullName: "Анна Выдуманная" }, { id: "b", fullName: "Яна Пример" }]);
+    const real = { ...d, clients: { ...d.clients, get: async (id: string) => (id === ids.a ? (await d.clients.list()).find((c) => c.id === "a")! : null) } } as ArchiveDeps;
+    expect(await getArchiveClient(real, "nope", today)).toBeNull();
+    expect(await getArchiveClient(real, "bbbbbbbb-0000-4000-8000-000000000009", today)).toBeNull();
+    const one = await getArchiveClient(real, ids.a, today);
+    expect(one?.client.card.client.fullName).toBe("Анна Выдуманная");
+    expect(one?.client.visits.map((v) => v.id)).toEqual(["v2", "v1"]);
+    expect(one?.files.map((f) => f.archivePath)).toContain("filer/visit-photos/v1/p1.jpg");
+  });
+
+  it("EX1: the last archive date in Warsaw time, and saving it", async () => {
+    const saved: string[] = [];
+    const log = { lastDownload: async () => saved.at(-1) ?? null, recordDownload: async () => void saved.push("2026-11-02T23:30:00Z") };
+    expect(await lastArchiveDate(log, "Europe/Warsaw")).toBeNull();
+    await recordArchive(log);
+    expect(await lastArchiveDate(log, "Europe/Warsaw")).toBe("2026-11-03");
   });
 });

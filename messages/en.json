@@ -617,6 +617,16 @@
     "created": "Archive created {date} · data as of this day",
     "readOnly": "Read-only backup. Opens without internet and without the app.",
     "back": "‹ All clients",
-    "lastVisit": "last visit {date}"
+    "lastVisit": "last visit {date}",
+    "blockTitle": "Backup",
+    "last": "Last archive: {date} ({ago})",
+    "never": "No archive has been made yet.",
+    "download": "⬇ Download archive",
+    "preparing": "Preparing archive… {done} of {total}",
+    "packing": "Packing archive…",
+    "saved": "Archive saved ✓ Check your «Downloads» folder.",
+    "missingFiles": "Files that could not be downloaded: {count}. Try again later.",
+    "failed": "Could not create the archive. Please try again.",
+    "hint": "Best on a computer. Keep the archive in a safe place without access for others – it contains health data."
   }
 }
