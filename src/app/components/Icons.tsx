@@ -50,3 +50,30 @@ export function FaceIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+/** Tab icon «Сегодня»: a calendar page. */
+export function TodayIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden className={`size-6 ${className ?? ""}`} fill="none">
+      <rect x="3.75" y="5" width="16.5" height="15.25" rx="2.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M3.75 9.75h16.5M8 3v3.5M16 3v3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M8.5 14.5h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** Tab icon ⚙ (settings, icon only). */
+export function SettingsIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden className={`size-6 ${className ?? ""}`} fill="none">
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M12 2.75v2.1M12 19.15v2.1M21.25 12h-2.1M4.85 12h-2.1M18.54 5.46l-1.49 1.49M6.95 17.05l-1.49 1.49M18.54 18.54l-1.49-1.49M6.95 6.95 5.46 5.46"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <circle cx="12" cy="12" r="6.5" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}

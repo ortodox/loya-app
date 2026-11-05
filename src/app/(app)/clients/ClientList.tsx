@@ -18,15 +18,6 @@ export function ClientList({ clients, pictureUrls = {} }: { clients: ClientSumma
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Direction | null>(null);
   const shown = clients.filter((c) => matchesFilter(c, filter) && matchesClient(c, query));
-  // N13 (part): who comes today and tomorrow, above the search.
-  const agenda = (["today", "tomorrow"] as const)
-    .map((day) => ({ day, clients: clients.filter((c) => c.agenda === day) }))
-    .filter((g) => g.clients.length > 0);
-  // N7: «⏰ Пора» – reminders that have come, until «Готово» in the card.
-  const due = clients.filter((c) => c.reminderDue !== null);
-  // BD1: birthdays today.
-  const birthdays = clients.filter((c) => c.birthday);
-
   if (clients.length === 0) {
     return (
       <div className={`${card.surface} flex flex-col items-center gap-4 px-5 py-12 text-center`}>
@@ -40,52 +31,6 @@ export function ClientList({ clients, pictureUrls = {} }: { clients: ClientSumma
 
   return (
     <>
-      {(agenda.length > 0 || due.length > 0 || birthdays.length > 0) && (
-        <section aria-label={t("clients.agendaLabel")} className={`${card.surface} flex flex-col gap-3 p-4`}>
-          {birthdays.length > 0 && (
-            <div className="flex flex-col gap-1.5">
-              <h2 className="text-sm font-semibold text-muted">
-                {t("birthday.group")} · {birthdays.length}
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {birthdays.map((c) => (
-                  <Link key={c.id} href={`/clients/${c.id}`} className={`${pill.base} ${pill.off}`}>
-                    {c.fullName}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-          {due.length > 0 && (
-            <div className="flex flex-col gap-1.5">
-              <h2 className="text-sm font-semibold text-muted">
-                {t("reminders.dueGroup")} · {due.length}
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {due.map((c) => (
-                  <Link key={c.id} href={`/clients/${c.id}`} className={`${pill.base} ${pill.off}`}>
-                    {c.fullName}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-          {agenda.map((g) => (
-            <div key={g.day} className="flex flex-col gap-1.5">
-              <h2 className="text-sm font-semibold text-muted">
-                {t(`clients.${g.day}`)} · {g.clients.length}
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {g.clients.map((c) => (
-                  <Link key={c.id} href={`/clients/${c.id}`} className={`${pill.base} ${g.day === "today" ? pill.on : pill.off}`}>
-                    {c.fullName}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))}
-        </section>
-      )}
       <input
         type="search"
         enterKeyHint="search"
@@ -131,7 +76,8 @@ export function ClientList({ clients, pictureUrls = {} }: { clients: ClientSumma
                 {/* BD1: birthday today. */}
                 {c.birthday && <span className="text-sm font-semibold text-ink">{t("birthday.row")}</span>}
                 {/* N7: time for the next procedure. */}
-                {c.reminderDue && <span className="text-sm font-semibold text-ink">{t("reminders.dueRow")}</span>}
+                {/* N7: the row stays as before – the procedures are in the summary at the top. */}
+                {c.dueReminders.length > 0 && <span className="text-sm font-semibold text-ink">{t("reminders.dueRow")}</span>}
                 {/* VP2: the next appointment. */}
                 {c.nextVisitDate && (
                   <span className="text-sm font-medium text-accent">{t("clients.nextVisit", { date: formatDayMonth(c.nextVisitDate) })}</span>

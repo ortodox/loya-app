@@ -154,16 +154,17 @@ export function supabaseVisitRepository(supabase: SupabaseClient): VisitReposito
       if (error) throw error;
     },
 
-    async markRemindersDone(clientId, today, at) {
+    async markReminderDone(clientId, visitId, today, at) {
       const { data, error } = await supabase
         .from("visits")
         .update({ reminder_done_at: at })
+        .eq("id", visitId)
         .eq("client_id", clientId)
         .lte("remind_on", today)
         .is("reminder_done_at", null)
         .select("id");
       if (error) throw error;
-      return data.length;
+      return data.length > 0;
     },
   };
 }

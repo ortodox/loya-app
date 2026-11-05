@@ -10,6 +10,6 @@ export interface VisitRepository {
   delete(id: string): Promise<boolean>;
   addPhoto(visitId: string, storagePath: string, sortOrder: number): Promise<void>;
   removePhotos(visitId: string, photoIds: string[]): Promise<void>;
-  /** N7: «Готово» – every reminder of the client that is due by `today`; returns how many. */
-  markRemindersDone(clientId: string, today: IsoDate, at: string): Promise<number>;
+  /** N7 ✏️: «Готово» for one reminder (one visit of the client) that is due by `today`; false when not. */
+  markReminderDone(clientId: string, visitId: string, today: IsoDate, at: string): Promise<boolean>;
 }

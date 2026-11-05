@@ -13,7 +13,7 @@ export async function DeletedClientsView({ deleted, failed }: { deleted: Deleted
   const t = await getTranslations("trash");
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 px-5 pt-2 pb-6">
-      <Link href="/clients" className={`${ui.textButton} self-start`}>
+      <Link href="/settings" className={`${ui.textButton} self-start`}>
         {t("back")}
       </Link>
       <div className="flex flex-col gap-1">

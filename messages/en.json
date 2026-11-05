@@ -392,7 +392,10 @@
   "tabs": {
     "label": "Sections",
     "clients": "Clients",
-    "preparations": "Preparations"
+    "preparations": "Preparations",
+    "today": "Today",
+    "settings": "Settings",
+    "withCount": "{tab}: {count, plural, one {# client waiting} other {# clients waiting}}"
   },
   "draft": {
     "restored": "Unsaved draft restored.",
@@ -576,7 +579,7 @@
     "failed": "Could not delete. Please try again.",
     "link": "{count, plural, one {Deleted clients (#)} other {Deleted clients (#)}}",
     "title": "Deleted clients",
-    "back": "‹ Clients",
+    "back": "‹ Settings",
     "hint": "After 30 days a client is deleted for good with visits, photos and documents. Until then it can be restored.",
     "empty": "No deleted clients.",
     "deletedOn": "Deleted: {date}",
@@ -598,13 +601,26 @@
     },
     "ownDate": "Reminder date",
     "willRemind": "I'll remind you on {date} – «⏰ Due» in the client list.",
-    "due": "⏰ Time for the next procedure",
-    "dueSince": "Reminder since {date}",
-    "dueGroup": "⏰ Due",
+    "due": "⏰ {types}",
+    "dueGroup": "{type}",
     "dueRow": "⏰ Time for a procedure",
     "next": "⏰ Reminder: {date}",
     "done": "Done",
-    "doneFailed": "Failed."
+    "doneFailed": "Failed.",
+    "procedure": "Procedure",
+    "short": {
+      "BT-01": "Botox",
+      "BT-02": "Fillers",
+      "BT-03": "Biorevitalisation",
+      "BT-04": "Bioreparation",
+      "BT-05": "Mesotherapy",
+      "BT-06": "Exosomes",
+      "BT-07": "Peel",
+      "BT-08": "Cleansing",
+      "BT-09": "PRP",
+      "BT-10": "Collagen stimulation"
+    },
+    "since": "since {date}"
   },
   "birthday": {
     "group": "🎂 Birthday",
@@ -629,5 +645,16 @@
     "failed": "Could not create the archive. Please try again.",
     "hint": "Best on a computer. Keep the archive in a safe place without access for others – it contains health data.",
     "starting": "Preparing archive…"
+  },
+  "today": {
+    "title": "Today",
+    "empty": "Nothing waiting today.",
+    "due": "⏰ Due",
+    "agenda": "Appointments",
+    "birthdays": "Birthdays"
+  },
+  "settings": {
+    "title": "Settings",
+    "noDeleted": "No deleted clients."
   }
 }

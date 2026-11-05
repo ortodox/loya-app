@@ -2,6 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Anamnesis, Client, ClientInput } from "@/logic/client";
 import { botoxTypeCode } from "@/logic/rules/botox";
 import { parseDirection } from "@/logic/rules/courses";
+import { uniqueTypes } from "@/logic/rules/reminders";
+import type { Localized } from "@/logic/catalog";
 import type { ClientRepository } from "./clients";
 import { isLocale } from "@/logic/locale";
 
@@ -25,15 +27,16 @@ type ClientRow = {
   care_updated_at: string | null;
   updated_at: string;
   // PostgREST returns the type as one object (many-to-one); without generated types it is typed as a list.
-  visits?: { visit_date: string; remind_on?: string | null; reminder_done_at?: string | null; visit_items?: { procedure_types: TypeCode | TypeCode[] | null }[] }[];
+  visits?: { id?: string; visit_date: string; remind_on?: string | null; reminder_done_at?: string | null; visit_items?: { procedure_types: TypeCode | TypeCode[] | null }[] }[];
   treatment_courses?: { status: "active" | "completed"; start_date: string; end_date: string }[];
   main_photo_id?: string | null;
   // FK6: many-to-one – one object, typed loosely like the type codes above.
   main_photo?: { storage_path: string } | { storage_path: string }[] | null;
 };
 
-type TypeCode = { code: string | null };
-const codes = (t: TypeCode | TypeCode[] | null) => (Array.isArray(t) ? t : t ? [t] : []).map((x) => x.code);
+type TypeCode = { id?: string; code: string | null; name?: Localized | null };
+const typesOf = (t: TypeCode | TypeCode[] | null) => (Array.isArray(t) ? t : t ? [t] : []);
+const codes = (t: TypeCode | TypeCode[] | null) => typesOf(t).map((x) => x.code);
 
 const columns =
   "id, full_name, card_date, age_at_registration, birth_date, phone, email, residence_country, residence_city, language, anamnesis, notes, procedure_plan, anamnesis_confirmed_at, direction, care_text, care_updated_at, main_photo_id, updated_at";
@@ -58,7 +61,20 @@ function toClient(row: ClientRow): Client {
     botoxDates: (row.visits ?? [])
       .filter((v) => (v.visit_items ?? []).some((i) => codes(i.procedure_types).includes(botoxTypeCode)))
       .map((v) => v.visit_date),
-    openReminders: (row.visits ?? []).flatMap((v) => (v.remind_on && !v.reminder_done_at ? [v.remind_on] : [])),
+    // N7 ✏️: each open reminder with the procedure types of its visit («⏰ Ботокс»).
+    openReminders: (row.visits ?? []).flatMap((v) =>
+      v.id && v.remind_on && !v.reminder_done_at
+        ? [
+            {
+              visitId: v.id,
+              remindOn: v.remind_on,
+              types: uniqueTypes(
+                (v.visit_items ?? []).flatMap((i) => typesOf(i.procedure_types)).flatMap((x) => (x.id ? [{ id: x.id, code: x.code, name: x.name ?? {} }] : [])),
+              ),
+            },
+          ]
+        : [],
+    ),
     direction: parseDirection(row.direction ?? []),
     careText: row.care_text,
     careUpdatedAt: row.care_updated_at,
@@ -94,7 +110,7 @@ export function supabaseClientRepository(supabase: SupabaseClient): ClientReposi
     // PR6: clients in «Удалённые клиенты» are left out everywhere.
     supabase
       .from("clients")
-      .select(`${columns}, visits(visit_date, remind_on, reminder_done_at, visit_items(procedure_types(code))), treatment_courses(status, start_date, end_date), main_photo:client_photos!clients_main_photo_fkey(storage_path)`)
+      .select(`${columns}, visits(id, visit_date, remind_on, reminder_done_at, visit_items(procedure_types(id, code, name))), treatment_courses(status, start_date, end_date), main_photo:client_photos!clients_main_photo_fkey(storage_path)`)
       .is("deleted_at", null);
 
   return {

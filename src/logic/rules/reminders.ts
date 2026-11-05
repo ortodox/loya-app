@@ -1,3 +1,4 @@
+import type { Localized } from "@/logic/catalog";
 import type { IsoDate } from "@/logic/client";
 import { addDays, addMonths, isIsoDate } from "./dates";
 
@@ -33,13 +34,47 @@ export function parseReminder(form: ReminderForm, visitDate: IsoDate): { ok: tru
   return { ok: false };
 }
 
+/** N7 ✏️: the procedure type of the visit the reminder was set in («Ботокс», «Биоревитализация»…). */
+export type ReminderType = { id: string; code: string | null; name: Localized };
+
+/** N7: a reminder that is not «Готово» yet – one per visit, with the visit's procedure types. */
+export type OpenReminder = { visitId: string; remindOn: IsoDate; types: ReminderType[] };
+
 /**
- * N7: «⏰ Пора» from the reminder day until «Готово» – the earliest open reminder that is due, and
- * the next one still to come.
+ * N7: «⏰ Пора» from the reminder day until «Готово» – every reminder that has come (oldest first,
+ * each closed on its own), and the next one still to come.
  */
-export function reminderStatus(openReminders: readonly IsoDate[], today: IsoDate): { due: IsoDate | null; next: IsoDate | null } {
-  const sorted = [...openReminders].sort();
-  return { due: sorted.find((d) => d <= today) ?? null, next: sorted.find((d) => d > today) ?? null };
+export function reminderStatus(open: readonly OpenReminder[], today: IsoDate): { due: OpenReminder[]; next: IsoDate | null } {
+  const sorted = [...open].sort((a, b) => a.remindOn.localeCompare(b.remindOn));
+  return { due: sorted.filter((r) => r.remindOn <= today), next: sorted.find((r) => r.remindOn > today)?.remindOn ?? null };
+}
+
+/** N7 ✏️: one type once, even when several preparations of the visit share it. */
+export function uniqueTypes(types: readonly ReminderType[]): ReminderType[] {
+  return types.filter((t, i) => types.findIndex((x) => x.id === t.id) === i);
+}
+
+/**
+ * N7 ✏️ (Loya 05.11.2026): «⏰ Пора» at the top of the list grouped by procedure type – «Ботокс» first,
+ * then the catalogue order (BT-01 … BT-10), own types by name, a visit without preparations last
+ * («Процедура», type null). A client is listed once per type.
+ */
+export function dueByType<C extends { id: string; dueReminders: readonly OpenReminder[] }>(
+  clients: readonly C[],
+): { type: ReminderType | null; clients: C[] }[] {
+  const groups = new Map<string, { type: ReminderType | null; clients: C[] }>();
+  for (const client of clients) {
+    for (const reminder of client.dueReminders) {
+      for (const type of reminder.types.length > 0 ? reminder.types : [null]) {
+        const key = type?.id ?? "none";
+        const group = groups.get(key) ?? { type, clients: [] };
+        if (!group.clients.some((c) => c.id === client.id)) group.clients.push(client);
+        groups.set(key, group);
+      }
+    }
+  }
+  const rank = (t: ReminderType | null) => (t === null ? "3" : t.code ? `1${t.code}` : `2${t.name.ru ?? ""}`);
+  return [...groups.values()].sort((a, b) => rank(a.type).localeCompare(rank(b.type)));
 }
 
 /** N7: a changed reminder date starts again (not done); the same date keeps «Готово». */

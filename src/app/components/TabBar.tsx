@@ -4,18 +4,20 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { activeTab, showTabBar, tabs, type TabKey } from "@/config/navigation";
-import { ClientsIcon, PreparationsIcon } from "./Icons";
+import { ClientsIcon, PreparationsIcon, SettingsIcon, TodayIcon } from "./Icons";
 
 const icons: Record<TabKey, (p: { className?: string }) => React.ReactNode> = {
+  today: TodayIcon,
   clients: ClientsIcon,
   preparations: PreparationsIcon,
+  settings: SettingsIcon,
 };
 
 /**
  * iOS-style tab bar at the bottom of the main pages (not in forms). The spacer keeps the last
  * content above the bar; the home indicator area is added via --safe-bottom (globals.css).
  */
-export function TabBar() {
+export function TabBar({ badges = {} }: { badges?: Partial<Record<TabKey, number>> }) {
   const t = useTranslations("tabs");
   const pathname = usePathname();
   if (!showTabBar(pathname)) return null;
@@ -32,17 +34,32 @@ export function TabBar() {
           {tabs.map((tab) => {
             const Icon = icons[tab.key];
             const active = tab.key === current;
+            // TD1: «Сегодня ③» – how many clients wait today; nothing when 0.
+            const badge = badges[tab.key] ?? 0;
+            const label = badge > 0 ? t("withCount", { tab: t(tab.key), count: badge }) : t(tab.key);
             return (
               <li key={tab.key}>
                 <Link
                   href={tab.href}
                   aria-current={active ? "page" : undefined}
+                  aria-label={label}
                   className={`flex h-full min-h-11 flex-col items-center justify-center gap-0.5 text-xs font-medium ${
                     active ? "text-accent" : "text-muted"
                   }`}
                 >
-                  <Icon />
-                  {t(tab.key)}
+                  <span className="relative">
+                    <Icon />
+                    {badge > 0 && (
+                      <span
+                        aria-hidden
+                        className="absolute -top-1.5 -right-3 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[11px] leading-none font-semibold text-on-primary"
+                      >
+                        {badge > 99 ? "99+" : badge}
+                      </span>
+                    )}
+                  </span>
+                  {/* ⚙: icon only – the name is in aria-label. */}
+                  {!tab.iconOnly && <span aria-hidden>{t(tab.key)}</span>}
                 </Link>
               </li>
             );
