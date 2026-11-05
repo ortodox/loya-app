@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest";
 import { activeTab, showTabBar, tabs } from "./navigation";
 
 describe("UI1: навигация – панель вкладок", () => {
-  it("UI1: has the tabs «Клиенты» and «Препараты» in that order", () => {
-    expect(tabs.map((t) => t.key)).toEqual(["clients", "preparations"]);
+  it("UI1/TD1: has the tabs «Сегодня», «Клиенты», «Препараты» and ⚙ in that order; ⚙ is icon only", () => {
+    expect(tabs.map((t) => t.key)).toEqual(["today", "clients", "preparations", "settings"]);
+    expect(tabs.filter((t) => t.iconOnly).map((t) => t.key)).toEqual(["settings"]);
   });
 
   it("UI1: highlights the tab of the current section", () => {
@@ -11,12 +12,14 @@ describe("UI1: навигация – панель вкладок", () => {
     expect(activeTab("/clients/00000000-0000-4000-8000-000000000001")).toBe("clients");
     expect(activeTab("/catalog")).toBe("preparations");
     expect(activeTab("/catalog/types/x")).toBe("preparations");
+    expect(activeTab("/today")).toBe("today");
+    expect(activeTab("/settings")).toBe("settings");
     expect(activeTab("/clientsx")).toBeNull();
     expect(activeTab("/login")).toBeNull();
   });
 
   it("UI1: shows the tab bar on main pages only, not in forms", () => {
-    for (const path of ["/clients", "/clients/abc", "/catalog", "/catalog/types/abc", "/catalog/preparations/abc"]) {
+    for (const path of ["/today", "/clients", "/clients/abc", "/catalog", "/catalog/types/abc", "/catalog/preparations/abc", "/settings"]) {
       expect(showTabBar(path)).toBe(true);
     }
     for (const path of [

@@ -5,6 +5,7 @@ import { agendaDay, lastActivityDate, notesExcerpt, sortNewestFirst, visitTimeli
 import { mergeAnamnesisSection, type AnamnesisForm } from "@/logic/rules/anamnesis";
 import { lastBotoxDate, timeSince, type Elapsed } from "@/logic/rules/botox";
 import { reminderStatus, type OpenReminder } from "@/logic/rules/reminders";
+import { todayCount } from "@/logic/rules/today";
 import { safetyAlerts, type SafetyAlert } from "@/logic/rules/safety-alert";
 import { chosenDirection, treatmentStatus, type TreatmentStatus } from "@/logic/rules/courses";
 import type { Direction } from "@/logic/course";
@@ -67,6 +68,11 @@ export async function listClients(repo: ClientRepository, today: IsoDate): Promi
     photoPath: c.mainPhotoPath ?? null,
     botox: botoxSince(c, today),
   }));
+}
+
+/** TD1: the number on the tab «Сегодня ③» – clients waiting for something today. */
+export async function countToday(repo: ClientRepository, today: IsoDate): Promise<number> {
+  return todayCount(await listClients(repo, today));
 }
 
 export type ClientCard = {

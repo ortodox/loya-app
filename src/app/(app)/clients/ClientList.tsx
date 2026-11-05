@@ -1,15 +1,12 @@
 "use client";
 
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
 import { ClientPicture } from "@/app/components/ClientPicture";
 import { elapsedText } from "@/app/components/elapsed";
 import { card, pill, ui } from "@/app/components/ui";
 import { thumbUrl } from "@/logic/rules/thumbnails";
-import { dueByType } from "@/logic/rules/reminders";
-import { reminderTypeLabel } from "@/app/components/reminderType";
-import type { Locale } from "@/config/locales";
 import { directions, type Direction } from "@/logic/course";
 import { matchesFilter, toggleFilter } from "@/logic/rules/courses";
 import { matchesClient } from "@/logic/rules/client-list";
@@ -18,20 +15,9 @@ import type { ClientSummary } from "@/logic/usecases/clients";
 
 export function ClientList({ clients, pictureUrls = {} }: { clients: ClientSummary[]; pictureUrls?: Record<string, string> }) {
   const t = useTranslations();
-  const locale = useLocale() as Locale;
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Direction | null>(null);
   const shown = clients.filter((c) => matchesFilter(c, filter) && matchesClient(c, query));
-  // N13 (part): who comes today and tomorrow, above the search.
-  const agenda = (["today", "tomorrow"] as const)
-    .map((day) => ({ day, clients: clients.filter((c) => c.agenda === day) }))
-    .filter((g) => g.clients.length > 0);
-  // N7 ✏️: «⏰ Ботокс · 2», «⏰ Биоревитализация · 1» – reminders that have come, by procedure type, until «Готово».
-  const due = dueByType(clients);
-  const rt = (key: string) => t(`reminders.${key}`);
-  // BD1: birthdays today.
-  const birthdays = clients.filter((c) => c.birthday);
-
   if (clients.length === 0) {
     return (
       <div className={`${card.surface} flex flex-col items-center gap-4 px-5 py-12 text-center`}>
@@ -45,52 +31,6 @@ export function ClientList({ clients, pictureUrls = {} }: { clients: ClientSumma
 
   return (
     <>
-      {(agenda.length > 0 || due.length > 0 || birthdays.length > 0) && (
-        <section aria-label={t("clients.agendaLabel")} className={`${card.surface} flex flex-col gap-3 p-4`}>
-          {birthdays.length > 0 && (
-            <div className="flex flex-col gap-1.5">
-              <h2 className="text-sm font-semibold text-muted">
-                {t("birthday.group")} · {birthdays.length}
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {birthdays.map((c) => (
-                  <Link key={c.id} href={`/clients/${c.id}`} className={`${pill.base} ${pill.off}`}>
-                    {c.fullName}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-          {due.map((g) => (
-            <div key={g.type?.id ?? "none"} className="flex flex-col gap-1.5">
-              <h2 className="text-sm font-semibold text-muted">
-                {t("reminders.dueGroup", { type: reminderTypeLabel(rt, g.type, locale) })} · {g.clients.length}
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {g.clients.map((c) => (
-                  <Link key={c.id} href={`/clients/${c.id}`} className={`${pill.base} ${pill.off}`}>
-                    {c.fullName}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))}
-          {agenda.map((g) => (
-            <div key={g.day} className="flex flex-col gap-1.5">
-              <h2 className="text-sm font-semibold text-muted">
-                {t(`clients.${g.day}`)} · {g.clients.length}
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {g.clients.map((c) => (
-                  <Link key={c.id} href={`/clients/${c.id}`} className={`${pill.base} ${g.day === "today" ? pill.on : pill.off}`}>
-                    {c.fullName}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))}
-        </section>
-      )}
       <input
         type="search"
         enterKeyHint="search"

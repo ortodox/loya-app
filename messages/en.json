@@ -392,7 +392,10 @@
   "tabs": {
     "label": "Sections",
     "clients": "Clients",
-    "preparations": "Preparations"
+    "preparations": "Preparations",
+    "today": "Today",
+    "settings": "Settings",
+    "withCount": "{tab}: {count, plural, one {# client waiting} other {# clients waiting}}"
   },
   "draft": {
     "restored": "Unsaved draft restored.",
@@ -576,7 +579,7 @@
     "failed": "Could not delete. Please try again.",
     "link": "{count, plural, one {Deleted clients (#)} other {Deleted clients (#)}}",
     "title": "Deleted clients",
-    "back": "‹ Clients",
+    "back": "‹ Settings",
     "hint": "After 30 days a client is deleted for good with visits, photos and documents. Until then it can be restored.",
     "empty": "No deleted clients.",
     "deletedOn": "Deleted: {date}",
@@ -599,7 +602,7 @@
     "ownDate": "Reminder date",
     "willRemind": "I'll remind you on {date} – «⏰ Due» in the client list.",
     "due": "⏰ {types}",
-    "dueGroup": "⏰ {type}",
+    "dueGroup": "{type}",
     "dueRow": "⏰ Time for a procedure",
     "next": "⏰ Reminder: {date}",
     "done": "Done",
@@ -642,5 +645,16 @@
     "failed": "Could not create the archive. Please try again.",
     "hint": "Best on a computer. Keep the archive in a safe place without access for others – it contains health data.",
     "starting": "Preparing archive…"
+  },
+  "today": {
+    "title": "Today",
+    "empty": "Nothing waiting today.",
+    "due": "⏰ Due",
+    "agenda": "Appointments",
+    "birthdays": "Birthdays"
+  },
+  "settings": {
+    "title": "Settings",
+    "noDeleted": "No deleted clients."
   }
 }
