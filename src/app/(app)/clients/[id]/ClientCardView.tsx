@@ -345,7 +345,7 @@ export async function ClientCardView(props: Props) {
                 <p className="text-base font-semibold text-ink">
                   {t("reminders.due", { types: reminderTypesText((key) => t(`reminders.${key}`), [r], locale as Locale) })}
                 </p>
-                <p className="text-sm text-muted">{t("reminders.dueSince", { date: formatIsoDate(r.remindOn) })}</p>
+                <p className="text-sm text-muted">{t("reminders.since", { date: formatIsoDate(r.remindOn) })}</p>
               </div>
               <ReminderDone clientId={id} visitId={r.visitId} />
             </div>

@@ -8,7 +8,7 @@ import { elapsedText } from "@/app/components/elapsed";
 import { card, pill, ui } from "@/app/components/ui";
 import { thumbUrl } from "@/logic/rules/thumbnails";
 import { dueByType } from "@/logic/rules/reminders";
-import { reminderTypeLabel, reminderTypesText } from "@/app/components/reminderType";
+import { reminderTypeLabel } from "@/app/components/reminderType";
 import type { Locale } from "@/config/locales";
 import { directions, type Direction } from "@/logic/course";
 import { matchesFilter, toggleFilter } from "@/logic/rules/courses";
@@ -28,7 +28,7 @@ export function ClientList({ clients, pictureUrls = {} }: { clients: ClientSumma
     .filter((g) => g.clients.length > 0);
   // N7 ✏️: «⏰ Ботокс · 2», «⏰ Биоревитализация · 1» – reminders that have come, by procedure type, until «Готово».
   const due = dueByType(clients);
-  const rt = (key: "botox" | "procedure") => t(`reminders.${key}`);
+  const rt = (key: string) => t(`reminders.${key}`);
   // BD1: birthdays today.
   const birthdays = clients.filter((c) => c.birthday);
 
@@ -136,9 +136,8 @@ export function ClientList({ clients, pictureUrls = {} }: { clients: ClientSumma
                 {/* BD1: birthday today. */}
                 {c.birthday && <span className="text-sm font-semibold text-ink">{t("birthday.row")}</span>}
                 {/* N7: time for the next procedure. */}
-                {c.dueReminders.length > 0 && (
-                  <span className="text-sm font-semibold text-ink">{t("reminders.dueRow", { types: reminderTypesText(rt, c.dueReminders, locale) })}</span>
-                )}
+                {/* N7: the row stays as before – the procedures are in the summary at the top. */}
+                {c.dueReminders.length > 0 && <span className="text-sm font-semibold text-ink">{t("reminders.dueRow")}</span>}
                 {/* VP2: the next appointment. */}
                 {c.nextVisitDate && (
                   <span className="text-sm font-medium text-accent">{t("clients.nextVisit", { date: formatDayMonth(c.nextVisitDate) })}</span>

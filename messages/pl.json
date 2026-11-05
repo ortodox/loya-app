@@ -598,15 +598,26 @@
     },
     "ownDate": "Data przypomnienia",
     "willRemind": "Przypomnę {date} – «⏰ Czas» na liście klientów.",
-    "due": "⏰ Czas: {types}",
-    "dueSince": "Przypomnienie od {date}",
+    "due": "⏰ {types}",
     "dueGroup": "⏰ {type}",
-    "dueRow": "⏰ Czas: {types}",
+    "dueRow": "⏰ Czas na zabieg",
     "next": "⏰ Przypomnieć: {date}",
     "done": "Gotowe",
     "doneFailed": "Nie udało się.",
-    "botox": "Botoks",
-    "procedure": "Zabieg"
+    "procedure": "Zabieg",
+    "short": {
+      "BT-01": "Botoks",
+      "BT-02": "Wypełniacze",
+      "BT-03": "Biorewitalizacja",
+      "BT-04": "Bioreparacja",
+      "BT-05": "Mezoterapia",
+      "BT-06": "Egzosomy",
+      "BT-07": "Peeling",
+      "BT-08": "Oczyszczanie",
+      "BT-09": "PRP",
+      "BT-10": "Stymulacja kolagenu"
+    },
+    "since": "od {date}"
   },
   "birthday": {
     "group": "🎂 Urodziny",

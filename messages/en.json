@@ -598,15 +598,26 @@
     },
     "ownDate": "Reminder date",
     "willRemind": "I'll remind you on {date} – «⏰ Due» in the client list.",
-    "due": "⏰ Due: {types}",
-    "dueSince": "Reminder since {date}",
+    "due": "⏰ {types}",
     "dueGroup": "⏰ {type}",
-    "dueRow": "⏰ Due: {types}",
+    "dueRow": "⏰ Time for a procedure",
     "next": "⏰ Reminder: {date}",
     "done": "Done",
     "doneFailed": "Failed.",
-    "botox": "Botox",
-    "procedure": "Procedure"
+    "procedure": "Procedure",
+    "short": {
+      "BT-01": "Botox",
+      "BT-02": "Fillers",
+      "BT-03": "Biorevitalisation",
+      "BT-04": "Bioreparation",
+      "BT-05": "Mesotherapy",
+      "BT-06": "Exosomes",
+      "BT-07": "Peel",
+      "BT-08": "Cleansing",
+      "BT-09": "PRP",
+      "BT-10": "Collagen stimulation"
+    },
+    "since": "since {date}"
   },
   "birthday": {
     "group": "🎂 Birthday",
