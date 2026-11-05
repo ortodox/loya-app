@@ -1,3 +1,4 @@
+import type { OpenReminder } from "./rules/reminders";
 import type { Locale } from "@/config/locales";
 import type { CourseSummary, Direction } from "./course";
 import type { FaceScheme } from "./face-scheme";
@@ -44,8 +45,8 @@ export type Client = {
   careUpdatedAt: IsoDate | null;
   /** BO1: dates of visits with a botulinum preparation (type «Ботулинотерапия»). */
   botoxDates?: IsoDate[];
-  /** N7: reminder days of the client's visits that are not «Готово» yet. */
-  openReminders?: IsoDate[];
+  /** N7: reminders of the client's visits that are not «Готово» yet, with the visit's procedure types. */
+  openReminders?: OpenReminder[];
   /** FK6: the photo the doctor marked «Главное фото» (null = initials). */
   mainPhotoId?: string | null;
   /** FK6: its file – shown as a round picture in the list and the card. */

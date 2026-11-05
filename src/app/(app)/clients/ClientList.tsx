@@ -1,12 +1,15 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
 import { ClientPicture } from "@/app/components/ClientPicture";
 import { elapsedText } from "@/app/components/elapsed";
 import { card, pill, ui } from "@/app/components/ui";
 import { thumbUrl } from "@/logic/rules/thumbnails";
+import { dueByType } from "@/logic/rules/reminders";
+import { reminderTypeLabel, reminderTypesText } from "@/app/components/reminderType";
+import type { Locale } from "@/config/locales";
 import { directions, type Direction } from "@/logic/course";
 import { matchesFilter, toggleFilter } from "@/logic/rules/courses";
 import { matchesClient } from "@/logic/rules/client-list";
@@ -15,6 +18,7 @@ import type { ClientSummary } from "@/logic/usecases/clients";
 
 export function ClientList({ clients, pictureUrls = {} }: { clients: ClientSummary[]; pictureUrls?: Record<string, string> }) {
   const t = useTranslations();
+  const locale = useLocale() as Locale;
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Direction | null>(null);
   const shown = clients.filter((c) => matchesFilter(c, filter) && matchesClient(c, query));
@@ -22,8 +26,9 @@ export function ClientList({ clients, pictureUrls = {} }: { clients: ClientSumma
   const agenda = (["today", "tomorrow"] as const)
     .map((day) => ({ day, clients: clients.filter((c) => c.agenda === day) }))
     .filter((g) => g.clients.length > 0);
-  // N7: «⏰ Пора» – reminders that have come, until «Готово» in the card.
-  const due = clients.filter((c) => c.reminderDue !== null);
+  // N7 ✏️: «⏰ Ботокс · 2», «⏰ Биоревитализация · 1» – reminders that have come, by procedure type, until «Готово».
+  const due = dueByType(clients);
+  const rt = (key: "botox" | "procedure") => t(`reminders.${key}`);
   // BD1: birthdays today.
   const birthdays = clients.filter((c) => c.birthday);
 
@@ -56,20 +61,20 @@ export function ClientList({ clients, pictureUrls = {} }: { clients: ClientSumma
               </div>
             </div>
           )}
-          {due.length > 0 && (
-            <div className="flex flex-col gap-1.5">
+          {due.map((g) => (
+            <div key={g.type?.id ?? "none"} className="flex flex-col gap-1.5">
               <h2 className="text-sm font-semibold text-muted">
-                {t("reminders.dueGroup")} · {due.length}
+                {t("reminders.dueGroup", { type: reminderTypeLabel(rt, g.type, locale) })} · {g.clients.length}
               </h2>
               <div className="flex flex-wrap gap-2">
-                {due.map((c) => (
+                {g.clients.map((c) => (
                   <Link key={c.id} href={`/clients/${c.id}`} className={`${pill.base} ${pill.off}`}>
                     {c.fullName}
                   </Link>
                 ))}
               </div>
             </div>
-          )}
+          ))}
           {agenda.map((g) => (
             <div key={g.day} className="flex flex-col gap-1.5">
               <h2 className="text-sm font-semibold text-muted">
@@ -131,7 +136,9 @@ export function ClientList({ clients, pictureUrls = {} }: { clients: ClientSumma
                 {/* BD1: birthday today. */}
                 {c.birthday && <span className="text-sm font-semibold text-ink">{t("birthday.row")}</span>}
                 {/* N7: time for the next procedure. */}
-                {c.reminderDue && <span className="text-sm font-semibold text-ink">{t("reminders.dueRow")}</span>}
+                {c.dueReminders.length > 0 && (
+                  <span className="text-sm font-semibold text-ink">{t("reminders.dueRow", { types: reminderTypesText(rt, c.dueReminders, locale) })}</span>
+                )}
                 {/* VP2: the next appointment. */}
                 {c.nextVisitDate && (
                   <span className="text-sm font-medium text-accent">{t("clients.nextVisit", { date: formatDayMonth(c.nextVisitDate) })}</span>

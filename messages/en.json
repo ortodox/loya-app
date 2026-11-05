@@ -598,13 +598,15 @@
     },
     "ownDate": "Reminder date",
     "willRemind": "I'll remind you on {date} – «⏰ Due» in the client list.",
-    "due": "⏰ Time for the next procedure",
+    "due": "⏰ Due: {types}",
     "dueSince": "Reminder since {date}",
-    "dueGroup": "⏰ Due",
-    "dueRow": "⏰ Time for a procedure",
+    "dueGroup": "⏰ {type}",
+    "dueRow": "⏰ Due: {types}",
     "next": "⏰ Reminder: {date}",
     "done": "Done",
-    "doneFailed": "Failed."
+    "doneFailed": "Failed.",
+    "botox": "Botox",
+    "procedure": "Procedure"
   },
   "birthday": {
     "group": "🎂 Birthday",

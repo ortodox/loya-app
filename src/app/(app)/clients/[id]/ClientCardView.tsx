@@ -1,4 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
+import type { Locale } from "@/config/locales";
 import { thumbUrl } from "@/logic/rules/thumbnails";
 import Link from "next/link";
 import { FaceSchemeView } from "@/app/components/face/FaceSchemeView";
@@ -26,6 +27,7 @@ import { ClientPicture } from "@/app/components/ClientPicture";
 import { elapsedText } from "@/app/components/elapsed";
 import { CardActions } from "./CardActions";
 import { ReminderDone } from "./ReminderDone";
+import { reminderTypesText } from "@/app/components/reminderType";
 import { ClientPhotoTimeline } from "./ClientPhotoTimeline";
 import { DeleteClient } from "./DeleteClient";
 import { CoursesSection } from "./CoursesSection";
@@ -286,7 +288,7 @@ export async function ClientCardView(props: Props) {
           </p>
         )}
         {/* N7: the next reminder still to come. */}
-        {data.reminder.next && !data.reminder.due && (
+        {data.reminder.next && data.reminder.due.length === 0 && (
           <p className="text-sm text-muted">{t("reminders.next", { date: formatIsoDate(data.reminder.next) })}</p>
         )}
         {/* DM1: cosmetology and/or dermatology. */}
@@ -334,14 +336,20 @@ export async function ClientCardView(props: Props) {
         </section>
       )}
 
-      {/* N7: «⏰ Пора» from the reminder day until «Готово». */}
-      {data.reminder.due && (
-        <section role="status" className="flex items-center justify-between gap-3 rounded-[18px] border border-accent bg-surface p-4">
-          <div className="flex min-w-0 flex-col">
-            <p className="text-base font-semibold text-ink">{t("reminders.due")}</p>
-            <p className="text-sm text-muted">{t("reminders.dueSince", { date: formatIsoDate(data.reminder.due) })}</p>
-          </div>
-          <ReminderDone clientId={id} />
+      {/* N7 ✏️: «⏰ Пора: Ботокс» from the reminder day – each reminder with its own «Готово». */}
+      {data.reminder.due.length > 0 && (
+        <section role="status" className="flex flex-col divide-y divide-line rounded-[18px] border border-accent bg-surface px-4">
+          {data.reminder.due.map((r) => (
+            <div key={r.visitId} className="flex items-center justify-between gap-3 py-3">
+              <div className="flex min-w-0 flex-col">
+                <p className="text-base font-semibold text-ink">
+                  {t("reminders.due", { types: reminderTypesText((key) => t(`reminders.${key}`), [r], locale as Locale) })}
+                </p>
+                <p className="text-sm text-muted">{t("reminders.dueSince", { date: formatIsoDate(r.remindOn) })}</p>
+              </div>
+              <ReminderDone clientId={id} visitId={r.visitId} />
+            </div>
+          ))}
         </section>
       )}
 

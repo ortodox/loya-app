@@ -256,8 +256,8 @@ export async function deleteVisit(deps: Pick<VisitDeps, "visits" | "photos">, cl
   return deps.visits.delete(visitId);
 }
 
-/** N7: «Готово» – the client's due reminders are done; «⏰ Пора» goes away. */
-export async function completeReminders(repo: VisitRepository, clientId: string, today: IsoDate, now: Date): Promise<boolean> {
-  if (!uuid.test(clientId)) return false;
-  return (await repo.markRemindersDone(clientId, today, now.toISOString())) > 0;
+/** N7 ✏️: «Готово» for one reminder (Loya 05.11.2026: each closed on its own) – the others stay. */
+export async function completeReminder(repo: VisitRepository, clientId: string, visitId: string, today: IsoDate, now: Date): Promise<boolean> {
+  if (!uuid.test(clientId) || !uuid.test(visitId)) return false;
+  return repo.markReminderDone(clientId, visitId, today, now.toISOString());
 }

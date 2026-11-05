@@ -598,13 +598,15 @@
     },
     "ownDate": "Дата нагадування",
     "willRemind": "Нагадаю {date} – «⏰ Час» у списку клієнтів.",
-    "due": "⏰ Час на наступну процедуру",
+    "due": "⏰ Час: {types}",
     "dueSince": "Нагадування з {date}",
-    "dueGroup": "⏰ Час",
-    "dueRow": "⏰ Час на процедуру",
+    "dueGroup": "⏰ {type}",
+    "dueRow": "⏰ Час: {types}",
     "next": "⏰ Нагадати: {date}",
     "done": "Готово",
-    "doneFailed": "Не вдалося."
+    "doneFailed": "Не вдалося.",
+    "botox": "Ботокс",
+    "procedure": "Процедура"
   },
   "birthday": {
     "group": "🎂 День народження",

@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { practiceTimeZone } from "@/config/time";
 import { todayIn } from "@/logic/rules/dates";
 import type { VisitForm, VisitInputErrors, VisitItemForm } from "@/logic/rules/visits";
-import { completeReminders, deleteVisit, saveVisit, type PhotoUpload, type SaveVisitResult } from "@/logic/usecases/visits";
+import { completeReminder, deleteVisit, saveVisit, type PhotoUpload, type SaveVisitResult } from "@/logic/usecases/visits";
 import { visitDeps as deps } from "./deps";
 
 export type VisitFormState = { values: VisitForm; errors?: VisitInputErrors; failed?: boolean };
@@ -83,11 +83,11 @@ export async function deleteVisitAction(clientId: string, visitId: string): Prom
   backToCard(clientId);
 }
 
-/** N7: «Готово» – «⏰ Пора» goes away for this client. */
-export async function completeRemindersAction(clientId: string): Promise<{ ok: boolean }> {
+/** N7 ✏️: «Готово» for one reminder – the client's other reminders stay. */
+export async function completeReminderAction(clientId: string, visitId: string): Promise<{ ok: boolean }> {
   let ok = false;
   try {
-    ok = await completeReminders((await deps()).visits, clientId, todayIn(practiceTimeZone), new Date());
+    ok = await completeReminder((await deps()).visits, clientId, visitId, todayIn(practiceTimeZone), new Date());
   } catch {
     ok = false;
   }

@@ -598,13 +598,15 @@
     },
     "ownDate": "Data przypomnienia",
     "willRemind": "Przypomnę {date} – «⏰ Czas» na liście klientów.",
-    "due": "⏰ Czas na kolejny zabieg",
+    "due": "⏰ Czas: {types}",
     "dueSince": "Przypomnienie od {date}",
-    "dueGroup": "⏰ Czas",
-    "dueRow": "⏰ Czas na zabieg",
+    "dueGroup": "⏰ {type}",
+    "dueRow": "⏰ Czas: {types}",
     "next": "⏰ Przypomnieć: {date}",
     "done": "Gotowe",
-    "doneFailed": "Nie udało się."
+    "doneFailed": "Nie udało się.",
+    "botox": "Botoks",
+    "procedure": "Zabieg"
   },
   "birthday": {
     "group": "🎂 Urodziny",

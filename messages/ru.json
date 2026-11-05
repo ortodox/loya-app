@@ -598,13 +598,15 @@
     },
     "ownDate": "Дата напоминания",
     "willRemind": "Напомню {date} – «⏰ Пора» в списке клиентов.",
-    "due": "⏰ Пора на следующую процедуру",
+    "due": "⏰ Пора: {types}",
     "dueSince": "Напоминание с {date}",
-    "dueGroup": "⏰ Пора",
-    "dueRow": "⏰ Пора на процедуру",
+    "dueGroup": "⏰ {type}",
+    "dueRow": "⏰ Пора: {types}",
     "next": "⏰ Напомнить: {date}",
     "done": "Готово",
-    "doneFailed": "Не удалось."
+    "doneFailed": "Не удалось.",
+    "botox": "Ботокс",
+    "procedure": "Процедура"
   },
   "birthday": {
     "group": "🎂 День рождения",

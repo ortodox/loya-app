@@ -2,10 +2,10 @@
 
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
-import { completeRemindersAction } from "./visits/actions";
+import { completeReminderAction } from "./visits/actions";
 
-/** N7: «Готово» – the reminder is done and «⏰ Пора» goes away. No question asked. */
-export function ReminderDone({ clientId }: { clientId: string }) {
+/** N7 ✏️: «Готово» for one reminder – it goes away, the client's other reminders stay. No question asked. */
+export function ReminderDone({ clientId, visitId }: { clientId: string; visitId: string }) {
   const t = useTranslations("reminders");
   const [failed, setFailed] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -16,7 +16,7 @@ export function ReminderDone({ clientId }: { clientId: string }) {
         disabled={pending}
         onClick={() =>
           startTransition(async () => {
-            const { ok } = await completeRemindersAction(clientId);
+            const { ok } = await completeReminderAction(clientId, visitId);
             setFailed(!ok);
           })
         }
