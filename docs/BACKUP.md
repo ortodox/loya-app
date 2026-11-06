@@ -30,7 +30,8 @@ select taken_at, reason,
        count(*) filter (where table_name = 'client_documents') as dokumenter,
        count(*) filter (where table_name = 'client_photos')    as klientbilder,
        count(*) filter (where table_name = 'procedure_types') as typer,
-       count(*) filter (where table_name = 'preparations')    as preparater
+       count(*) filter (where table_name = 'preparations')    as preparater,
+       count(*) filter (where table_name = 'stock_receipts')  as lagerinnkjop
 from backup.snapshots
 group by taken_at, reason
 order by taken_at desc
@@ -575,6 +576,47 @@ commit;
 - Typer, soner og preparater som ble **lagt til etter** `TIDSPUNKT`, blir liggende. Det samme gjelder soner som ble
   lagt til en type.
 - Når nye kolonner legges til i katalogtabellene, må listene etter `do update set` her oppdateres i samme PR.
+
+## 6c. Gjenopprett lageret («Склад», SK1)
+
+Kopiene inneholder også `stock_items`, `stock_receipts` og `stock_adjustments`. Beholdningen regnes alltid ut på nytt
+fra disse og besøkene, så det holder å legge radene tilbake. Kjør etter 6b hvis katalogen også skal tilbake.
+Rader som finnes fra før, røres ikke.
+
+```sql
+begin;
+
+select backup.take_snapshot('før gjenoppretting av lageret');
+
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.stock_items
+select (jsonb_populate_record(null::public.stock_items, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t and s.table_name = 'stock_items'
+on conflict do nothing;
+
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.stock_receipts
+select (jsonb_populate_record(null::public.stock_receipts, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t and s.table_name = 'stock_receipts'
+on conflict do nothing;
+
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.stock_adjustments
+select (jsonb_populate_record(null::public.stock_adjustments, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t and s.table_name = 'stock_adjustments'
+on conflict do nothing;
+
+commit;
+```
 
 ## 7. Plass og opprydding
 
