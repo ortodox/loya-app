@@ -1,6 +1,7 @@
 import { createClient } from "@/data/supabase/server";
 import { supabaseArchiveLogRepository } from "./archive-log-supabase";
 import { supabaseConsumptionRepository } from "./consumption-supabase";
+import { supabaseStockRepository } from "./stock-supabase";
 import { supabaseCatalogRepository } from "./catalog-supabase";
 import { supabaseCareRepository } from "./care-supabase";
 import { supabaseClientPhotoRepository } from "./client-photos-supabase";
@@ -58,4 +59,8 @@ export async function archiveLogRepository() {
 
 export async function consumptionRepository() {
   return supabaseConsumptionRepository(await createClient());
+}
+
+export async function stockRepository() {
+  return supabaseStockRepository(await createClient());
 }

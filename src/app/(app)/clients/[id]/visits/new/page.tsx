@@ -4,6 +4,8 @@ import type { Locale } from "@/config/locales";
 import { practiceTimeZone } from "@/config/time";
 import { todayIn } from "@/logic/rules/dates";
 import { getVisitFormData } from "@/logic/usecases/visits";
+import { getVisitStock } from "@/logic/usecases/stock";
+import { consumptionRepository, stockRepository } from "@/data/repositories/server";
 import { saveVisitAction } from "../actions";
 import { visitDeps } from "../deps";
 import { visitFormProps } from "../formProps";
@@ -22,6 +24,8 @@ export default async function NewVisitPage({
   const repeating = repeat === "1";
   const data = await getVisitFormData(await visitDeps(), id, null, repeating ? { today } : null);
   if (!data) notFound();
+  // SK1: «В наличии» under «Количество».
+  const stock = await getVisitStock({ stock: await stockRepository(), visits: await consumptionRepository() }, todayIn(practiceTimeZone), null);
   const t = await getTranslations("visits");
   return (
     <main className="mx-auto w-full max-w-2xl px-5 pt-2 pb-8">
@@ -30,6 +34,7 @@ export default async function NewVisitPage({
         cancelHref={`/clients/${id}`}
         {...visitFormProps(data, (await getLocale()) as Locale, today)}
         draftKey={repeating ? `visit:${id}:repeat` : `visit:${id}`}
+        stock={stock}
         action={saveVisitAction.bind(null, id, null)}
       />
     </main>

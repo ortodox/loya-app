@@ -14,6 +14,9 @@ import { consumptionRepository } from "@/data/repositories/server";
 import { monthOf } from "@/logic/rules/consumption";
 import { todayIn } from "@/logic/rules/dates";
 import { getConsumption } from "@/logic/usecases/consumption";
+import { getStockOverview } from "@/logic/usecases/stock";
+import { stockDeps } from "./stock/deps";
+import { StockView } from "./StockView";
 
 export async function CatalogPageView({ overview }: { overview: CatalogOverview }) {
   const t = await getTranslations("catalog");
@@ -48,9 +51,10 @@ export async function CatalogPageView({ overview }: { overview: CatalogOverview 
   );
 }
 
-/** «Препараты»: the catalogue, or RS1 «Расход» (?view=usage&month=2026-11). */
+/** «Препараты»: the catalogue, SK1 «Склад» (?view=stock) or RS1 «Расход» (?view=usage&month=2026-11). */
 export default async function CatalogPage({ searchParams }: { searchParams: Promise<{ view?: string; month?: string }> }) {
   const { view, month } = await searchParams;
+  if (view === "stock") return <StockView lines={await getStockOverview(await stockDeps(), todayIn(practiceTimeZone))} />;
   if (view === "usage") {
     const today = todayIn(practiceTimeZone);
     return <ConsumptionView data={await getConsumption(await consumptionRepository(), month, today)} current={monthOf(today)} />;

@@ -13,6 +13,9 @@ export type ConsumptionItem = {
 
 /** RS1: a visit (done or planned) with its preparations and an open reminder, if any. */
 export type ConsumptionVisit = {
+  /** SK1: the visit, so a visit being edited can leave its own use out of the stock it is checked against. */
+  visitId?: string;
+  createdAt?: string;
   clientId: string;
   visitDate: IsoDate;
   /** N7: an open reminder (not «Готово») set in this visit. */

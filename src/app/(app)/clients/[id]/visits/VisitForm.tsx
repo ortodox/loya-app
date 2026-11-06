@@ -1,6 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { botoxUnits, pieces } from "@/logic/rules/consumption";
+import type { StockKind } from "@/logic/rules/stock";
 import Link from "next/link";
 import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { clearDraft, readDraft, writeDraft } from "@/app/components/draft";
@@ -77,6 +79,8 @@ type Props = {
   draftKey?: string;
   action: (state: VisitFormState, fd: FormData) => Promise<VisitFormState>;
   onDelete?: () => Promise<{ failed: true }>;
+  /** SK1: «В наличии» per preparation kept in stock (without this visit's own use). */
+  stock?: Record<string, { kind: StockKind; available: number }>;
 };
 
 /** VS1 «Новый визит»: date, preparations + quantity, sticker photos, notes, post-procedure advice. */
@@ -342,6 +346,13 @@ export function VisitForm(props: Props) {
                       className={ui.input}
                     />
                     {hint && <span className="text-sm text-muted">{t("visits.quantityHint", { value: hint })}</span>}
+                    {item.preparationId && props.stock?.[item.preparationId] && (
+                      <StockHint
+                        stock={props.stock[item.preparationId]}
+                        quantity={item.quantity}
+                        total={items.filter((x) => x.preparationId === item.preparationId).map((x) => x.quantity)}
+                      />
+                    )}
                   </label>
                 </li>
               );
@@ -576,5 +587,24 @@ function DeleteVisit({ onDelete }: { onDelete: () => Promise<{ failed: true }> }
         </button>
       </div>
     </div>
+  );
+}
+
+/**
+ * SK1: under «Количество» – what is in stock, a warning (saving still works) when the visit takes more,
+ * and for botox without a number that nothing was taken off.
+ */
+function StockHint({ stock, quantity, total }: { stock: { kind: StockKind; available: number }; quantity: string; total: string[] }) {
+  const t = useTranslations("stock");
+  const unit = t(stock.kind === "vials" ? "units" : "pieces");
+  const amount = (q: string) => (stock.kind === "vials" ? botoxUnits(q) : pieces(q)) ?? 0;
+  const used = total.reduce((sum, q) => sum + amount(q), 0);
+  const fmt = (n: number) => String(Math.round(n * 10) / 10).replace(".", ",");
+  return (
+    <span className="flex flex-col text-sm">
+      <span className="text-muted">{t("inStockHint", { amount: fmt(stock.available), unit })}</span>
+      {used > stock.available && <span className="font-semibold text-on-alert">{t("overStock", { amount: fmt(stock.available), unit })}</span>}
+      {stock.kind === "vials" && botoxUnits(quantity) === null && <span className="text-on-alert">{t("notCounted")}</span>}
+    </span>
   );
 }

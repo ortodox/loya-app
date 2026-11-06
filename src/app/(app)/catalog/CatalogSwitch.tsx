@@ -1,10 +1,10 @@
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 
-/** RS1: «Каталог | Расход» at the top of «Препараты» («Склад» joins with SK1). */
-export async function CatalogSwitch({ current }: { current: "catalog" | "usage" }) {
+/** RS1/SK1: «Каталог | Склад | Расход» at the top of «Препараты». */
+export async function CatalogSwitch({ current }: { current: "catalog" | "stock" | "usage" }) {
   const t = await getTranslations("consumption");
-  const item = (key: "catalog" | "usage", href: string) => (
+  const item = (key: "catalog" | "stock" | "usage", href: string) => (
     <Link
       href={href}
       aria-current={current === key ? "page" : undefined}
@@ -12,12 +12,13 @@ export async function CatalogSwitch({ current }: { current: "catalog" | "usage" 
         current === key ? "bg-primary text-on-primary" : "text-ink"
       }`}
     >
-      {t(key === "catalog" ? "viewCatalog" : "viewUsage")}
+      {t(key === "catalog" ? "viewCatalog" : key === "stock" ? "viewStock" : "viewUsage")}
     </Link>
   );
   return (
     <nav aria-label={t("switchLabel")} className="flex gap-1 rounded-[18px] border border-field bg-surface p-1">
       {item("catalog", "/catalog")}
+      {item("stock", "/catalog?view=stock")}
       {item("usage", "/catalog?view=usage")}
     </nav>
   );

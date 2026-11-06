@@ -4,6 +4,8 @@ import type { ConsumptionRepository } from "./consumption";
 
 type TypeRow = { id: string; code: string | null; name: Localized | null };
 type Row = {
+  id: string;
+  created_at: string;
   client_id: string;
   visit_date: string;
   remind_on: string | null;
@@ -19,10 +21,12 @@ export function supabaseConsumptionRepository(supabase: SupabaseClient): Consump
     async listVisits() {
       const { data, error } = await supabase
         .from("visits")
-        .select("client_id, visit_date, remind_on, reminder_done_at, clients!inner(deleted_at), visit_items(preparation_id, preparation_name, quantity, procedure_types(id, code, name))")
+        .select("id, created_at, client_id, visit_date, remind_on, reminder_done_at, clients!inner(deleted_at), visit_items(preparation_id, preparation_name, quantity, procedure_types(id, code, name))")
         .is("clients.deleted_at", null);
       if (error) throw error;
       return (data as unknown as Row[]).map((v) => ({
+        visitId: v.id,
+        createdAt: v.created_at,
         clientId: v.client_id,
         visitDate: v.visit_date,
         remindOn: v.reminder_done_at ? null : v.remind_on,
