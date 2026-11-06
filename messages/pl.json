@@ -656,5 +656,21 @@
   "settings": {
     "title": "Ustawienia",
     "noDeleted": "Brak usuniętych klientów."
+  },
+  "consumption": {
+    "switchLabel": "Sekcja",
+    "viewCatalog": "Katalog",
+    "viewUsage": "Zużycie",
+    "monthLabel": "Miesiąc",
+    "previous": "Poprzedni miesiąc",
+    "next": "Następny miesiąc",
+    "used": "Zużyto",
+    "expected": "Oczekiwane · {month}",
+    "visits": "{count, plural, one {# wizyta} few {# wizyty} many {# wizyt} other {# wizyty}}",
+    "empty": "W tym miesiącu nie użyto preparatów.",
+    "units": "j.",
+    "pieces": "szt.",
+    "unknown": "{count, plural, one {# wpis bez liczby} few {# wpisy bez liczby} many {# wpisów bez liczby} other {# wpisu bez liczby}}",
+    "hint": "~ – w przybliżeniu: według wizyt na następny miesiąc i przypomnień «⏰ Czas». Botoks w jednostkach, pozostałe w sztukach (jedna strzykawka na klienta lub podana liczba)."
   }
 }

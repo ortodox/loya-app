@@ -656,5 +656,21 @@
   "settings": {
     "title": "Settings",
     "noDeleted": "No deleted clients."
+  },
+  "consumption": {
+    "switchLabel": "Section",
+    "viewCatalog": "Catalogue",
+    "viewUsage": "Usage",
+    "monthLabel": "Month",
+    "previous": "Previous month",
+    "next": "Next month",
+    "used": "Used",
+    "expected": "Expected · {month}",
+    "visits": "{count, plural, one {# visit} other {# visits}}",
+    "empty": "No preparations used this month.",
+    "units": "U",
+    "pieces": "pcs",
+    "unknown": "{count, plural, one {# entry without a number} other {# entries without a number}}",
+    "hint": "~ – approximate: from next month's appointments and «⏰ Due» reminders. Botox in units, the rest in pieces (one syringe per client or the number written)."
   }
 }

@@ -7,6 +7,13 @@ import { catalogRepository } from "@/data/repositories/server";
 import { localized } from "@/logic/rules/catalog-settings";
 import { getCatalogOverview, type CatalogOverview } from "@/logic/usecases/catalog";
 import { CatalogView } from "./CatalogView";
+import { CatalogSwitch } from "./CatalogSwitch";
+import { ConsumptionView } from "./ConsumptionView";
+import { practiceTimeZone } from "@/config/time";
+import { consumptionRepository } from "@/data/repositories/server";
+import { monthOf } from "@/logic/rules/consumption";
+import { todayIn } from "@/logic/rules/dates";
+import { getConsumption } from "@/logic/usecases/consumption";
 
 export async function CatalogPageView({ overview }: { overview: CatalogOverview }) {
   const t = await getTranslations("catalog");
@@ -21,6 +28,7 @@ export async function CatalogPageView({ overview }: { overview: CatalogOverview 
         </Link>
       </header>
       <h1 className="font-serif text-5xl leading-tight text-ink">{t("title")}</h1>
+      <CatalogSwitch current="catalog" />
       <CatalogView
         types={overview.types.map(({ type, preparationCount, missing }) => ({
           id: type.id,
@@ -40,6 +48,12 @@ export async function CatalogPageView({ overview }: { overview: CatalogOverview 
   );
 }
 
-export default async function CatalogPage() {
+/** «Препараты»: the catalogue, or RS1 «Расход» (?view=usage&month=2026-11). */
+export default async function CatalogPage({ searchParams }: { searchParams: Promise<{ view?: string; month?: string }> }) {
+  const { view, month } = await searchParams;
+  if (view === "usage") {
+    const today = todayIn(practiceTimeZone);
+    return <ConsumptionView data={await getConsumption(await consumptionRepository(), month, today)} current={monthOf(today)} />;
+  }
   return <CatalogPageView overview={await getCatalogOverview(await catalogRepository())} />;
 }
