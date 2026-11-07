@@ -15,6 +15,7 @@ export async function deleteClientAction(clientId: string): Promise<{ ok: false 
   }
   if (!ok) return { ok: false };
   revalidatePath("/clients");
+  revalidatePath("/catalog"); // SK1: a deleted client's visits no longer count in «Склад» and «Расход»
   redirect("/clients");
 }
 
@@ -27,5 +28,6 @@ export async function restoreClientAction(clientId: string): Promise<void> {
     ok = false;
   }
   revalidatePath("/clients");
+  revalidatePath("/catalog");
   redirect(ok ? `/clients/${clientId}` : "/clients/deleted?failed=1");
 }

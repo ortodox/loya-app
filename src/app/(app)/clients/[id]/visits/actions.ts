@@ -52,6 +52,8 @@ async function readPhotos(fd: FormData): Promise<{ add: PhotoUpload[]; removeIds
 function backToCard(clientId: string): never {
   revalidatePath("/clients");
   revalidatePath(`/clients/${clientId}`);
+  // SK1: «Склад» and «Расход» are worked out from the visits – show the new numbers at once.
+  revalidatePath("/catalog");
   redirect(`/clients/${clientId}`);
 }
 

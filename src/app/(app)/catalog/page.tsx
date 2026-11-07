@@ -51,6 +51,9 @@ export async function CatalogPageView({ overview }: { overview: CatalogOverview 
   );
 }
 
+// SK1: «Склад» and «Расход» depend on the visits – always worked out fresh, never served from a cache.
+export const dynamic = "force-dynamic";
+
 /** «Препараты»: the catalogue, SK1 «Склад» (?view=stock) or RS1 «Расход» (?view=usage&month=2026-11). */
 export default async function CatalogPage({ searchParams }: { searchParams: Promise<{ view?: string; month?: string }> }) {
   const { view, month } = await searchParams;
