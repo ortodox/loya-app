@@ -210,6 +210,14 @@ export function closedVialsToRemove(keys: readonly { key: string; size: number; 
   return ofSize.slice(0, Math.max(0, ofSize.length - count)).map((k) => k.key);
 }
 
+/** SK1 ✏️ (07.11.2026): botox vial sizes always offered – 50, 100, 200, 300 and 500 ЕД. */
+export const standardVialSizes: readonly number[] = [50, 100, 200, 300, 500];
+
+/** SK1 ✏️: the sizes to choose from – the standard ones plus the preparation's own (e.g. «Другой размер»). */
+export function offeredVialSizes(own: readonly number[] | null): number[] {
+  return parseVialSizes([...standardVialSizes, ...(own ?? [])].map(String))!;
+}
+
 /** SK1: the vial sizes the doctor enters – positive whole units, each once, smallest first. */
 export function parseVialSizes(values: readonly string[]): number[] | null {
   const sizes = [...new Set(values.map((v) => Number(v.trim())).filter((n) => Number.isInteger(n) && n > 0 && n <= 10000))].sort((a, b) => a - b);

@@ -2,7 +2,7 @@ import type { IsoDate } from "@/logic/client";
 import { botoxUnits, isBotox, pieces, type ConsumptionVisit } from "@/logic/rules/consumption";
 import { isIsoDate } from "@/logic/rules/dates";
 import type { ReminderType } from "@/logic/rules/reminders";
-import { closedVialsToRemove, parseVialSizes, simulateStock, type StockKind, type StockState, type StockUse } from "@/logic/rules/stock";
+import { closedVialsToRemove, offeredVialSizes, parseVialSizes, simulateStock, standardVialSizes, type StockKind, type StockState, type StockUse } from "@/logic/rules/stock";
 import { practiceTimeZone } from "@/config/time";
 import { summarizeChanges, type StockChangeLine } from "@/logic/rules/stock-changes";
 import type { CatalogRepository } from "@/data/repositories/catalog";
@@ -128,7 +128,7 @@ export async function listAddablePreparations(deps: Pick<StockDeps, "stock" | "c
     .sort((a, b) => rank(a.type).localeCompare(rank(b.type)) || a.name.localeCompare(b.name, "ru"));
 }
 
-export type AddStockResult = { ok: true; id: string } | { ok: false; error: "notFound" | "already" | "sizesRequired" };
+export type AddStockResult = { ok: true; id: string } | { ok: false; error: "notFound" | "already" };
 
 /** SK1: start keeping a preparation in stock from today – botox with its vial sizes, the rest in pieces. */
 export async function addToStock(deps: Pick<StockDeps, "stock" | "catalog">, preparationId: string, vialSizes: readonly string[], today: IsoDate): Promise<AddStockResult> {
@@ -137,8 +137,8 @@ export async function addToStock(deps: Pick<StockDeps, "stock" | "catalog">, pre
     const exists = uuid.test(preparationId) && (await deps.catalog.getPreparation(preparationId));
     return { ok: false, error: exists ? "already" : "notFound" };
   }
-  const sizes = addable.botox ? parseVialSizes(vialSizes) : null;
-  if (addable.botox && !sizes) return { ok: false, error: "sizesRequired" };
+  // SK1 ✏️: botox without chosen sizes gets the standard ones (50, 100, 200, 300, 500 ЕД).
+  const sizes = addable.botox ? parseVialSizes(vialSizes) ?? [...standardVialSizes] : null;
   return { ok: true, ...(await deps.stock.addItem(preparationId, today, sizes)) };
 }
 
@@ -167,7 +167,7 @@ export async function receiveStock(
   const typed = current.kind === "vials" && (form.newSize ?? "").trim() !== "" ? parseVialSizes([form.newSize!]) : null;
   if (current.kind === "vials" && (form.newSize ?? "").trim() !== "" && !typed) errors.vialSize = "invalid";
   const vialSize = current.kind === "vials" ? (typed ? typed[0] : Number(form.vialSize)) : null;
-  if (current.kind === "vials" && !typed && !current.vialSizes?.includes(vialSize!)) errors.vialSize = "invalid";
+  if (current.kind === "vials" && !typed && !offeredVialSizes(current.vialSizes).includes(vialSize!)) errors.vialSize = "invalid";
   let openedOn: IsoDate | null = null;
   let remaining: number | null = null;
   if (opened) {
@@ -179,7 +179,8 @@ export async function receiveStock(
   const expiresOn = (form.expiresOn ?? "").trim() || null;
   if (expiresOn !== null && !isIsoDate(expiresOn)) errors.expiresOn = "invalid";
   if (Object.keys(errors).length > 0) return { ok: false, errors };
-  if (typed && !current.vialSizes?.includes(typed[0])) await deps.stock.setVialSizes(current.itemId, parseVialSizes([...(current.vialSizes ?? []).map(String), String(typed[0])])!);
+  // SK1 ✏️: a size the preparation did not have yet (standard or «Другой размер») is added to it.
+  if (vialSize !== null && !current.vialSizes?.includes(vialSize)) await deps.stock.setVialSizes(current.itemId, parseVialSizes([...(current.vialSizes ?? []).map(String), String(vialSize)])!);
   await deps.stock.addReceipt(current.itemId, {
     receivedOn: opened && openedOn! < receivedOn ? openedOn! : receivedOn,
     vialSize,
@@ -235,7 +236,7 @@ export async function correctStock(deps: Pick<StockDeps, "stock" | "visits">, it
     else if (n !== vial.remaining) adjustments.push({ happenedOn: today, kind: "set", vialKey: vial.key, amount: n });
   }
   const extra: { size: number; count: number }[] = [];
-  for (const size of current.vialSizes ?? []) {
+  for (const size of offeredVialSizes(current.vialSizes)) {
     const n = number(form.closed?.[String(size)]);
     if (n === null) continue;
     if (!Number.isInteger(n) || n < 0 || n > 1000) return "invalid";
@@ -247,10 +248,12 @@ export async function correctStock(deps: Pick<StockDeps, "stock" | "visits">, it
   const openRemaining = number(form.openNew?.remaining);
   if (openRemaining !== null) {
     const size = Number(form.openNew?.size ?? current.vialSizes?.[0]);
-    if (!current.vialSizes?.includes(size) || !Number.isFinite(openRemaining) || openRemaining <= 0 || openRemaining > size) return "invalid";
+    if (!offeredVialSizes(current.vialSizes).includes(size) || !Number.isFinite(openRemaining) || openRemaining <= 0 || openRemaining > size) return "invalid";
     opened = { size, remaining: openRemaining };
   }
   await deps.stock.addAdjustments(current.itemId, adjustments);
+  const newSizes = [...(opened ? [opened.size] : []), ...extra.map((e) => e.size)].filter((size) => !current.vialSizes?.includes(size));
+  if (newSizes.length > 0) await deps.stock.setVialSizes(current.itemId, parseVialSizes([...(current.vialSizes ?? []), ...newSizes].map(String))!);
   if (opened) await deps.stock.addReceipt(current.itemId, { receivedOn: today, vialSize: opened.size, count: 1, openedOn: today, remaining: opened.remaining, lot: null, expiresOn: null });
   for (const e of extra) await deps.stock.addReceipt(current.itemId, { receivedOn: today, vialSize: e.size, count: e.count, openedOn: null, remaining: null, lot: null, expiresOn: null });
   return "ok";

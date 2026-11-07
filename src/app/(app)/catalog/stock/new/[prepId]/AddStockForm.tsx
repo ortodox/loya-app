@@ -4,15 +4,16 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { card, pill, ui } from "@/app/components/ui";
+import { standardVialSizes as commonSizes } from "@/logic/rules/stock";
 import type { AddStockState } from "../../actions";
 
-const commonSizes = [50, 100, 200, 300, 500];
+
 
 /** SK1: botox – which vial sizes this preparation comes in (each its own); the rest – pieces. */
 export function AddStockForm({ title, name, botox, action }: { title: string; name: string; botox: boolean; action: (s: AddStockState, fd: FormData) => Promise<AddStockState> }) {
   const t = useTranslations();
   const [state, formAction, pending] = useActionState(action, {});
-  const [sizes, setSizes] = useState<number[]>([]);
+  const [sizes, setSizes] = useState<number[]>([...commonSizes]); // SK1 ✏️: all standard sizes chosen from the start
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <header className="flex items-center justify-between gap-4">

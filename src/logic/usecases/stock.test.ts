@@ -64,7 +64,6 @@ const visit = (visitId: string, clientId: string, visitDate: string, key: string
 describe("SK1: склад – настройка и поступления", () => {
   it("SK1: botox needs its vial sizes, the rest is counted in pieces; a preparation is added once", async () => {
     const { deps, items } = setup();
-    expect(await addToStock(deps, BOTOX, [], today)).toEqual({ ok: false, error: "sizesRequired" });
     expect((await addToStock(deps, BOTOX, ["100", "50"], today)).ok).toBe(true);
     expect(items[0]).toMatchObject({ startedOn: today, vialSizes: [50, 100] });
     expect((await addToStock(deps, FILLER, [], today)).ok).toBe(true);
@@ -78,7 +77,7 @@ describe("SK1: склад – настройка и поступления", () 
     const { deps, items } = setup();
     await addToStock(deps, BOTOX, ["100"], today);
     const item = items[0].id;
-    expect(await receiveStock(deps, item, { vialSize: "200", count: "2" }, today)).toEqual({ ok: false, errors: { vialSize: "invalid" } });
+    expect(await receiveStock(deps, item, { vialSize: "250", count: "2" }, today)).toEqual({ ok: false, errors: { vialSize: "invalid" } });
     expect(await receiveStock(deps, item, { vialSize: "100", count: "0" }, today)).toEqual({ ok: false, errors: { count: "invalid" } });
     expect(await receiveStock(deps, item, { vialSize: "100", count: "2" }, today)).toEqual({ ok: true });
     expect(await receiveStock(deps, item, { vialSize: "100", opened: "1", openedOn: "2026-11-03", remaining: "150" }, today)).toEqual({ ok: false, errors: { remaining: "invalid" } });
@@ -168,5 +167,19 @@ describe("SK7: имя клиента в истории", () => {
     const lines = await getStockOverview(deps, today);
     expect(lines[0].state.history.filter((h) => h.kind === "visit").map((h) => h.clientId)).toEqual(["gone", "a"]);
     expect(await stockClientNames(deps, lines)).toEqual({ a: { name: "Клиент a", deleted: false }, gone: { name: "Клиент gone", deleted: true } });
+  });
+});
+
+describe("SK1 ✏️: стандартные размеры при поступлении и исправлении", () => {
+  it("SK1 ✏️: botox without chosen sizes gets the standard ones; a standard size not yet used is added on receipt", async () => {
+    const { deps, items } = setup();
+    expect((await addToStock(deps, BOTOX, [], today)).ok).toBe(true);
+    expect(items[0].vialSizes).toEqual([50, 100, 200, 300, 500]);
+    items[0].vialSizes = [100];
+    expect(await receiveStock(deps, items[0].id, { vialSize: "200", count: "1" }, today)).toEqual({ ok: true });
+    expect(items[0].vialSizes).toEqual([100, 200]);
+    expect(await correctStock(deps, items[0].id, { closed: { "500": "1" } }, today)).toBe("ok");
+    expect(items[0].vialSizes).toEqual([100, 200, 500]);
+    expect((await getStockOverview(deps, today))[0].state.available).toBe(700);
   });
 });
