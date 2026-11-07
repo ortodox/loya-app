@@ -580,7 +580,7 @@ commit;
 
 ## 6c. Gjenopprett lageret («Склад», SK1)
 
-Kopiene inneholder også `stock_items`, `stock_receipts`, `stock_adjustments` og endringsloggen `stock_changes` (SK4). Beholdningen regnes alltid ut på nytt
+Kopiene inneholder også `stock_items`, `stock_receipts`, `stock_adjustments`, endringsloggen `stock_changes` (SK4) og fjernede historikklinjer `stock_history_hidden` (SK8). En linje Loya har slettet fra «История» (SK8), kan hentes tilbake herfra. Beholdningen regnes alltid ut på nytt
 fra disse og besøkene, så det holder å legge radene tilbake. Kjør etter 6b hvis katalogen også skal tilbake.
 Rader som finnes fra før, røres ikke.
 
@@ -625,6 +625,15 @@ insert into public.stock_changes
 select (jsonb_populate_record(null::public.stock_changes, s.row_data)).*
 from backup.snapshots s, valgt
 where s.taken_at = valgt.t and s.table_name = 'stock_changes'
+on conflict do nothing;
+
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.stock_history_hidden
+select (jsonb_populate_record(null::public.stock_history_hidden, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t and s.table_name = 'stock_history_hidden'
 on conflict do nothing;
 
 commit;

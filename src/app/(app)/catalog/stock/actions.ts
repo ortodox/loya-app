@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { practiceTimeZone } from "@/config/time";
 import { todayIn } from "@/logic/rules/dates";
-import { addToStock, correctStock, discardVial, receiveStock, type ReceiptErrors, type ReceiptForm } from "@/logic/usecases/stock";
+import { addToStock, correctStock, deleteHistoryLine, discardVial, type HistoryLineRef, receiveStock, type ReceiptErrors, type ReceiptForm } from "@/logic/usecases/stock";
 import { stockDeps } from "./deps";
 
 const str = (v: FormDataEntryValue | null) => (typeof v === "string" ? v : "");
@@ -68,6 +68,17 @@ export async function correctStockAction(itemId: string, _: { failed?: boolean; 
 export async function discardVialAction(itemId: string, vialKey: string): Promise<{ ok: boolean }> {
   try {
     const ok = await discardVial(await stockDeps(), itemId, vialKey, todayIn(practiceTimeZone));
+    if (ok) revalidatePath("/catalog");
+    return { ok };
+  } catch {
+    return { ok: false };
+  }
+}
+
+/** SK8: «Удалить» a line of «История» for good – the stock does not change. */
+export async function deleteHistoryLineAction(itemId: string, line: HistoryLineRef): Promise<{ ok: boolean }> {
+  try {
+    const ok = await deleteHistoryLine(await stockDeps(), itemId, line, todayIn(practiceTimeZone));
     if (ok) revalidatePath("/catalog");
     return { ok };
   } catch {

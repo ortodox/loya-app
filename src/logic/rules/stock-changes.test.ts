@@ -27,7 +27,7 @@ describe("SK4: журнал изменений", () => {
       ],
       tz,
     );
-    expect(lines).toEqual([{ date: "2026-11-08", time: "14:02", kind: "visitChanged", of: "2026-11-05", from: "20", to: "25", clientId: null }]);
+    expect(lines).toEqual([{ date: "2026-11-08", time: "14:02", kind: "visitChanged", of: "2026-11-05", from: "20", to: "25", clientId: null, ids: [] }]);
   });
 
   it("SK4: a visit created and corrected a minute later – the correction is its own line", () => {

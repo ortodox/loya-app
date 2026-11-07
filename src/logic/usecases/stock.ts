@@ -40,7 +40,7 @@ function usesOf(item: StockItem, visits: readonly ConsumptionVisit[], today: Iso
     .flatMap((v) =>
       v.items
         .filter((i) => i.key === item.preparationId)
-        .map((i) => ({ date: v.visitDate, amount: kind === "vials" ? botoxUnits(i.quantity) : pieces(i.quantity), createdAt: i.savedAt ?? v.createdAt ?? "", quantity: i.quantity, clientId: v.clientId })),
+        .map((i) => ({ date: v.visitDate, amount: kind === "vials" ? botoxUnits(i.quantity) : pieces(i.quantity), createdAt: i.savedAt ?? v.createdAt ?? "", quantity: i.quantity, clientId: v.clientId, visitId: v.visitId ?? null })),
     );
 }
 
@@ -65,7 +65,10 @@ function planned(item: StockItem, visits: readonly ConsumptionVisit[], today: Is
 }
 
 function line(item: StockItem, visits: readonly ConsumptionVisit[], today: IsoDate, excludeVisitId: string | null = null): StockLine {
-  const state = simulateStock(kindOf(item), item.receipts, usesOf(item, visits, today, excludeVisitId), item.adjustments);
+  const simulated = simulateStock(kindOf(item), item.receipts, usesOf(item, visits, today, excludeVisitId), item.adjustments);
+  // SK8: lines removed from «История» are left out – the numbers are worked out from everything.
+  const hidden = new Set(item.hiddenKeys);
+  const state = { ...simulated, history: simulated.history.filter((h) => !h.key || !hidden.has(h.key)) };
   const p = planned(item, visits, today);
   return {
     itemId: item.id,
@@ -267,4 +270,25 @@ export async function stockClientNames(deps: Pick<StockDeps, "stock">, lines: re
     for (const c of l.changes) if (c.clientId) ids.add(c.clientId);
   }
   return deps.stock.clientNames([...ids]);
+}
+
+/** SK8: «Удалить» on a line of «История» – a change-log line (its rows) or a line made from a visit, receipt or correction (its key). */
+export type HistoryLineRef = { change: string[] } | { key: string };
+
+/**
+ * SK8: deletes a line of «История» for good, with no effect on the stock: change-log rows are deleted;
+ * a line made from a visit, receipt or correction is only taken out of «История» (the row itself stays).
+ */
+export async function deleteHistoryLine(deps: Pick<StockDeps, "stock" | "visits">, itemId: string, line: HistoryLineRef, today: IsoDate): Promise<boolean> {
+  const current = await getStockLine(deps, itemId, today);
+  if (!current) return false;
+  if ("change" in line) {
+    const ids = line.change.filter((id) => uuid.test(id));
+    if (ids.length === 0) return false;
+    return (await deps.stock.deleteChanges(current.preparationId, ids)) > 0;
+  }
+  if (!/^(visit|receipt|adjustment):[0-9a-zA-Z-]+$/.test(line.key)) return false;
+  if (!current.state.history.some((h) => h.key === line.key)) return false;
+  await deps.stock.hideHistoryLine(current.itemId, line.key);
+  return true;
 }

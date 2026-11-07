@@ -11,10 +11,12 @@ type Row = {
   vial_sizes: number[] | null;
   preparations: { name: string; procedure_types: TypeRow | TypeRow[] | null } | { name: string; procedure_types: TypeRow | TypeRow[] | null }[] | null;
   stock_receipts: { id: string; received_on: string; vial_size: number | null; count: number; opened_on: string | null; remaining: number | string | null; created_at: string }[];
-  stock_adjustments: { happened_on: string; kind: "discard" | "set"; vial_key: string | null; amount: number | string | null; created_at: string }[];
+  stock_history_hidden: { line_key: string }[];
+  stock_adjustments: { id: string; happened_on: string; kind: "discard" | "set"; vial_key: string | null; amount: number | string | null; created_at: string }[];
 };
 
 type ChangeRow = {
+  id: string;
   preparation_id: string;
   changed_at: string;
   source: StockChange["source"];
@@ -40,14 +42,14 @@ export function supabaseStockRepository(supabase: SupabaseClient): StockReposito
         .select(
           "id, preparation_id, started_on, vial_sizes, preparations(name, procedure_types(id, code, name)), " +
             "stock_receipts(id, received_on, vial_size, count, opened_on, remaining, created_at), " +
-            "stock_adjustments(happened_on, kind, vial_key, amount, created_at)",
+            "stock_adjustments(id, happened_on, kind, vial_key, amount, created_at), stock_history_hidden(line_key)",
         );
       if (error) throw error;
       const rows = data as unknown as Row[];
       // SK4: the change log of the preparations kept in stock (written by database triggers).
       const changes = await supabase
         .from("stock_changes")
-        .select("preparation_id, changed_at, source, action, visit_id, client_id, visit_date, new_visit_date, old_quantity, new_quantity, old_data")
+        .select("id, preparation_id, changed_at, source, action, visit_id, client_id, visit_date, new_visit_date, old_quantity, new_quantity, old_data")
         .in("preparation_id", rows.length > 0 ? rows.map((r) => r.preparation_id) : ["00000000-0000-0000-0000-000000000000"])
         .order("changed_at", { ascending: true });
       if (changes.error) throw changes.error;
@@ -55,6 +57,7 @@ export function supabaseStockRepository(supabase: SupabaseClient): StockReposito
       for (const c of changes.data as ChangeRow[]) {
         const list = changesOf.get(c.preparation_id) ?? [];
         list.push({
+          id: c.id,
           at: c.changed_at,
           source: c.source,
           action: c.action,
@@ -87,8 +90,9 @@ export function supabaseStockRepository(supabase: SupabaseClient): StockReposito
             remaining: num(x.remaining),
             createdAt: x.created_at,
           })),
-          adjustments: r.stock_adjustments.map((x) => ({ happenedOn: x.happened_on, kind: x.kind, vialKey: x.vial_key, amount: num(x.amount), createdAt: x.created_at })),
+          adjustments: r.stock_adjustments.map((x) => ({ id: x.id, happenedOn: x.happened_on, kind: x.kind, vialKey: x.vial_key, amount: num(x.amount), createdAt: x.created_at })),
           changes: changesOf.get(r.preparation_id) ?? [],
+          hiddenKeys: r.stock_history_hidden.map((h) => h.line_key),
         };
       });
     },
@@ -118,6 +122,18 @@ export function supabaseStockRepository(supabase: SupabaseClient): StockReposito
       const { error } = await supabase
         .from("stock_adjustments")
         .insert(adjustments.map((a) => ({ stock_item_id: itemId, happened_on: a.happenedOn, kind: a.kind, vial_key: a.vialKey, amount: a.amount })));
+      if (error) throw error;
+    },
+
+    async deleteChanges(preparationId, ids) {
+      if (ids.length === 0) return 0;
+      const { data, error } = await supabase.from("stock_changes").delete().eq("preparation_id", preparationId).in("id", ids).select("id");
+      if (error) throw error;
+      return data.length;
+    },
+
+    async hideHistoryLine(itemId, key) {
+      const { error } = await supabase.from("stock_history_hidden").upsert({ stock_item_id: itemId, line_key: key }, { onConflict: "doctor_id,stock_item_id,line_key", ignoreDuplicates: true });
       if (error) throw error;
     },
 

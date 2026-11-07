@@ -2,11 +2,13 @@
 
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { formatDayMonth, formatIsoDate } from "@/logic/rules/dates";
 import { needsReadingHint } from "@/logic/rules/consumption";
 import type { StockHistoryEntry } from "@/logic/rules/stock";
 import { mergeHistory, type StockChangeLine } from "@/logic/rules/stock-changes";
+import type { HistoryLineRef } from "@/logic/usecases/stock";
+import { deleteHistoryLineAction } from "./actions";
 
 const page = 10;
 
@@ -15,11 +17,14 @@ const page = 10;
  * left after it, newest first, ten at a time. No client names.
  */
 export function StockHistory({
+  itemId,
   entries,
   changes = [],
   clients = {},
   unit,
 }: {
+  /** SK8: the preparation in stock – «Удалить» removes a line of its «История». */
+  itemId?: string;
   entries: StockHistoryEntry[];
   changes?: StockChangeLine[];
   /** SK7: the clients' names; a deleted client is shown grey, without a link. */
@@ -28,6 +33,23 @@ export function StockHistory({
 }) {
   const t = useTranslations("stock");
   const [shown, setShown] = useState(0);
+  // SK8: «Удалить» – which line is waiting for «Да, удалить», and whether it failed.
+  const [confirm, setConfirm] = useState<HistoryLineRef | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [pending, startTransition] = useTransition();
+  const remove = (ref: HistoryLineRef | null) =>
+    itemId && ref ? (
+      <button
+        type="button"
+        onClick={() => {
+          setFailed(false);
+          setConfirm(ref);
+        }}
+        className="flex min-h-11 items-center text-xs text-on-alert"
+      >
+        {t("history.delete")}
+      </button>
+    ) : null;
   const fmt = (n: number) => String(Math.round(n * 10) / 10).replace(".", ",").replace("-", "−");
   const signed = (n: number) => (n > 0 ? `+${fmt(n)}` : n < 0 ? `−${fmt(-n)}` : "0");
   const change = (e: StockHistoryEntry) =>
@@ -90,6 +112,7 @@ export function StockHistory({
                         {c.label}
                         {client(row.line.clientId)}
                         {c.values && <span className="block text-xs text-muted">{c.values}</span>}
+                        {row.line.ids && row.line.ids.length > 0 && remove({ change: row.line.ids })}
                       </td>
                     </tr>
                   );
@@ -103,6 +126,7 @@ export function StockHistory({
                       {e.kind === "visit" && client(e.clientId)}
                       {e.kind === "visit" && needsReadingHint(e.text) && <span className="block text-xs text-muted">«{e.text!.trim()}»</span>}
                       {e.kind === "visit" && e.change === null && !needsReadingHint(e.text) && <span className="block text-xs text-muted">{t("history.empty")}</span>}
+                      {e.key && remove({ key: e.key })}
                     </td>
                     <td className="py-2 pr-2 text-right whitespace-nowrap tabular-nums">{change(e)}</td>
                     <td className="py-2 text-right whitespace-nowrap font-semibold tabular-nums">{fmt(e.balance)}</td>
@@ -117,6 +141,35 @@ export function StockHistory({
             </button>
           )}
         </>
+      )}
+      {confirm && itemId && (
+        <div
+          role="alertdialog"
+          aria-label={t("history.delete")}
+          className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-w-2xl flex-col gap-3 rounded-t-[18px] bg-alert p-4 pb-[calc(1rem+var(--safe-bottom))] text-on-alert shadow-lg"
+        >
+          <p className="text-base">{t("history.confirmDelete")}</p>
+          {failed && <p className="text-sm font-semibold">{t("failed")}</p>}
+          <div className="grid grid-cols-2 gap-2">
+            <button type="button" onClick={() => setConfirm(null)} className="min-h-11 rounded-[14px] border border-current px-3 text-sm">
+              {t("cancel")}
+            </button>
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() =>
+                startTransition(async () => {
+                  const { ok } = await deleteHistoryLineAction(itemId, confirm);
+                  if (ok) setConfirm(null);
+                  else setFailed(true);
+                })
+              }
+              className="min-h-11 rounded-[14px] bg-on-alert px-3 text-sm font-semibold text-alert disabled:opacity-50"
+            >
+              {t("history.deleteYes")}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
