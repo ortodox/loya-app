@@ -16,6 +16,8 @@ export type StockItem = {
   adjustments: StockAdjustment[];
   /** SK4: the change log, oldest first. */
   changes: StockChange[];
+  /** SK8: lines removed from «История» (visits, receipts, corrections). */
+  hiddenKeys: string[];
 };
 
 export type StockReceiptInput = Omit<StockReceipt, "id" | "createdAt"> & { lot: string | null; expiresOn: IsoDate | null };
@@ -26,6 +28,10 @@ export interface StockRepository {
   addItem(preparationId: string, startedOn: IsoDate, vialSizes: number[] | null): Promise<{ id: string }>;
   addReceipt(itemId: string, input: StockReceiptInput): Promise<void>;
   addAdjustments(itemId: string, adjustments: Omit<StockAdjustment, "createdAt">[]): Promise<void>;
+  /** SK8: deletes change-log rows of this preparation for good. */
+  deleteChanges(preparationId: string, ids: string[]): Promise<number>;
+  /** SK8: takes a line made from a visit, receipt or correction out of «История» for good. */
+  hideHistoryLine(itemId: string, key: string): Promise<void>;
   /** SK7: names of the clients in «История» (also deleted ones, marked). */
   clientNames(ids: string[]): Promise<Record<string, { name: string; deleted: boolean }>>;
   /** SK1 ✏️ B: a new vial size added when a receipt comes in. */

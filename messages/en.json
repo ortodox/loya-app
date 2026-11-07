@@ -759,7 +759,10 @@
         "correctionChanged": "Correction {date} changed",
         "correctionDeleted": "Correction {date} deleted"
       },
-      "clientDeleted": "client deleted"
+      "clientDeleted": "client deleted",
+      "delete": "Delete",
+      "confirmDelete": "Delete this line from the history? This cannot be undone. The stock does not change.",
+      "deleteYes": "Yes, delete"
     },
     "openSection": "Open vials – units left",
     "openNewField": "An open vial the app does not know about (if any) – units left",

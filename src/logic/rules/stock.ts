@@ -16,6 +16,8 @@ export type StockReceipt = {
 
 /** SK1 «Списать остаток» (a vial) and «Исправить остаток» (what is left). */
 export type StockAdjustment = {
+  /** SK8: the row, so its line in «История» can be removed. */
+  id?: string;
   happenedOn: IsoDate;
   kind: "discard" | "set";
   vialKey: string | null;
@@ -32,6 +34,8 @@ export type StockUse = {
   quantity?: string | null;
   /** SK7: whose visit it was – the name in «История» opens the client card. */
   clientId?: string | null;
+  /** SK8: the visit, so its line in «История» can be removed. */
+  visitId?: string | null;
 };
 
 export type OpenVial = { key: string; size: number; openedOn: IsoDate; remaining: number };
@@ -65,6 +69,8 @@ export type StockHistoryEntry = {
   text: string | null;
   /** SK7: a visit's client; null for other lines. */
   clientId?: string | null;
+  /** SK8: «visit:<id>», «receipt:<id>» or «adjustment:<id>» – what «Удалить» removes from «История». */
+  key?: string | null;
 };
 
 type Vial = { key: string; size: number; order: number; openedOn: IsoDate | null; remaining: number; gone: boolean };
@@ -80,6 +86,13 @@ type Event =
  * still taken off. SK6: since a visit may take stock below zero and the next receipt covers it, a
  * receipt no longer has to come first on its day.
  */
+/** SK8: the key of the line an event makes in «История». */
+function keyOf(e: Event): string | null {
+  if ("receipt" in e) return `receipt:${e.receipt.id}`;
+  if ("use" in e) return e.use.visitId ? `visit:${e.use.visitId}` : null;
+  return e.adjustment.id ? `adjustment:${e.adjustment.id}` : null;
+}
+
 function events(receipts: readonly StockReceipt[], uses: readonly StockUse[], adjustments: readonly StockAdjustment[]): Event[] {
   return [
     ...receipts.map((receipt): Event => ({ date: receipt.receivedOn, rank: 0, at: receipt.createdAt, receipt })),
@@ -118,7 +131,7 @@ export function simulateStock(
         available = e.adjustment.amount;
         kind = "correct";
       }
-      history.push({ date: e.date, kind, change: available - before, vials: null, balance: available, text: "use" in e ? e.use.quantity ?? null : null, clientId: "use" in e ? e.use.clientId ?? null : null });
+      history.push({ date: e.date, kind, change: available - before, vials: null, balance: available, text: "use" in e ? e.use.quantity ?? null : null, clientId: "use" in e ? e.use.clientId ?? null : null, key: keyOf(e) });
     }
     return { available, openVials: [], closed: [], closedVials: [], unknown: 0, history: history.reverse() };
   }
@@ -149,9 +162,11 @@ export function simulateStock(
   };
   const log = (date: IsoDate, kind: StockHistoryEntry["kind"], before: number, extra: Partial<StockHistoryEntry> = {}) => {
     const balance = total();
-    history.push({ date, kind, change: balance - before, vials: null, balance, text: null, ...extra });
+    history.push({ date, kind, change: balance - before, vials: null, balance, text: null, key: current ? keyOf(current) : null, ...extra });
   };
+  let current: Event | null = null;
   for (const e of events(receipts, uses, adjustments)) {
+    current = e;
     const before = total();
     if ("receipt" in e) {
       const r = e.receipt;

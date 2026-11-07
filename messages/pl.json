@@ -759,7 +759,10 @@
         "correctionChanged": "Korekta {date} zmieniona",
         "correctionDeleted": "Korekta {date} usunięta"
       },
-      "clientDeleted": "klient usunięty"
+      "clientDeleted": "klient usunięty",
+      "delete": "Usuń",
+      "confirmDelete": "Usunąć wiersz z historii? Tego nie można cofnąć. Stan się nie zmieni.",
+      "deleteYes": "Tak, usuń"
     },
     "openSection": "Otwarte fiolki – ile zostało, j.",
     "openNewField": "Otwarta fiolka, której nie ma w aplikacji (jeśli jest) – ile zostało",

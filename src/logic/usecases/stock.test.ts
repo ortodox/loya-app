@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { CatalogRepository } from "@/data/repositories/catalog";
 import type { StockItem, StockRepository } from "@/data/repositories/stock";
 import type { ConsumptionVisit } from "@/logic/rules/consumption";
-import { addToStock, correctStock, discardVial, getStockOverview, getVisitStock, listAddablePreparations, receiveStock, stockClientNames } from "./stock";
+import { addToStock, correctStock, discardVial, getStockOverview, getVisitStock, listAddablePreparations, receiveStock, stockClientNames, deleteHistoryLine } from "./stock";
 
 const today = "2026-11-10";
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
@@ -27,12 +27,23 @@ function setup(visits: ConsumptionVisit[] = []) {
         receipts: [],
         adjustments: [],
         changes: [],
+        hiddenKeys: [],
       };
       items.push(item);
       return { id: item.id };
     },
     addReceipt: async (itemId, input) => {
       items.find((i) => i.id === itemId)!.receipts.push({ ...input, id: `r${n++}`, createdAt: `c${n}` });
+    },
+    deleteChanges: async (preparationId, ids) => {
+      const item = items.find((i) => i.preparationId === preparationId);
+      if (!item) return 0;
+      const before = item.changes.length;
+      item.changes = item.changes.filter((c) => !c.id || !ids.includes(c.id));
+      return before - item.changes.length;
+    },
+    hideHistoryLine: async (itemId, key) => {
+      items.find((i) => i.id === itemId)!.hiddenKeys.push(key);
     },
     clientNames: async (ids) => Object.fromEntries(ids.map((i) => [i, { name: `Клиент ${i}`, deleted: i === "gone" }])),
     setVialSizes: async (itemId, sizes) => {
@@ -181,5 +192,29 @@ describe("SK1 ✏️: стандартные размеры при поступ�
     expect(await correctStock(deps, items[0].id, { closed: { "500": "1" } }, today)).toBe("ok");
     expect(items[0].vialSizes).toEqual([100, 200, 500]);
     expect((await getStockOverview(deps, today))[0].state.available).toBe(700);
+  });
+});
+
+describe("SK8: удалить строку из истории", () => {
+  it("SK8: a visit or receipt line is taken out of «История» – the stock does not change", async () => {
+    const { deps, items } = setup([visit("v1", "a", "2026-11-06", BOTOX, "20")]);
+    await addToStock(deps, BOTOX, ["100"], "2026-11-05");
+    await receiveStock(deps, items[0].id, { receivedOn: "2026-11-05", vialSize: "100", count: "1" }, "2026-11-05");
+    const before = (await getStockOverview(deps, today))[0];
+    expect(before.state.available).toBe(80);
+    expect(await deleteHistoryLine(deps, items[0].id, { key: "visit:v1" }, today)).toBe(true);
+    const after = (await getStockOverview(deps, today))[0];
+    expect(after.state.available).toBe(80);
+    expect(after.state.history.map((h) => h.kind)).toEqual(["receipt"]);
+    expect(await deleteHistoryLine(deps, items[0].id, { key: "visit:nope" }, today)).toBe(false);
+  });
+
+  it("SK8: a change-log line is deleted for good", async () => {
+    const { deps, items } = setup();
+    await addToStock(deps, BOTOX, ["100"], "2026-11-05");
+    items[0].changes.push({ id: id(900), at: "2026-11-07T10:00:00Z", source: "visit", action: "delete", visitId: "v9", visitDate: "2026-11-06", newVisitDate: null, oldQuantity: "5", newQuantity: null, rowDate: null });
+    expect((await getStockOverview(deps, today))[0].changes).toHaveLength(1);
+    expect(await deleteHistoryLine(deps, items[0].id, { change: [id(900)] }, today)).toBe(true);
+    expect((await getStockOverview(deps, today))[0].changes).toHaveLength(0);
   });
 });
