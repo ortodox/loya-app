@@ -9,6 +9,8 @@ export type ConsumptionItem = {
   name: string;
   type: ReminderType | null;
   quantity: string | null;
+  /** SK1 🐞: when the row was last saved (a visit's rows are saved anew each time) – orders it against corrections. */
+  savedAt?: string;
 };
 
 /** RS1: a visit (done or planned) with its preparations and an open reminder, if any. */

@@ -110,3 +110,15 @@ describe("SK3: история склада", () => {
     expect(p.history.map((h) => [h.kind, h.change, h.balance])).toEqual([["correct", 1, 4], ["visit", -2, 3], ["receipt", 5, 5]]);
   });
 });
+
+describe("SK1 🐞: исправление и визит в тот же день", () => {
+  it("SK1 🐞: a visit entered after today's «Исправить остаток» is taken off; one entered before is in the corrected number", () => {
+    const receipts = [receipt("r", "2026-11-01", 100, 1, { openedOn: "2026-11-01", remaining: 100 })];
+    const set = { happenedOn: "2026-11-07", kind: "set" as const, vialKey: "r:0", amount: 20, createdAt: "2026-11-07T10:00:00Z" };
+    const after = { date: "2026-11-07", amount: 5, createdAt: "2026-11-07T12:00:00Z" };
+    const before = { date: "2026-11-07", amount: 5, createdAt: "2026-11-07T09:00:00Z" };
+    expect(simulateStock("vials", receipts, [after], [set]).available).toBe(15);
+    expect(simulateStock("vials", receipts, [before], [set]).available).toBe(20);
+    expect(simulateStock("vials", receipts, [], [set]).available).toBe(20);
+  });
+});
