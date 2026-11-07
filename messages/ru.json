@@ -772,5 +772,10 @@
     "closedTotal": "{count} фл. × {size} = {units} ЕД",
     "closedChange": "Было {from} фл. → станет {to} фл. ({units} ЕД)",
     "totalAfter": "Итого после исправления: {total} ЕД (сейчас {before} ЕД)"
+  },
+  "notes": {
+    "add": "+ Заметка",
+    "edit": "Изменить",
+    "failed": "Не получилось сохранить. Попробуй ещё раз."
   }
 }

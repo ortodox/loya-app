@@ -431,7 +431,13 @@ export async function ClientCardView(props: Props) {
 
       {/* PR3: free notes. */}
       <section id="notes" className={`${card.surface} flex scroll-mt-4 flex-col gap-2 p-4`}>
-        <h2 className={card.heading}>{t("card.notes")}</h2>
+        {/* ZM1: notes straight from the card, like «Уход» – no need to open the whole client form. */}
+        <div className="flex items-center justify-between gap-3">
+          <h2 className={card.heading}>{t("card.notes")}</h2>
+          <Link href={`/clients/${id}/notes/edit`} className={client.notes ? ui.textButton : ui.addButton}>
+            {client.notes ? t("notes.edit") : t("notes.add")}
+          </Link>
+        </div>
         <p className="min-h-6 text-base whitespace-pre-wrap">{client.notes ?? "—"}</p>
       </section>
 

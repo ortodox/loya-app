@@ -13,4 +13,6 @@ export interface ClientRepository {
   setDirection(id: string, direction: Direction[]): Promise<boolean>;
   /** AN3: only the anamnesis changes (one section of «Анкета» edited on its own). */
   setAnamnesis(id: string, anamnesis: Anamnesis): Promise<boolean>;
+  /** ZM1: «Заметки» saved on their own, from the card. */
+  setNotes(id: string, notes: string | null): Promise<boolean>;
 }

@@ -772,5 +772,10 @@
     "closedTotal": "{count} fiol. × {size} = {units} j.",
     "closedChange": "Było {from} fiol. → będzie {to} fiol. ({units} j.)",
     "totalAfter": "Razem po poprawce: {total} j. (teraz {before} j.)"
+  },
+  "notes": {
+    "add": "+ Notatka",
+    "edit": "Zmień",
+    "failed": "Nie udało się zapisać. Spróbuj ponownie."
   }
 }

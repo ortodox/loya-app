@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Client, ClientInput } from "@/logic/client";
 import type { ClientRepository } from "@/data/repositories/clients";
-import { clientPictureUrls, createClient, updateAnamnesisSection, getClientCard, listClients, setMissingDirection, updateClient } from "./clients";
+import { clientPictureUrls, createClient, updateAnamnesisSection, getClientCard, listClients, setMissingDirection, updateClient, updateNotes } from "./clients";
 
 const today = "2026-10-22";
 const id1 = "00000000-0000-4000-8000-000000000001";
@@ -63,6 +63,12 @@ function memoryRepo(initial: Client[] = []): ClientRepository & { rows: Client[]
       const i = rows.findIndex((r) => r.id === id);
       if (i < 0) return false;
       rows[i] = { ...rows[i], anamnesis };
+      return true;
+    },
+    setNotes: async (id, notes) => {
+      const i = rows.findIndex((r) => r.id === id);
+      if (i < 0) return false;
+      rows[i] = { ...rows[i], notes };
       return true;
     },
     confirmAnamnesis: async (id, date) => {
@@ -260,5 +266,17 @@ describe("BO1: ботокс в списке", () => {
   it("BO1: no botox – no line", async () => {
     const repo = memoryRepo([client({ id: id1 })]);
     expect((await listClients(repo, "2026-11-02"))[0].botox).toBeNull();
+  });
+});
+
+describe("ZM1: заметки прямо из карты", () => {
+  it("ZM1: saves only the notes; empty text means no notes", async () => {
+    const repo = memoryRepo([client({ id: id1, notes: "старое", anamnesis: { medications: { text: "Витамин D" } } })]);
+    expect(await updateNotes(repo, id1, "  новая заметка\r\nвторая строка  ")).toBe(true);
+    expect(repo.rows[0].notes).toBe("новая заметка\nвторая строка");
+    expect(repo.rows[0].anamnesis).toEqual({ medications: { text: "Витамин D" } });
+    expect(await updateNotes(repo, id1, "   ")).toBe(true);
+    expect(repo.rows[0].notes).toBeNull();
+    expect(await updateNotes(repo, "nope", "x")).toBe(false);
   });
 });
