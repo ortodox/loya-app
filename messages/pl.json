@@ -758,7 +758,8 @@
         "receiptDeleted": "Dostawa {date} usunięta",
         "correctionChanged": "Korekta {date} zmieniona",
         "correctionDeleted": "Korekta {date} usunięta"
-      }
+      },
+      "clientDeleted": "klient usunięty"
     },
     "openSection": "Otwarte fiolki – ile zostało, j.",
     "openNewField": "Otwarta fiolka, której nie ma w aplikacji (jeśli jest) – ile zostało",

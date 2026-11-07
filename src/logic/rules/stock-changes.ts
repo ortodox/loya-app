@@ -8,6 +8,8 @@ export type StockChange = {
   source: "visit_item" | "visit" | "receipt" | "adjustment";
   action: "insert" | "update" | "delete";
   visitId: string | null;
+  /** SK7: the visit's client (logged since 20261111000000_stock_changes_client.sql). */
+  clientId?: string | null;
   visitDate: IsoDate | null;
   newVisitDate: IsoDate | null;
   oldQuantity: string | null;
@@ -26,6 +28,8 @@ export type StockChangeLine = {
   /** «20» → «25» (quantities as typed), or dates for a date change. */
   from: string | null;
   to: string | null;
+  /** SK7: the visit's client, when known. */
+  clientId?: string | null;
 };
 
 /** A save of a visit replaces its rows (delete + insert) – changes of one visit this close belong together. */
@@ -67,14 +71,14 @@ export function summarizeChanges(changes: readonly StockChange[], timeZone: stri
       const before = group.filter((g) => g.action !== "insert").map((g) => g.oldQuantity);
       const after = group.filter((g) => g.action !== "delete").map((g) => g.newQuantity);
       const last = group[group.length - 1];
-      const base = { ...when(last.at), at: last.at, of: last.visitDate ?? c.visitDate };
+      const base = { ...when(last.at), at: last.at, of: last.visitDate ?? c.visitDate, clientId: group.find((g) => g.clientId)?.clientId ?? null };
       if (before.length === 0) {
         if (base.of !== null && base.of < base.date) lines.push({ ...base, kind: "visitAdded", from: null, to: joined(after) });
       } else if (after.length === 0) lines.push({ ...base, kind: "visitRemoved", from: joined(before), to: null });
       else if (sorted(before).join("\n") !== sorted(after).join("\n")) lines.push({ ...base, kind: "visitChanged", from: joined(before), to: joined(after) });
       continue;
     }
-    const base = { ...when(c.at), at: c.at };
+    const base = { ...when(c.at), at: c.at, clientId: c.clientId ?? null };
     if (c.source === "visit" && c.action === "update") lines.push({ ...base, kind: "visitDate", of: c.visitDate, from: c.visitDate, to: c.newVisitDate });
     else if (c.source === "visit") lines.push({ ...base, kind: "visitDeleted", of: c.visitDate, from: c.oldQuantity, to: null });
     else {

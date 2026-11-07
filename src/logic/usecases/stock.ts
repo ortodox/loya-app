@@ -40,7 +40,7 @@ function usesOf(item: StockItem, visits: readonly ConsumptionVisit[], today: Iso
     .flatMap((v) =>
       v.items
         .filter((i) => i.key === item.preparationId)
-        .map((i) => ({ date: v.visitDate, amount: kind === "vials" ? botoxUnits(i.quantity) : pieces(i.quantity), createdAt: i.savedAt ?? v.createdAt ?? "", quantity: i.quantity })),
+        .map((i) => ({ date: v.visitDate, amount: kind === "vials" ? botoxUnits(i.quantity) : pieces(i.quantity), createdAt: i.savedAt ?? v.createdAt ?? "", quantity: i.quantity, clientId: v.clientId })),
     );
 }
 
@@ -77,7 +77,11 @@ function line(item: StockItem, visits: readonly ConsumptionVisit[], today: IsoDa
     state,
     afterPlanned: state.available - p.amount,
     plannedUnknown: p.unknown,
-    changes: summarizeChanges(item.changes, practiceTimeZone),
+    // SK7: changes logged before the client was stored – the visit, if it is still there, tells whose it is.
+    changes: summarizeChanges(
+      item.changes.map((c) => ({ ...c, clientId: c.clientId ?? visits.find((v) => v.visitId === c.visitId)?.clientId ?? null })),
+      practiceTimeZone,
+    ),
   };
 }
 
@@ -250,4 +254,14 @@ export async function correctStock(deps: Pick<StockDeps, "stock" | "visits">, it
   if (opened) await deps.stock.addReceipt(current.itemId, { receivedOn: today, vialSize: opened.size, count: 1, openedOn: today, remaining: opened.remaining, lot: null, expiresOn: null });
   for (const e of extra) await deps.stock.addReceipt(current.itemId, { receivedOn: today, vialSize: e.size, count: e.count, openedOn: null, remaining: null, lot: null, expiresOn: null });
   return "ok";
+}
+
+/** SK7: the names of the clients in «История» of these preparations (deleted clients marked, no link). */
+export async function stockClientNames(deps: Pick<StockDeps, "stock">, lines: readonly StockLine[]): Promise<Record<string, { name: string; deleted: boolean }>> {
+  const ids = new Set<string>();
+  for (const l of lines) {
+    for (const h of l.state.history) if (h.clientId) ids.add(h.clientId);
+    for (const c of l.changes) if (c.clientId) ids.add(c.clientId);
+  }
+  return deps.stock.clientNames([...ids]);
 }

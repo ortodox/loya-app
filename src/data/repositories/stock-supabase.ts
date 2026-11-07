@@ -20,6 +20,7 @@ type ChangeRow = {
   source: StockChange["source"];
   action: StockChange["action"];
   visit_id: string | null;
+  client_id: string | null;
   visit_date: string | null;
   new_visit_date: string | null;
   old_quantity: string | null;
@@ -46,7 +47,7 @@ export function supabaseStockRepository(supabase: SupabaseClient): StockReposito
       // SK4: the change log of the preparations kept in stock (written by database triggers).
       const changes = await supabase
         .from("stock_changes")
-        .select("preparation_id, changed_at, source, action, visit_id, visit_date, new_visit_date, old_quantity, new_quantity, old_data")
+        .select("preparation_id, changed_at, source, action, visit_id, client_id, visit_date, new_visit_date, old_quantity, new_quantity, old_data")
         .in("preparation_id", rows.length > 0 ? rows.map((r) => r.preparation_id) : ["00000000-0000-0000-0000-000000000000"])
         .order("changed_at", { ascending: true });
       if (changes.error) throw changes.error;
@@ -58,6 +59,7 @@ export function supabaseStockRepository(supabase: SupabaseClient): StockReposito
           source: c.source,
           action: c.action,
           visitId: c.visit_id,
+          clientId: c.client_id,
           visitDate: c.visit_date,
           newVisitDate: c.new_visit_date,
           oldQuantity: c.old_quantity,
@@ -117,6 +119,14 @@ export function supabaseStockRepository(supabase: SupabaseClient): StockReposito
         .from("stock_adjustments")
         .insert(adjustments.map((a) => ({ stock_item_id: itemId, happened_on: a.happenedOn, kind: a.kind, vial_key: a.vialKey, amount: a.amount })));
       if (error) throw error;
+    },
+
+    async clientNames(ids) {
+      if (ids.length === 0) return {};
+      // SK7: straight from «clients» (RLS: own clients only) – deleted ones too, so «История» can mark them.
+      const { data, error } = await supabase.from("clients").select("id, full_name, deleted_at").in("id", ids);
+      if (error) throw error;
+      return Object.fromEntries((data as { id: string; full_name: string; deleted_at: string | null }[]).map((c) => [c.id, { name: c.full_name, deleted: c.deleted_at !== null }]));
     },
 
     async setVialSizes(itemId, sizes) {

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { CatalogRepository } from "@/data/repositories/catalog";
 import type { StockItem, StockRepository } from "@/data/repositories/stock";
 import type { ConsumptionVisit } from "@/logic/rules/consumption";
-import { addToStock, correctStock, discardVial, getStockOverview, getVisitStock, listAddablePreparations, receiveStock } from "./stock";
+import { addToStock, correctStock, discardVial, getStockOverview, getVisitStock, listAddablePreparations, receiveStock, stockClientNames } from "./stock";
 
 const today = "2026-11-10";
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
@@ -34,6 +34,7 @@ function setup(visits: ConsumptionVisit[] = []) {
     addReceipt: async (itemId, input) => {
       items.find((i) => i.id === itemId)!.receipts.push({ ...input, id: `r${n++}`, createdAt: `c${n}` });
     },
+    clientNames: async (ids) => Object.fromEntries(ids.map((i) => [i, { name: `Клиент ${i}`, deleted: i === "gone" }])),
     setVialSizes: async (itemId, sizes) => {
       items.find((i) => i.id === itemId)!.vialSizes = sizes;
     },
@@ -156,5 +157,16 @@ describe("SK6: исправление при минусе", () => {
     expect((await getStockOverview(deps, today))[0].state.available).toBe(-30);
     expect(await correctStock(deps, items[0].id, { closed: { "100": "1" } }, today)).toBe("ok");
     expect((await getStockOverview(deps, today))[0].state.available).toBe(100);
+  });
+});
+
+describe("SK7: имя клиента в истории", () => {
+  it("SK7: visit lines know their client; the names are looked up once for all lines", async () => {
+    const { deps, items } = setup([visit("v1", "a", "2026-11-06", BOTOX, "20"), visit("v2", "gone", "2026-11-07", BOTOX, "5")]);
+    await addToStock(deps, BOTOX, ["100"], "2026-11-05");
+    await receiveStock(deps, items[0].id, { receivedOn: "2026-11-05", vialSize: "100", count: "1" }, "2026-11-05");
+    const lines = await getStockOverview(deps, today);
+    expect(lines[0].state.history.filter((h) => h.kind === "visit").map((h) => h.clientId)).toEqual(["gone", "a"]);
+    expect(await stockClientNames(deps, lines)).toEqual({ a: { name: "Клиент a", deleted: false }, gone: { name: "Клиент gone", deleted: true } });
   });
 });

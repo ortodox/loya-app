@@ -10,8 +10,8 @@ import { CatalogSwitch } from "./CatalogSwitch";
 import { DiscardVial } from "./stock/DiscardVial";
 import { StockHistory } from "./stock/StockHistory";
 
-/** SK1 «Склад»: the preparations Loya keeps in stock, by type – no client names. */
-export async function StockView({ lines }: { lines: StockLine[] }) {
+/** SK1 «Склад»: the preparations Loya keeps in stock, by type; SK7: client names only inside «История». */
+export async function StockView({ lines, clients = {} }: { lines: StockLine[]; clients?: Record<string, { name: string; deleted: boolean }> }) {
   const t = await getTranslations();
   const locale = (await getLocale()) as Locale;
   // SK6: a real minus sign («−15 ЕД»), not a hyphen.
@@ -98,7 +98,7 @@ export async function StockView({ lines }: { lines: StockLine[] }) {
                     {t("stock.correct")}
                   </Link>
                 </div>
-                <StockHistory entries={l.state.history} changes={l.changes} unit={unit(l)} />
+                <StockHistory entries={l.state.history} changes={l.changes} clients={clients} unit={unit(l)} />
               </li>
             ))}
           </ul>

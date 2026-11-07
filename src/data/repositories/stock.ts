@@ -26,6 +26,8 @@ export interface StockRepository {
   addItem(preparationId: string, startedOn: IsoDate, vialSizes: number[] | null): Promise<{ id: string }>;
   addReceipt(itemId: string, input: StockReceiptInput): Promise<void>;
   addAdjustments(itemId: string, adjustments: Omit<StockAdjustment, "createdAt">[]): Promise<void>;
+  /** SK7: names of the clients in «История» (also deleted ones, marked). */
+  clientNames(ids: string[]): Promise<Record<string, { name: string; deleted: boolean }>>;
   /** SK1 ✏️ B: a new vial size added when a receipt comes in. */
   setVialSizes(itemId: string, sizes: number[]): Promise<void>;
 }
