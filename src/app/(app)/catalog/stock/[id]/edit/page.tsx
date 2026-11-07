@@ -16,6 +16,8 @@ export default async function CorrectStockPage({ params }: { params: Promise<{ i
       <CorrectForm
         name={line.name}
         pieces={line.kind === "pieces" ? line.state.available : null}
+        available={line.state.available}
+        vialSizes={line.vialSizes ?? []}
         openVials={line.state.openVials.map((v) => ({ key: v.key, size: v.size, remaining: v.remaining, openedOn: formatIsoDate(v.openedOn) }))}
         closed={(line.vialSizes ?? []).map((size) => ({ size, count: line.state.closed.find((c) => c.size === size)?.count ?? 0 }))}
         action={correctStockAction.bind(null, line.itemId)}

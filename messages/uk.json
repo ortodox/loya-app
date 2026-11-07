@@ -720,8 +720,8 @@
     "expiresOn": "Термін придатності",
     "correctTitle": "Виправити залишок",
     "correctIntro": "Вкажи, скільки є насправді сьогодні. 0 у відкритого флакона – списати.",
-    "openVialField": "Відкрито {date} · {size} ОД – залишилось, ОД",
-    "closedField": "Закриті флакони {size} ОД, шт",
+    "openVialField": "Відкрито {date} · флакон {size} ОД – залишилось",
+    "closedField": "Закриті флакони по {size} ОД",
     "inStockHint": "В наявності: {amount} {unit}",
     "overStock": "На складі лише {amount} {unit} – зберегти можна",
     "notCounted": "Не вказано – зі складу не списано",
@@ -759,6 +759,14 @@
         "correctionChanged": "Виправлення {date} змінено",
         "correctionDeleted": "Виправлення {date} видалено"
       }
-    }
+    },
+    "openSection": "Відкриті флакони – скільки залишилось, ОД",
+    "openNewField": "Відкритий флакон, якого немає в додатку (якщо є) – скільки залишилось",
+    "vialOf": "флакон {size} ОД",
+    "closedSection": "Закриті флакони – скільки флаконів",
+    "vialsShort": "фл.",
+    "closedTotal": "{count} фл. × {size} = {units} ОД",
+    "closedChange": "Було {from} фл. → стане {to} фл. ({units} ОД)",
+    "totalAfter": "Разом після виправлення: {total} ОД (зараз {before} ОД)"
   }
 }

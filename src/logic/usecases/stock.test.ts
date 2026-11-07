@@ -34,6 +34,9 @@ function setup(visits: ConsumptionVisit[] = []) {
     addReceipt: async (itemId, input) => {
       items.find((i) => i.id === itemId)!.receipts.push({ ...input, id: `r${n++}`, createdAt: `c${n}` });
     },
+    setVialSizes: async (itemId, sizes) => {
+      items.find((i) => i.id === itemId)!.vialSizes = sizes;
+    },
     addAdjustments: async (itemId, list) => {
       items.find((i) => i.id === itemId)!.adjustments.push(...list.map((a) => ({ ...a, createdAt: `c${n++}` })));
     },
@@ -120,5 +123,27 @@ describe("SK1: склад – визиты, «В наличии» и «Посл�
     expect(await correctStock(deps, filler, { pieces: "3" }, today)).toBe("ok");
     expect((await getStockOverview(deps, today))[1].state.available).toBe(3);
     expect(await correctStock(deps, filler, { pieces: "-1" }, today)).toBe("invalid");
+  });
+});
+
+describe("SK1 ✏️: размеры флаконов и открытый флакон при исправлении", () => {
+  it("SK1 ✏️ B: «Другой размер» adds the size to the preparation and receives vials of it", async () => {
+    const { deps, items } = setup();
+    await addToStock(deps, BOTOX, ["100"], today);
+    expect(await receiveStock(deps, items[0].id, { vialSize: "", newSize: "abc", count: "1" }, today)).toEqual({ ok: false, errors: { vialSize: "invalid" } });
+    expect(await receiveStock(deps, items[0].id, { vialSize: "", newSize: "50", count: "2" }, today)).toEqual({ ok: true });
+    expect(items[0].vialSizes).toEqual([50, 100]);
+    expect((await getStockOverview(deps, today))[0].state.closed).toEqual([{ size: 50, count: 2 }]);
+  });
+
+  it("SK1 ✏️ A: an open vial the app did not know about – size and what is left; more than the size is refused", async () => {
+    const { deps, items } = setup();
+    await addToStock(deps, BOTOX, ["100"], today);
+    await receiveStock(deps, items[0].id, { vialSize: "100", count: "2" }, today);
+    expect(await correctStock(deps, items[0].id, { closed: { "100": "1" }, openNew: { size: "100", remaining: "150" } }, today)).toBe("invalid");
+    expect(await correctStock(deps, items[0].id, { closed: { "100": "1" }, openNew: { size: "100", remaining: "20" } }, today)).toBe("ok");
+    const [line] = await getStockOverview(deps, today);
+    expect(line.state.available).toBe(120);
+    expect(line.state.openVials.map((v) => v.remaining)).toEqual([20]);
   });
 });

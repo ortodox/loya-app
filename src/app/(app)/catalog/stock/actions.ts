@@ -32,7 +32,7 @@ export type ReceiptState = { values: ReceiptForm; errors?: ReceiptErrors; failed
 /** SK1 «+ Поступление». */
 export async function receiveStockAction(itemId: string, _: ReceiptState, fd: FormData): Promise<ReceiptState> {
   const values: ReceiptForm = Object.fromEntries(
-    (["receivedOn", "vialSize", "count", "opened", "openedOn", "remaining", "lot", "expiresOn"] as const).map((k) => [k, str(fd.get(k))]),
+    (["receivedOn", "vialSize", "newSize", "count", "opened", "openedOn", "remaining", "lot", "expiresOn"] as const).map((k) => [k, str(fd.get(k))]),
   );
   try {
     const result = await receiveStock(await stockDeps(), itemId, values, todayIn(practiceTimeZone));
@@ -53,7 +53,8 @@ export async function correctStockAction(itemId: string, _: { failed?: boolean; 
     if (key.startsWith("closed.")) closed[key.slice(7)] = str(value);
   }
   try {
-    const result = await correctStock(await stockDeps(), itemId, { pieces: str(fd.get("pieces")), open, closed }, todayIn(practiceTimeZone));
+    const openNew = { size: str(fd.get("openNew.size")), remaining: str(fd.get("openNew.remaining")) };
+    const result = await correctStock(await stockDeps(), itemId, { pieces: str(fd.get("pieces")), open, closed, openNew }, todayIn(practiceTimeZone));
     if (result === "invalid") return { invalid: true };
     if (result === "notFound") return { failed: true };
   } catch {

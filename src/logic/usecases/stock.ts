@@ -138,7 +138,7 @@ export async function addToStock(deps: Pick<StockDeps, "stock" | "catalog">, pre
   return { ok: true, ...(await deps.stock.addItem(preparationId, today, sizes)) };
 }
 
-export type ReceiptForm = { receivedOn?: string; vialSize?: string; count?: string; opened?: string; openedOn?: string; remaining?: string; lot?: string; expiresOn?: string };
+export type ReceiptForm = { receivedOn?: string; vialSize?: string; /** SK1 ✏️ B: «Другой размер, ЕД». */ newSize?: string; count?: string; opened?: string; openedOn?: string; remaining?: string; lot?: string; expiresOn?: string };
 export type ReceiptErrors = Partial<Record<"receivedOn" | "vialSize" | "count" | "openedOn" | "remaining" | "expiresOn", "invalid">>;
 
 /**
@@ -159,8 +159,11 @@ export async function receiveStock(
   const opened = current.kind === "vials" && form.opened === "1";
   const count = opened ? 1 : Number((form.count ?? "").trim());
   if (!Number.isInteger(count) || count < 1 || count > 1000) errors.count = "invalid";
-  const vialSize = current.kind === "vials" ? Number(form.vialSize) : null;
-  if (current.kind === "vials" && !current.vialSizes?.includes(vialSize!)) errors.vialSize = "invalid";
+  // SK1 ✏️ B: a size typed under «Другой размер» is added to the preparation's sizes.
+  const typed = current.kind === "vials" && (form.newSize ?? "").trim() !== "" ? parseVialSizes([form.newSize!]) : null;
+  if (current.kind === "vials" && (form.newSize ?? "").trim() !== "" && !typed) errors.vialSize = "invalid";
+  const vialSize = current.kind === "vials" ? (typed ? typed[0] : Number(form.vialSize)) : null;
+  if (current.kind === "vials" && !typed && !current.vialSizes?.includes(vialSize!)) errors.vialSize = "invalid";
   let openedOn: IsoDate | null = null;
   let remaining: number | null = null;
   if (opened) {
@@ -172,6 +175,7 @@ export async function receiveStock(
   const expiresOn = (form.expiresOn ?? "").trim() || null;
   if (expiresOn !== null && !isIsoDate(expiresOn)) errors.expiresOn = "invalid";
   if (Object.keys(errors).length > 0) return { ok: false, errors };
+  if (typed && !current.vialSizes?.includes(typed[0])) await deps.stock.setVialSizes(current.itemId, parseVialSizes([...(current.vialSizes ?? []).map(String), String(typed[0])])!);
   await deps.stock.addReceipt(current.itemId, {
     receivedOn: opened && openedOn! < receivedOn ? openedOn! : receivedOn,
     vialSize,
@@ -193,7 +197,13 @@ export async function discardVial(deps: Pick<StockDeps, "stock" | "visits">, ite
   return true;
 }
 
-export type CorrectForm = { pieces?: string; open?: Record<string, string>; closed?: Record<string, string> };
+export type CorrectForm = {
+  pieces?: string;
+  open?: Record<string, string>;
+  closed?: Record<string, string>;
+  /** SK1 ✏️ A: an open vial the app did not know about – its size and what is left in it. */
+  openNew?: { size?: string; remaining?: string };
+};
 
 /**
  * SK1 «Исправить остаток»: what is really there today – pieces, or for botox what is left in each open
@@ -226,7 +236,15 @@ export async function correctStock(deps: Pick<StockDeps, "stock" | "visits">, it
     if (n < have) for (const key of closedVialsToRemove(current.state.closedVials, size, n)) adjustments.push({ happenedOn: today, kind: "discard", vialKey: key, amount: null });
     if (n > have) extra.push({ size, count: n - have });
   }
+  let opened: { size: number; remaining: number } | null = null;
+  const openRemaining = number(form.openNew?.remaining);
+  if (openRemaining !== null) {
+    const size = Number(form.openNew?.size ?? current.vialSizes?.[0]);
+    if (!current.vialSizes?.includes(size) || !Number.isFinite(openRemaining) || openRemaining <= 0 || openRemaining > size) return "invalid";
+    opened = { size, remaining: openRemaining };
+  }
   await deps.stock.addAdjustments(current.itemId, adjustments);
+  if (opened) await deps.stock.addReceipt(current.itemId, { receivedOn: today, vialSize: opened.size, count: 1, openedOn: today, remaining: opened.remaining, lot: null, expiresOn: null });
   for (const e of extra) await deps.stock.addReceipt(current.itemId, { receivedOn: today, vialSize: e.size, count: e.count, openedOn: null, remaining: null, lot: null, expiresOn: null });
   return "ok";
 }

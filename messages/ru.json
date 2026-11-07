@@ -720,8 +720,8 @@
     "expiresOn": "Срок годности",
     "correctTitle": "Исправить остаток",
     "correctIntro": "Укажи, сколько есть на самом деле сегодня. 0 у открытого флакона – списать.",
-    "openVialField": "Открыт {date} · {size} ЕД – осталось, ЕД",
-    "closedField": "Закрытые флаконы {size} ЕД, шт",
+    "openVialField": "Открыт {date} · флакон {size} ЕД – осталось",
+    "closedField": "Закрытые флаконы по {size} ЕД",
     "inStockHint": "В наличии: {amount} {unit}",
     "overStock": "На складе только {amount} {unit} – сохранить можно",
     "notCounted": "Не указано – со склада не списано",
@@ -759,6 +759,14 @@
         "correctionChanged": "Исправление {date} изменено",
         "correctionDeleted": "Исправление {date} удалено"
       }
-    }
+    },
+    "openSection": "Открытые флаконы – сколько осталось, ЕД",
+    "openNewField": "Открытый флакон, которого нет в приложении (если есть) – сколько осталось",
+    "vialOf": "флакон {size} ЕД",
+    "closedSection": "Закрытые флаконы – сколько флаконов",
+    "vialsShort": "фл.",
+    "closedTotal": "{count} фл. × {size} = {units} ЕД",
+    "closedChange": "Было {from} фл. → станет {to} фл. ({units} ЕД)",
+    "totalAfter": "Итого после исправления: {total} ЕД (сейчас {before} ЕД)"
   }
 }
