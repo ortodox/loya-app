@@ -10,7 +10,7 @@ import { stockDeps } from "./deps";
 const str = (v: FormDataEntryValue | null) => (typeof v === "string" ? v : "");
 const stockHome = "/catalog?view=stock";
 
-export type AddStockState = { error?: "notFound" | "already" | "sizesRequired" | "failed" };
+export type AddStockState = { error?: "notFound" | "already" | "failed" };
 
 /** SK1 «+ На склад»: start keeping the preparation, then go on to «+ Поступление». */
 export async function addToStockAction(preparationId: string, _: AddStockState, fd: FormData): Promise<AddStockState> {

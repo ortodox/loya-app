@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseVialSizes, simulateStock, type StockReceipt } from "./stock";
+import { offeredVialSizes, parseVialSizes, simulateStock, type StockReceipt } from "./stock";
 
 const receipt = (id: string, receivedOn: string, vialSize: number | null, count: number, extra: Partial<StockReceipt> = {}): StockReceipt => ({
   id,
@@ -149,5 +149,13 @@ describe("SK6: склад может уходить в минус", () => {
     const s = simulateStock("vials", [receipt("r", "2026-11-01", 50, 1)], [use("2026-11-07", 80)], [clear]);
     expect(s.available).toBe(0);
     expect(s.history[0]).toMatchObject({ kind: "correct", change: 30, balance: 0 });
+  });
+});
+
+describe("SK1 ✏️: стандартные размеры флаконов", () => {
+  it("SK1 ✏️: 50, 100, 200, 300 and 500 ЕД are always offered, plus the preparation's own sizes", () => {
+    expect(offeredVialSizes([100])).toEqual([50, 100, 200, 300, 500]);
+    expect(offeredVialSizes([150])).toEqual([50, 100, 150, 200, 300, 500]);
+    expect(offeredVialSizes(null)).toEqual([50, 100, 200, 300, 500]);
   });
 });

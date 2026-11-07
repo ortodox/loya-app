@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { practiceTimeZone } from "@/config/time";
 import { formatIsoDate, todayIn } from "@/logic/rules/dates";
+import { offeredVialSizes } from "@/logic/rules/stock";
 import { getStockLine } from "@/logic/usecases/stock";
 import { correctStockAction } from "../../actions";
 import { stockDeps } from "../../deps";
@@ -17,9 +18,9 @@ export default async function CorrectStockPage({ params }: { params: Promise<{ i
         name={line.name}
         pieces={line.kind === "pieces" ? line.state.available : null}
         available={line.state.available}
-        vialSizes={line.vialSizes ?? []}
+        vialSizes={line.vialSizes ? offeredVialSizes(line.vialSizes) : []}
         openVials={line.state.openVials.map((v) => ({ key: v.key, size: v.size, remaining: v.remaining, openedOn: formatIsoDate(v.openedOn) }))}
-        closed={(line.vialSizes ?? []).map((size) => ({ size, count: line.state.closed.find((c) => c.size === size)?.count ?? 0 }))}
+        closed={(line.vialSizes ? offeredVialSizes(line.vialSizes) : []).map((size) => ({ size, count: line.state.closed.find((c) => c.size === size)?.count ?? 0 }))}
         action={correctStockAction.bind(null, line.itemId)}
       />
     </main>
