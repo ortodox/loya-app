@@ -747,7 +747,18 @@
       "discard": "Discarded",
       "correct": "Corrected",
       "notCounted": "not taken off",
-      "empty": "no quantity given"
+      "empty": "no quantity given",
+      "change": {
+        "visitChanged": "Visit {date} changed",
+        "visitAdded": "Added to visit {date}",
+        "visitRemoved": "Removed from visit {date}",
+        "visitDate": "Visit date {from} → {to}",
+        "visitDeleted": "Visit {date} deleted",
+        "receiptChanged": "Delivery {date} changed",
+        "receiptDeleted": "Delivery {date} deleted",
+        "correctionChanged": "Correction {date} changed",
+        "correctionDeleted": "Correction {date} deleted"
+      }
     }
   }
 }

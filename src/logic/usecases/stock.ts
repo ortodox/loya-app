@@ -3,6 +3,8 @@ import { botoxUnits, isBotox, pieces, type ConsumptionVisit } from "@/logic/rule
 import { isIsoDate } from "@/logic/rules/dates";
 import type { ReminderType } from "@/logic/rules/reminders";
 import { closedVialsToRemove, parseVialSizes, simulateStock, type StockKind, type StockState, type StockUse } from "@/logic/rules/stock";
+import { practiceTimeZone } from "@/config/time";
+import { summarizeChanges, type StockChangeLine } from "@/logic/rules/stock-changes";
 import type { CatalogRepository } from "@/data/repositories/catalog";
 import type { ConsumptionRepository } from "@/data/repositories/consumption";
 import type { StockItem, StockRepository } from "@/data/repositories/stock";
@@ -24,6 +26,8 @@ export type StockLine = {
   afterPlanned: number;
   /** Planned botox visits without a number (and no earlier number for that client). */
   plannedUnknown: number;
+  /** SK4: what was changed afterwards (visits, receipts, corrections), newest first. */
+  changes: StockChangeLine[];
 };
 
 const kindOf = (item: StockItem): StockKind => (item.vialSizes ? "vials" : "pieces");
@@ -73,6 +77,7 @@ function line(item: StockItem, visits: readonly ConsumptionVisit[], today: IsoDa
     state,
     afterPlanned: state.available - p.amount,
     plannedUnknown: p.unknown,
+    changes: summarizeChanges(item.changes, practiceTimeZone),
   };
 }
 

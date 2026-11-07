@@ -1,6 +1,7 @@
 import type { IsoDate } from "@/logic/client";
 import type { ReminderType } from "@/logic/rules/reminders";
 import type { StockAdjustment, StockReceipt } from "@/logic/rules/stock";
+import type { StockChange } from "@/logic/rules/stock-changes";
 
 /** SK1: a preparation kept in stock, with its receipts and corrections. */
 export type StockItem = {
@@ -13,6 +14,8 @@ export type StockItem = {
   vialSizes: number[] | null;
   receipts: StockReceipt[];
   adjustments: StockAdjustment[];
+  /** SK4: the change log, oldest first. */
+  changes: StockChange[];
 };
 
 export type StockReceiptInput = Omit<StockReceipt, "id" | "createdAt"> & { lot: string | null; expiresOn: IsoDate | null };

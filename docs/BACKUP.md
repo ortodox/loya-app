@@ -31,7 +31,8 @@ select taken_at, reason,
        count(*) filter (where table_name = 'client_photos')    as klientbilder,
        count(*) filter (where table_name = 'procedure_types') as typer,
        count(*) filter (where table_name = 'preparations')    as preparater,
-       count(*) filter (where table_name = 'stock_receipts')  as lagerinnkjop
+       count(*) filter (where table_name = 'stock_receipts')  as lagerinnkjop,
+       count(*) filter (where table_name = 'stock_changes')   as lagerendringer
 from backup.snapshots
 group by taken_at, reason
 order by taken_at desc
@@ -579,7 +580,7 @@ commit;
 
 ## 6c. Gjenopprett lageret («Склад», SK1)
 
-Kopiene inneholder også `stock_items`, `stock_receipts` og `stock_adjustments`. Beholdningen regnes alltid ut på nytt
+Kopiene inneholder også `stock_items`, `stock_receipts`, `stock_adjustments` og endringsloggen `stock_changes` (SK4). Beholdningen regnes alltid ut på nytt
 fra disse og besøkene, så det holder å legge radene tilbake. Kjør etter 6b hvis katalogen også skal tilbake.
 Rader som finnes fra før, røres ikke.
 
@@ -613,6 +614,17 @@ insert into public.stock_adjustments
 select (jsonb_populate_record(null::public.stock_adjustments, s.row_data)).*
 from backup.snapshots s, valgt
 where s.taken_at = valgt.t and s.table_name = 'stock_adjustments'
+on conflict do nothing;
+
+-- Endringsloggen (SK4). Merk: gjenopprettingen over skriver selv nye linjer i loggen hvis
+-- innkjøp eller korrigeringer endres; nye rader logges ikke.
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.stock_changes
+select (jsonb_populate_record(null::public.stock_changes, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t and s.table_name = 'stock_changes'
 on conflict do nothing;
 
 commit;

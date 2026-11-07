@@ -747,7 +747,18 @@
       "discard": "Odpisano",
       "correct": "Poprawiono",
       "notCounted": "nie odpisano",
-      "empty": "nie podano ilości"
+      "empty": "nie podano ilości",
+      "change": {
+        "visitChanged": "Zmiana wizyty {date}",
+        "visitAdded": "Dodano do wizyty {date}",
+        "visitRemoved": "Usunięto z wizyty {date}",
+        "visitDate": "Data wizyty {from} → {to}",
+        "visitDeleted": "Wizyta {date} usunięta",
+        "receiptChanged": "Dostawa {date} zmieniona",
+        "receiptDeleted": "Dostawa {date} usunięta",
+        "correctionChanged": "Korekta {date} zmieniona",
+        "correctionDeleted": "Korekta {date} usunięta"
+      }
     }
   }
 }
