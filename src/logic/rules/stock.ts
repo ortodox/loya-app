@@ -64,13 +64,23 @@ type Event =
   | { date: IsoDate; rank: 1; at: string; use: StockUse }
   | { date: IsoDate; rank: 2; at: string; adjustment: StockAdjustment };
 
-/** SK1: receipts first on a day, then the visits, then corrections (they say what was left at the end). */
+/**
+ * SK1: receipts first on a day; then visits and corrections in the order they were entered – a
+ * correction («Исправить остаток») says what was there at that moment, so a visit entered later the
+ * same day is still taken off (SK1 🐞, 07.11.2026).
+ */
 function events(receipts: readonly StockReceipt[], uses: readonly StockUse[], adjustments: readonly StockAdjustment[]): Event[] {
   return [
     ...receipts.map((receipt): Event => ({ date: receipt.receivedOn, rank: 0, at: receipt.createdAt, receipt })),
     ...uses.map((use): Event => ({ date: use.date, rank: 1, at: use.createdAt, use })),
     ...adjustments.map((adjustment): Event => ({ date: adjustment.happenedOn, rank: 2, at: adjustment.createdAt, adjustment })),
-  ].sort((a, b) => a.date.localeCompare(b.date) || a.rank - b.rank || a.at.localeCompare(b.at));
+  ].sort(
+    (a, b) =>
+      a.date.localeCompare(b.date) ||
+      Number(a.rank !== 0) - Number(b.rank !== 0) ||
+      a.at.localeCompare(b.at) ||
+      a.rank - b.rank,
+  );
 }
 
 /**

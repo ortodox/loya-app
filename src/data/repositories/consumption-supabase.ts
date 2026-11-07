@@ -10,7 +10,7 @@ type Row = {
   visit_date: string;
   remind_on: string | null;
   reminder_done_at: string | null;
-  visit_items: { preparation_id: string | null; preparation_name: string; quantity: string | null; procedure_types: TypeRow | TypeRow[] | null }[];
+  visit_items: { preparation_id: string | null; preparation_name: string; quantity: string | null; created_at: string; procedure_types: TypeRow | TypeRow[] | null }[];
 };
 
 const one = (t: TypeRow | TypeRow[] | null) => (Array.isArray(t) ? t[0] ?? null : t);
@@ -21,7 +21,7 @@ export function supabaseConsumptionRepository(supabase: SupabaseClient): Consump
     async listVisits() {
       const { data, error } = await supabase
         .from("visits")
-        .select("id, created_at, client_id, visit_date, remind_on, reminder_done_at, clients!inner(deleted_at), visit_items(preparation_id, preparation_name, quantity, procedure_types(id, code, name))")
+        .select("id, created_at, client_id, visit_date, remind_on, reminder_done_at, clients!inner(deleted_at), visit_items(preparation_id, preparation_name, quantity, created_at, procedure_types(id, code, name))")
         .is("clients.deleted_at", null);
       if (error) throw error;
       return (data as unknown as Row[]).map((v) => ({
@@ -37,6 +37,7 @@ export function supabaseConsumptionRepository(supabase: SupabaseClient): Consump
             name: i.preparation_name,
             type: type ? { id: type.id, code: type.code, name: type.name ?? {} } : null,
             quantity: i.quantity,
+            savedAt: i.created_at,
           };
         }),
       }));

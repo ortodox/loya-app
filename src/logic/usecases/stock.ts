@@ -40,7 +40,7 @@ function usesOf(item: StockItem, visits: readonly ConsumptionVisit[], today: Iso
     .flatMap((v) =>
       v.items
         .filter((i) => i.key === item.preparationId)
-        .map((i) => ({ date: v.visitDate, amount: kind === "vials" ? botoxUnits(i.quantity) : pieces(i.quantity), createdAt: v.createdAt ?? "", quantity: i.quantity })),
+        .map((i) => ({ date: v.visitDate, amount: kind === "vials" ? botoxUnits(i.quantity) : pieces(i.quantity), createdAt: i.savedAt ?? v.createdAt ?? "", quantity: i.quantity })),
     );
 }
 
