@@ -174,3 +174,10 @@ export function botoxSince(client: Pick<Client, "botoxDates">, today: IsoDate): 
   const last = lastBotoxDate(client.botoxDates ?? [], today);
   return last ? timeSince(last, today) : null;
 }
+
+/** ZM1: «+ Заметка» / «Изменить» in the card – saves only «Заметки» (empty = none). */
+export async function updateNotes(repo: ClientRepository, id: string, text: string): Promise<boolean> {
+  if (!uuid.test(id)) return false;
+  const notes = text.replace(/\r\n/g, "\n").trim();
+  return repo.setNotes(id, notes === "" ? null : notes.slice(0, 20000));
+}

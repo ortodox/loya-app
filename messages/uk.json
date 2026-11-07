@@ -772,5 +772,10 @@
     "closedTotal": "{count} фл. × {size} = {units} ОД",
     "closedChange": "Було {from} фл. → стане {to} фл. ({units} ОД)",
     "totalAfter": "Разом після виправлення: {total} ОД (зараз {before} ОД)"
+  },
+  "notes": {
+    "add": "+ Нотатка",
+    "edit": "Змінити",
+    "failed": "Не вдалося зберегти. Спробуй ще раз."
   }
 }

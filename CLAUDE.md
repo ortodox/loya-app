@@ -207,7 +207,7 @@ Hvert felt: fritekst er alltid tillatt (også «?» for usikkerhet). Hurtigvalg 
   5. **«Лечение»** (LE5) – aktiv kur: diagnose, назначение, datoer, «Осталось N дней» med fremdriftslinje, kontroll av analyser («Последние анализы» kan endres eller tømmes – da regnes neste fra startdatoen), bilder av resepter; «Завершённые курсы» lukket (LE9); tilknyttede analyser under «Анализы» (LE8); «Фото клиента» med «+ Фото» i den aktive kuren (FK3), og bildene blir med i «Завершённые курсы».
   5b. **«Уход»** (UH1/UH2) – fritekst, «Обновлено: <dato>», bilder som åpnes i full størrelse.
   5c. **«Документы и анализы»** (DK1/DK3/DK5) – «+ Документ», nyeste øverst, «Открыть» (signert lenke), «Удалить» med bekreftelse.
-  6. **«Заметки»**.
+  6. **«Заметки»** – «+ Заметка» (tom) / «Изменить» i overskriften (ZM1, 07.11.2026) → `/clients/[id]/notes/edit`, som bare lagrer notatene (`updateNotes` → `ClientRepository.setNotes`), tilbake til `#notes`.
   7. **«Анкета»** nederst, lukket som standard (hver klinisk seksjon har «Изменить» → `/clients/[id]/anamnesis/<seksjon>/edit`, som bare lagrer den seksjonen, `mergeAnamnesisSection`, AN3): Общие данные, Жалобы, Состояние здоровья, Состояние кожи, Возрастные изменения, Ранее проведённые процедуры – hver seksjon kan åpnes og viser kort sammendrag; under tittelen «✓ Анамнез подтверждён: <dato>» (AN3).
   8. **«Удалить клиента»** (PR6) helt nederst, rød, bekreftelse i panel nederst på skjermen.
   - **Fast knapperad** over fanelinjen (`CardActions`): «+ Визит» og «+ Фото» («Фото клиента», eller aktiv kur for klienter med bare «Дерматология»); «↺ Повторить» fjernet 07.11.2026. WhatsApp er ikke i knapperaden (fjernet 31.10.2026) – ring og meldinger ligger øverst i kortet (KT1).
