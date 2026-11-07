@@ -118,5 +118,10 @@ export function supabaseStockRepository(supabase: SupabaseClient): StockReposito
         .insert(adjustments.map((a) => ({ stock_item_id: itemId, happened_on: a.happenedOn, kind: a.kind, vial_key: a.vialKey, amount: a.amount })));
       if (error) throw error;
     },
+
+    async setVialSizes(itemId, sizes) {
+      const { error } = await supabase.from("stock_items").update({ vial_sizes: sizes }).eq("id", itemId);
+      if (error) throw error;
+    },
   };
 }

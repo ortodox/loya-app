@@ -78,3 +78,15 @@ body {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* C: iOS Safari gives date fields their own width – keep them inside the card like any other field. */
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+}
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+}

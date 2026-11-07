@@ -720,8 +720,8 @@
     "expiresOn": "Expiry date",
     "correctTitle": "Correct stock",
     "correctIntro": "Enter what is really there today. 0 for an open vial – discard it.",
-    "openVialField": "Opened {date} · {size} U – left, U",
-    "closedField": "Closed vials {size} U, pcs",
+    "openVialField": "Opened {date} · {size} U vial – left",
+    "closedField": "Closed vials of {size} U",
     "inStockHint": "In stock: {amount} {unit}",
     "overStock": "Only {amount} {unit} in stock – you can still save",
     "notCounted": "Not given – not taken off stock",
@@ -759,6 +759,14 @@
         "correctionChanged": "Correction {date} changed",
         "correctionDeleted": "Correction {date} deleted"
       }
-    }
+    },
+    "openSection": "Open vials – units left",
+    "openNewField": "An open vial the app does not know about (if any) – units left",
+    "vialOf": "{size} U vial",
+    "closedSection": "Closed vials – how many vials",
+    "vialsShort": "vials",
+    "closedTotal": "{count} vials × {size} = {units} U",
+    "closedChange": "Was {from} vials → will be {to} vials ({units} U)",
+    "totalAfter": "Total after the correction: {total} U (now {before} U)"
   }
 }

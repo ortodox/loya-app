@@ -720,8 +720,8 @@
     "expiresOn": "Data ważności",
     "correctTitle": "Popraw stan",
     "correctIntro": "Podaj, ile jest naprawdę dzisiaj. 0 przy otwartej fiolce – odpisać.",
-    "openVialField": "Otwarta {date} · {size} j. – zostało, j.",
-    "closedField": "Zamknięte fiolki {size} j., szt.",
+    "openVialField": "Otwarta {date} · fiolka {size} j. – zostało",
+    "closedField": "Zamknięte fiolki po {size} j.",
     "inStockHint": "Na stanie: {amount} {unit}",
     "overStock": "W magazynie tylko {amount} {unit} – można zapisać",
     "notCounted": "Nie podano – nie odpisano z magazynu",
@@ -759,6 +759,14 @@
         "correctionChanged": "Korekta {date} zmieniona",
         "correctionDeleted": "Korekta {date} usunięta"
       }
-    }
+    },
+    "openSection": "Otwarte fiolki – ile zostało, j.",
+    "openNewField": "Otwarta fiolka, której nie ma w aplikacji (jeśli jest) – ile zostało",
+    "vialOf": "fiolka {size} j.",
+    "closedSection": "Zamknięte fiolki – ile fiolek",
+    "vialsShort": "fiol.",
+    "closedTotal": "{count} fiol. × {size} = {units} j.",
+    "closedChange": "Było {from} fiol. → będzie {to} fiol. ({units} j.)",
+    "totalAfter": "Razem po poprawce: {total} j. (teraz {before} j.)"
   }
 }

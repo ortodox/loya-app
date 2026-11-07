@@ -15,6 +15,8 @@ export function ReceiptForm({ name, vialSizes, today, action }: Props) {
   const v = state.values;
   const [size, setSize] = useState(v.vialSize ?? "");
   const [opened, setOpened] = useState(v.opened === "1");
+  // SK1 ✏️ B: «Другой размер» – a size the preparation does not have yet; it is added when saved.
+  const [newSize, setNewSize] = useState(v.newSize ?? "");
   const error = (field: keyof NonNullable<ReceiptState["errors"]>) =>
     state.errors?.[field] ? <p className={ui.error}>{t(`stock.errors.${field}`)}</p> : null;
   const vials = vialSizes !== null;
@@ -43,13 +45,17 @@ export function ReceiptForm({ name, vialSizes, today, action }: Props) {
             <span className={card.label}>{t("stock.vialSize")}</span>
             <div className="flex flex-wrap gap-2">
               {vialSizes.map((s) => (
-                <label key={s} className={`${pill.base} ${size === String(s) ? pill.on : pill.off}`}>
-                  <input type="radio" name="vialSize" value={s} checked={size === String(s)} onChange={() => setSize(String(s))} className="sr-only" />
-                  {size === String(s) && "✓ "}
+                <label key={s} className={`${pill.base} ${size === String(s) && !newSize ? pill.on : pill.off}`}>
+                  <input type="radio" name="vialSize" value={s} checked={size === String(s)} onChange={() => { setSize(String(s)); setNewSize(""); }} className="sr-only" />
+                  {size === String(s) && !newSize && "✓ "}
                   {s} {t("stock.units")}
                 </label>
               ))}
             </div>
+            <label className="flex flex-col gap-2">
+              <span className={card.label}>{t("stock.ownSize")}</span>
+              <input name="newSize" inputMode="numeric" value={newSize} onChange={(e) => setNewSize(e.target.value)} className={ui.input} />
+            </label>
             {error("vialSize")}
           </div>
         )}
