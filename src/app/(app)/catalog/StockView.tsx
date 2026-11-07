@@ -8,6 +8,7 @@ import { formatIsoDate } from "@/logic/rules/dates";
 import type { StockLine } from "@/logic/usecases/stock";
 import { CatalogSwitch } from "./CatalogSwitch";
 import { DiscardVial } from "./stock/DiscardVial";
+import { StockHistory } from "./stock/StockHistory";
 
 /** SK1 «Склад»: the preparations Loya keeps in stock, by type – no client names. */
 export async function StockView({ lines }: { lines: StockLine[] }) {
@@ -95,6 +96,7 @@ export async function StockView({ lines }: { lines: StockLine[] }) {
                     {t("stock.correct")}
                   </Link>
                 </div>
+                <StockHistory entries={l.state.history} unit={unit(l)} />
               </li>
             ))}
           </ul>

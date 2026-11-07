@@ -38,6 +38,21 @@ export type StockState = {
   closedVials: { key: string; size: number; order: number }[];
   /** Botox uses without a number since stock-keeping began («Не указано – со склада не списано»). */
   unknown: number;
+  /** SK3 «История»: every event with what was left after it, newest first. */
+  history: StockHistoryEntry[];
+};
+
+/**
+ * SK3: one line of «История». `change` is what really came in or went out (a visit can take less than
+ * written when the stock is empty); a visit without a number has change null («не списано»).
+ */
+export type StockHistoryEntry = {
+  date: IsoDate;
+  kind: "receipt" | "visit" | "discard" | "correct";
+  change: number | null;
+  /** Receipts of vials: «2 × 100»; an already opened vial: opened = true. */
+  vials: { size: number; count: number; opened: boolean } | null;
+  balance: number;
 };
 
 type Vial = { key: string; size: number; order: number; openedOn: IsoDate | null; remaining: number; gone: boolean };
@@ -70,12 +85,24 @@ export function simulateStock(
 ): StockState {
   if (kind === "pieces") {
     let available = 0;
+    const history: StockHistoryEntry[] = [];
     for (const e of events(receipts, uses, adjustments)) {
-      if ("receipt" in e) available += e.receipt.count;
-      else if ("use" in e) available = Math.max(0, available - (e.use.amount ?? 1));
-      else if (e.adjustment.kind === "set" && e.adjustment.amount !== null) available = e.adjustment.amount;
+      const before = available;
+      let kind: StockHistoryEntry["kind"];
+      if ("receipt" in e) {
+        available += e.receipt.count;
+        kind = "receipt";
+      } else if ("use" in e) {
+        available = Math.max(0, available - (e.use.amount ?? 1));
+        kind = "visit";
+      } else {
+        if (e.adjustment.kind !== "set" || e.adjustment.amount === null) continue;
+        available = e.adjustment.amount;
+        kind = "correct";
+      }
+      history.push({ date: e.date, kind, change: available - before, vials: null, balance: available });
     }
-    return { available, openVials: [], closed: [], closedVials: [], unknown: 0 };
+    return { available, openVials: [], closed: [], closedVials: [], unknown: 0, history: history.reverse() };
   }
 
   const vials: Vial[] = [];
@@ -86,16 +113,25 @@ export function simulateStock(
     if (next) next.openedOn = date;
     return next ?? null;
   };
+  const history: StockHistoryEntry[] = [];
+  const total = () => vials.reduce((sum, v) => sum + (v.gone ? 0 : v.remaining), 0);
+  const log = (date: IsoDate, kind: StockHistoryEntry["kind"], before: number, extra: Partial<StockHistoryEntry> = {}) => {
+    const balance = total();
+    history.push({ date, kind, change: balance - before, vials: null, balance, ...extra });
+  };
   for (const e of events(receipts, uses, adjustments)) {
+    const before = total();
     if ("receipt" in e) {
       const r = e.receipt;
       const size = r.vialSize ?? 0;
       for (let i = 0; i < r.count; i++) {
         vials.push({ key: `${r.id}:${i}`, size, order: order++, openedOn: r.openedOn, remaining: r.openedOn && r.remaining !== null ? Math.min(r.remaining, size) : size, gone: false });
       }
+      log(e.date, "receipt", before, { vials: { size, count: r.count, opened: r.openedOn !== null } });
     } else if ("use" in e) {
       if (e.use.amount === null) {
         unknown++;
+        log(e.date, "visit", before, { change: null });
         continue;
       }
       let left = e.use.amount;
@@ -106,14 +142,16 @@ export function simulateStock(
         open.remaining -= taken;
         left -= taken;
       }
+      log(e.date, "visit", before);
     } else {
       const vial = vials.find((v) => v.key === e.adjustment.vialKey);
-      if (!vial) continue;
+      if (!vial || vial.gone) continue;
       if (e.adjustment.kind === "discard") vial.gone = true;
       else if (e.adjustment.amount !== null) {
         vial.remaining = Math.min(e.adjustment.amount, vial.size);
         vial.openedOn ??= e.adjustment.happenedOn;
       }
+      log(e.date, e.adjustment.kind === "discard" ? "discard" : "correct", before);
     }
   }
   const present = vials.filter((v) => !v.gone && v.remaining > 0);
@@ -128,6 +166,7 @@ export function simulateStock(
     closed: [...closed.entries()].sort((a, b) => a[0] - b[0]).map(([size, count]) => ({ size, count })),
     closedVials: present.filter((v) => v.openedOn === null).sort((a, b) => a.order - b.order).map((v) => ({ key: v.key, size: v.size, order: v.order })),
     unknown,
+    history: history.reverse(),
   };
 }
 

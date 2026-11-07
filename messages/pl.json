@@ -735,6 +735,16 @@
       "remaining": "Reszta musi być większa od 0 i nie większa niż fiolka.",
       "expiresOn": "Sprawdź datę.",
       "invalid": "Sprawdź liczby: tylko liczby całkowite od 0, przy otwartej fiolce – nie więcej niż jej rozmiar."
+    },
+    "history": {
+      "title": "Historia",
+      "more": "Pokaż więcej",
+      "receipt": "Dostawa",
+      "receiptOpened": "Otwarta fiolka",
+      "visit": "Wizyta",
+      "discard": "Odpisano",
+      "correct": "Poprawiono",
+      "notCounted": "nie odpisano"
     }
   }
 }
