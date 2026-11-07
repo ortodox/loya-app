@@ -735,6 +735,16 @@
       "remaining": "What is left must be above 0 and not more than the vial size.",
       "expiresOn": "Check the date.",
       "invalid": "Check the numbers: whole numbers from 0; an open vial – not more than its size."
+    },
+    "history": {
+      "title": "History",
+      "more": "Show more",
+      "receipt": "Delivery",
+      "receiptOpened": "Opened vial",
+      "visit": "Visit",
+      "discard": "Discarded",
+      "correct": "Corrected",
+      "notCounted": "not taken off"
     }
   }
 }
