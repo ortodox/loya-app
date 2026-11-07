@@ -706,7 +706,7 @@
     "how1": "«+ Do magazynu» – wybierz preparat. Dla botoksu zaznacz rozmiary fiolek (np. 100 j.).",
     "how2": "«+ Dostawa» – wprowadź, co jest teraz. Już otwarta fiolka: data otwarcia i ile zostało.",
     "how3": "Dalej wizyty odpisują same: botoks – podane jednostki z otwartej fiolki, pozostałe – 1 szt. na preparat.",
-    "hint": "«Na stanie» – po odbytych wizytach. «Po wizytach» – gdy odbędą się też zaplanowane wizyty. Zmiana lub usunięcie wizyty przelicza magazyn.",
+    "hint": "«Na stanie» – po odbytych wizytach, może zejść na minus (następna dostawa to pokryje). «Po wizytach» – gdy odbędą się też zaplanowane wizyty. Zmiana lub usunięcie wizyty przelicza magazyn.",
     "receiveTitle": "Dostawa",
     "receivedOn": "Data dostawy",
     "vialSize": "Rozmiar fiolki",
@@ -723,7 +723,7 @@
     "openVialField": "Otwarta {date} · fiolka {size} j. – zostało",
     "closedField": "Zamknięte fiolki po {size} j.",
     "inStockHint": "Na stanie: {amount} {unit}",
-    "overStock": "W magazynie tylko {amount} {unit} – można zapisać",
+    "overStock": "Magazyn zejdzie na minus: {amount} {unit} – można zapisać, następna dostawa to pokryje",
     "notCounted": "Nie podano – nie odpisano z magazynu",
     "errors": {
       "notFound": "Nie znaleziono preparatu.",

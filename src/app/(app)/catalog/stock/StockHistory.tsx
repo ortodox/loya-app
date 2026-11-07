@@ -16,7 +16,7 @@ const page = 10;
 export function StockHistory({ entries, changes = [], unit }: { entries: StockHistoryEntry[]; changes?: StockChangeLine[]; unit: string }) {
   const t = useTranslations("stock");
   const [shown, setShown] = useState(0);
-  const fmt = (n: number) => String(Math.round(n * 10) / 10).replace(".", ",");
+  const fmt = (n: number) => String(Math.round(n * 10) / 10).replace(".", ",").replace("-", "−");
   const signed = (n: number) => (n > 0 ? `+${fmt(n)}` : n < 0 ? `−${fmt(-n)}` : "0");
   const change = (e: StockHistoryEntry) =>
     e.change === null ? t("history.notCounted") : e.kind === "receipt" && e.vials && !e.vials.opened ? `+${e.vials.count} × ${e.vials.size}` : signed(e.change);

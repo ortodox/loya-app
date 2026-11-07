@@ -51,9 +51,9 @@ describe("SK1: склад – ботокс флаконами", () => {
     expect(s.available).toBe(80);
   });
 
-  it("SK1: never below zero; botox without a number is counted apart, not taken off", () => {
+  it("SK6: a visit takes everything written – below zero when stock is short; botox without a number is counted apart", () => {
     const s = simulateStock("vials", [receipt("r", "2026-11-01", 50, 1)], [use("2026-11-02", 80), use("2026-11-03", null)], []);
-    expect(s.available).toBe(0);
+    expect(s.available).toBe(-30);
     expect(s.unknown).toBe(1);
   });
 });
@@ -64,7 +64,7 @@ describe("SK1: склад – штуки", () => {
     expect(
       simulateStock("pieces", [receipt("r", "2026-11-01", null, 5)], [use("2026-11-02", 1)], [{ happenedOn: "2026-11-02", kind: "set", vialKey: null, amount: 7, createdAt: "x" }]).available,
     ).toBe(7);
-    expect(simulateStock("pieces", [], [use("2026-11-02", 3)], []).available).toBe(0);
+    expect(simulateStock("pieces", [], [use("2026-11-02", 3)], []).available).toBe(-3); // SK6
   });
 
   it("SK1: vial sizes – whole positive units, each once, smallest first", () => {
@@ -104,8 +104,8 @@ describe("SK3: история склада", () => {
     expect(s.history.at(-2)!.vials).toEqual({ size: 100, count: 1, opened: true });
   });
 
-  it("SK3: a visit takes only what is there; pieces – receipts, visits and corrections", () => {
-    expect(simulateStock("vials", [receipt("r", "2026-11-01", 50, 1)], [use("2026-11-02", 80)], []).history[0]).toMatchObject({ change: -50, balance: 0 });
+  it("SK3/SK6: a visit takes everything written (below zero); pieces – receipts, visits and corrections", () => {
+    expect(simulateStock("vials", [receipt("r", "2026-11-01", 50, 1)], [use("2026-11-02", 80)], []).history[0]).toMatchObject({ change: -80, balance: -30 });
     const p = simulateStock("pieces", [receipt("r", "2026-11-01", null, 5)], [use("2026-11-02", 2)], [{ happenedOn: "2026-11-03", kind: "set", vialKey: null, amount: 4, createdAt: "x" }]);
     expect(p.history.map((h) => [h.kind, h.change, h.balance])).toEqual([["correct", 1, 4], ["visit", -2, 3], ["receipt", 5, 5]]);
   });
@@ -120,5 +120,34 @@ describe("SK1 🐞: исправление и визит в тот же день
     expect(simulateStock("vials", receipts, [after], [set]).available).toBe(15);
     expect(simulateStock("vials", receipts, [before], [set]).available).toBe(20);
     expect(simulateStock("vials", receipts, [], [set]).available).toBe(20);
+  });
+});
+
+describe("SK6: склад может уходить в минус", () => {
+  it("SK6: −15 ЕД is covered by the next receipt – 85 left in the newly opened vial", () => {
+    const s = simulateStock(
+      "vials",
+      [receipt("o", "2026-11-01", 100, 1, { openedOn: "2026-11-01", remaining: 10 }), receipt("n", "2026-11-08", 100, 1)],
+      [use("2026-11-07", 25)],
+      [],
+    );
+    expect(s.available).toBe(85);
+    expect(s.openVials.map((v) => [v.openedOn, v.remaining])).toEqual([["2026-11-08", 85]]);
+    expect(s.history.map((h) => [h.kind, h.change, h.balance])).toEqual([
+      ["receipt", 100, 85],
+      ["visit", -25, -15],
+      ["receipt", 10, 10],
+    ]);
+  });
+
+  it("SK6: pieces go below zero and come back with a receipt", () => {
+    expect(simulateStock("pieces", [receipt("r", "2026-11-01", null, 1), receipt("s", "2026-11-03", null, 5)], [use("2026-11-02", 2)], []).available).toBe(4);
+  });
+
+  it("SK6: «Исправить остаток» clears the minus – the stock is what is really there", () => {
+    const clear = { happenedOn: "2026-11-07", kind: "set" as const, vialKey: null, amount: 0, createdAt: "2026-11-07T12:00:00Z" };
+    const s = simulateStock("vials", [receipt("r", "2026-11-01", 50, 1)], [use("2026-11-07", 80)], [clear]);
+    expect(s.available).toBe(0);
+    expect(s.history[0]).toMatchObject({ kind: "correct", change: 30, balance: 0 });
   });
 });

@@ -600,11 +600,11 @@ function StockHint({ stock, quantity, total }: { stock: { kind: StockKind; avail
   const unit = t(stock.kind === "vials" ? "units" : "pieces");
   const amount = (q: string) => (stock.kind === "vials" ? botoxUnits(q) : pieces(q)) ?? 0;
   const used = total.reduce((sum, q) => sum + amount(q), 0);
-  const fmt = (n: number) => String(Math.round(n * 10) / 10).replace(".", ",");
+  const fmt = (n: number) => String(Math.round(n * 10) / 10).replace(".", ",").replace("-", "−");
   return (
     <span className="flex flex-col text-sm">
       <span className="text-muted">{t("inStockHint", { amount: fmt(stock.available), unit })}</span>
-      {used > stock.available && <span className="font-semibold text-on-alert">{t("overStock", { amount: fmt(stock.available), unit })}</span>}
+      {used > stock.available && <span className="font-semibold text-on-alert">{t("overStock", { amount: fmt(stock.available - used), unit })}</span>}
       {stock.kind === "vials" && quantity.trim() === "" && <span className="text-on-alert">{t("notCounted")}</span>}
     </span>
   );
