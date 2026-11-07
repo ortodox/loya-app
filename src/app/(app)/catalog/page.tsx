@@ -14,7 +14,7 @@ import { consumptionRepository } from "@/data/repositories/server";
 import { monthOf } from "@/logic/rules/consumption";
 import { todayIn } from "@/logic/rules/dates";
 import { getConsumption } from "@/logic/usecases/consumption";
-import { getStockOverview } from "@/logic/usecases/stock";
+import { getStockOverview, stockClientNames } from "@/logic/usecases/stock";
 import { stockDeps } from "./stock/deps";
 import { StockView } from "./StockView";
 
@@ -57,7 +57,12 @@ export const dynamic = "force-dynamic";
 /** «Препараты»: the catalogue, SK1 «Склад» (?view=stock) or RS1 «Расход» (?view=usage&month=2026-11). */
 export default async function CatalogPage({ searchParams }: { searchParams: Promise<{ view?: string; month?: string }> }) {
   const { view, month } = await searchParams;
-  if (view === "stock") return <StockView lines={await getStockOverview(await stockDeps(), todayIn(practiceTimeZone))} />;
+  if (view === "stock") {
+    const deps = await stockDeps();
+    const lines = await getStockOverview(deps, todayIn(practiceTimeZone));
+    // SK7: the clients' names in «История» – one lookup for all preparations.
+    return <StockView lines={lines} clients={await stockClientNames(deps, lines)} />;
+  }
   if (view === "usage") {
     const today = todayIn(practiceTimeZone);
     return <ConsumptionView data={await getConsumption(await consumptionRepository(), month, today)} current={monthOf(today)} />;

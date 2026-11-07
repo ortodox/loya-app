@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useState } from "react";
 import { formatDayMonth, formatIsoDate } from "@/logic/rules/dates";
 import { needsReadingHint } from "@/logic/rules/consumption";
@@ -13,7 +14,18 @@ const page = 10;
  * SK3 «История ▾»: hidden until tapped – every receipt, visit, discard and correction with what was
  * left after it, newest first, ten at a time. No client names.
  */
-export function StockHistory({ entries, changes = [], unit }: { entries: StockHistoryEntry[]; changes?: StockChangeLine[]; unit: string }) {
+export function StockHistory({
+  entries,
+  changes = [],
+  clients = {},
+  unit,
+}: {
+  entries: StockHistoryEntry[];
+  changes?: StockChangeLine[];
+  /** SK7: the clients' names; a deleted client is shown grey, without a link. */
+  clients?: Record<string, { name: string; deleted: boolean }>;
+  unit: string;
+}) {
   const t = useTranslations("stock");
   const [shown, setShown] = useState(0);
   const fmt = (n: number) => String(Math.round(n * 10) / 10).replace(".", ",").replace("-", "−");
@@ -31,6 +43,20 @@ export function StockHistory({ entries, changes = [], unit }: { entries: StockHi
     return { label, values };
   };
   const rows = mergeHistory(entries, changes);
+  // SK7: the client's name opens the client card.
+  const client = (id: string | null | undefined) => {
+    const c = id ? clients[id] : undefined;
+    if (!id || !c) return null;
+    return c.deleted ? (
+      <span className="block text-xs text-muted">
+        {c.name} · {t("history.clientDeleted")}
+      </span>
+    ) : (
+      <Link href={`/clients/${id}`} className="flex min-h-11 items-center text-sm font-medium text-accent underline">
+        {c.name}
+      </Link>
+    );
+  };
 
   if (rows.length === 0) return null;
   return (
@@ -62,6 +88,7 @@ export function StockHistory({ entries, changes = [], unit }: { entries: StockHi
                       <td colSpan={3} className="py-2">
                         <span className="text-accent">✎ </span>
                         {c.label}
+                        {client(row.line.clientId)}
                         {c.values && <span className="block text-xs text-muted">{c.values}</span>}
                       </td>
                     </tr>
@@ -73,6 +100,7 @@ export function StockHistory({ entries, changes = [], unit }: { entries: StockHi
                     <td className="py-2 pr-2 whitespace-nowrap text-muted">{formatIsoDate(e.date)}</td>
                     <td className="py-2 pr-2">
                       {label(e)}
+                      {e.kind === "visit" && client(e.clientId)}
                       {e.kind === "visit" && needsReadingHint(e.text) && <span className="block text-xs text-muted">«{e.text!.trim()}»</span>}
                       {e.kind === "visit" && e.change === null && !needsReadingHint(e.text) && <span className="block text-xs text-muted">{t("history.empty")}</span>}
                     </td>

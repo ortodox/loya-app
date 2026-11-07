@@ -24,7 +24,15 @@ export type StockAdjustment = {
 };
 
 /** SK1: one use in a visit done – units or pieces; null = botox without a number (not taken off). */
-export type StockUse = { date: IsoDate; amount: number | null; createdAt: string; /** SK3 ✏️: the quantity as typed. */ quantity?: string | null };
+export type StockUse = {
+  date: IsoDate;
+  amount: number | null;
+  createdAt: string;
+  /** SK3 ✏️: the quantity as typed. */
+  quantity?: string | null;
+  /** SK7: whose visit it was – the name in «История» opens the client card. */
+  clientId?: string | null;
+};
 
 export type OpenVial = { key: string; size: number; openedOn: IsoDate; remaining: number };
 
@@ -55,6 +63,8 @@ export type StockHistoryEntry = {
   balance: number;
   /** SK3 ✏️: a visit's quantity as it was typed («10 штук», «лоб 20»); null for other lines. */
   text: string | null;
+  /** SK7: a visit's client; null for other lines. */
+  clientId?: string | null;
 };
 
 type Vial = { key: string; size: number; order: number; openedOn: IsoDate | null; remaining: number; gone: boolean };
@@ -108,7 +118,7 @@ export function simulateStock(
         available = e.adjustment.amount;
         kind = "correct";
       }
-      history.push({ date: e.date, kind, change: available - before, vials: null, balance: available, text: "use" in e ? e.use.quantity ?? null : null });
+      history.push({ date: e.date, kind, change: available - before, vials: null, balance: available, text: "use" in e ? e.use.quantity ?? null : null, clientId: "use" in e ? e.use.clientId ?? null : null });
     }
     return { available, openVials: [], closed: [], closedVials: [], unknown: 0, history: history.reverse() };
   }
@@ -155,11 +165,11 @@ export function simulateStock(
     } else if ("use" in e) {
       if (e.use.amount === null) {
         unknown++;
-        log(e.date, "visit", before, { change: null, text: e.use.quantity ?? null });
+        log(e.date, "visit", before, { change: null, text: e.use.quantity ?? null, clientId: e.use.clientId ?? null });
         continue;
       }
       debt += take(e.use.amount, e.date); // SK6: what is missing goes below zero
-      log(e.date, "visit", before, { text: e.use.quantity ?? null });
+      log(e.date, "visit", before, { text: e.use.quantity ?? null, clientId: e.use.clientId ?? null });
     } else {
       // SK6: «Исправить остаток» says what is really there – a minus is cleared (vialKey null).
       if (e.adjustment.kind === "set" && e.adjustment.vialKey === null) {

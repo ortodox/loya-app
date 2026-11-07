@@ -27,7 +27,7 @@ describe("SK4: журнал изменений", () => {
       ],
       tz,
     );
-    expect(lines).toEqual([{ date: "2026-11-08", time: "14:02", kind: "visitChanged", of: "2026-11-05", from: "20", to: "25" }]);
+    expect(lines).toEqual([{ date: "2026-11-08", time: "14:02", kind: "visitChanged", of: "2026-11-05", from: "20", to: "25", clientId: null }]);
   });
 
   it("SK4: a visit created and corrected a minute later – the correction is its own line", () => {
@@ -74,5 +74,19 @@ describe("SK4: журнал изменений", () => {
       "2026-11-05",
       "2026-11-04",
     ]);
+  });
+});
+
+describe("SK7: клиент в журнале изменений", () => {
+  it("SK7: a change line keeps the visit's client", () => {
+    const lines = summarizeChanges(
+      [
+        change("2026-11-08T13:02:00Z", "visit_item", "delete", { oldQuantity: "20", clientId: "c1" }),
+        change("2026-11-08T13:02:01Z", "visit_item", "insert", { newQuantity: "25", clientId: "c1" }),
+        change("2026-11-09T09:00:00Z", "visit", "delete", { oldQuantity: "25", clientId: "c1" }),
+      ],
+      tz,
+    );
+    expect(lines.map((l) => [l.kind, l.clientId])).toEqual([["visitDeleted", "c1"], ["visitChanged", "c1"]]);
   });
 });

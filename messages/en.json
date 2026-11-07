@@ -758,7 +758,8 @@
         "receiptDeleted": "Delivery {date} deleted",
         "correctionChanged": "Correction {date} changed",
         "correctionDeleted": "Correction {date} deleted"
-      }
+      },
+      "clientDeleted": "client deleted"
     },
     "openSection": "Open vials – units left",
     "openNewField": "An open vial the app does not know about (if any) – units left",
