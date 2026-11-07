@@ -84,7 +84,7 @@ export type VisitFormData = {
   /** AL1: allergies and medications, shown next to the advice. */
   alerts: SafetyAlert[];
   preparations: PreparationOption[];
-  types: Pick<ProcedureType, "id" | "name" | "advice" | "doseText" | "doseUnit">[];
+  types: Pick<ProcedureType, "id" | "code" | "name" | "advice" | "doseText" | "doseUnit">[];
   visit: Visit | null;
   /** RV1: «Повторить прошлый визит» – the visit whose preparations and quantities are copied. */
   repeatFrom: Visit | null;
@@ -142,7 +142,7 @@ export async function getVisitFormData(
     preparations: options,
     types: [...types]
       .sort((a, b) => a.sortOrder - b.sortOrder)
-      .map((t) => ({ id: t.id, name: t.name, advice: t.advice, doseText: t.doseText, doseUnit: t.doseUnit })),
+      .map((t) => ({ id: t.id, code: t.code, name: t.name, advice: t.advice, doseText: t.doseText, doseUnit: t.doseUnit })),
     visit,
     repeatFrom: visit === null && repeat ? lastCompletedVisit(earlier, repeat.today) : null,
     anamnesisConfirmedAt: client.anamnesisConfirmedAt,

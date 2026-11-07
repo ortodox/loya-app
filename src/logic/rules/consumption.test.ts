@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { botoxUnits, consumption, isMonth, nextMonth, pieces, previousMonth, type ConsumptionVisit } from "./consumption";
+import { botoxUnits, consumption, isMonth, needsReadingHint, nextMonth, pieces, previousMonth, type ConsumptionVisit } from "./consumption";
 
 const botox = { id: "t1", code: "BT-01", name: { ru: "Ботулинотерапия" } };
 const filler = { id: "t2", code: "BT-02", name: { ru: "Контурная пластика (филлеры)" } };
@@ -22,6 +22,23 @@ describe("RS1: расход препаратов", () => {
     expect(pieces(null)).toBe(1);
     expect(pieces("2")).toBe(2);
     expect(pieces("3 шт")).toBe(3);
+  });
+
+  it("RS1 ✏️: «штук», «шприца», «единиц», «ед.» are read; a plain number needs no hint", () => {
+    expect(pieces("10 штук")).toBe(10);
+    expect(pieces("2 Штуки")).toBe(2);
+    expect(pieces("2 шприца")).toBe(2);
+    expect(pieces("3 szt.")).toBe(3);
+    expect(pieces("лоб")).toBe(1);
+    expect(botoxUnits("20 единиц")).toBe(20);
+    expect(botoxUnits("12,5 ед.")).toBe(12.5);
+    expect(botoxUnits("20+15 ЕД")).toBe(35);
+    expect(botoxUnits("20 од")).toBe(20);
+    expect(botoxUnits("лоб 20")).toBeNull();
+    expect(needsReadingHint("20")).toBe(false);
+    expect(needsReadingHint("12,5")).toBe(false);
+    expect(needsReadingHint(" ")).toBe(false);
+    expect(needsReadingHint("10 штук")).toBe(true);
     expect(pieces("1 мл")).toBe(1);
   });
 

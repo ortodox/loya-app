@@ -49,24 +49,28 @@ export type Consumption = {
 
 export const isBotox = (type: ReminderType | null) => type?.code === botoxTypeCode;
 
-const amount = /^(\d+(?:[.,]\d+)?)(?:\s*\+\s*(\d+(?:[.,]\d+)?))*\s*(?:ед|u|ui|units?)?\.?$/i;
+// RS1 ✏️: «20», «20+15», «20 ед.», «20 единиц», «20 од», «20 U», «20 jedn.».
+const amount = /^(\d+(?:[.,]\d+)?)(?:\s*\+\s*(\d+(?:[.,]\d+)?))*\s*(?:ед\.?|единиц[аы]?|од\.?|u|ui|iu|units?|j\.?|jedn\.?|jednost(?:ek|ki)?)?\.?$/i;
 const number = (s: string) => Number(s.replace(",", "."));
 
 /** RS1: botox units from the free-text quantity – «20» → 20, «20+15 ед.» → 35; null when it cannot be read. */
 export function botoxUnits(quantity: string | null): number | null {
   const text = (quantity ?? "").trim().toLowerCase();
   if (!amount.test(text)) return null;
-  return text
-    .replace(/[^\d.,+]/g, "")
-    .split("+")
-    .filter(Boolean)
-    .reduce((sum, part) => sum + number(part), 0);
+  return (text.match(/\d+(?:[.,]\d+)?/g) ?? []).reduce((sum, part) => sum + number(part), 0);
 }
 
 /** RS1: pieces for other preparations – one syringe per client, or the number written («2», «2 шт»). */
 export function pieces(quantity: string | null): number {
-  const m = /^(\d+)\s*(?:шт|шпр\w*)?\.?$/i.exec((quantity ?? "").trim());
+  // RS1 ✏️: «2», «2 шт», «2 штуки», «2 шприца», «2 szt.», «2 pcs».
+  const m = /^(\d+)\s*(?:шт[а-яё]*|шпр[а-яё]*|szt[a-z]*|pcs|pc|pieces?|syringes?)?\.?$/i.exec((quantity ?? "").trim());
   return m && Number(m[1]) > 0 ? Number(m[1]) : 1;
+}
+
+/** RS1 ✏️: the quantity is more than a plain number – the form shows how it was read. */
+export function needsReadingHint(quantity: string | null): boolean {
+  const text = (quantity ?? "").trim();
+  return text !== "" && !/^\d+(?:[.,]\d+)?$/.test(text);
 }
 
 /** RS1: «2026-11» – the month of a date, and the month after. */

@@ -292,7 +292,9 @@
     "anamnesisUnchanged": "Medical history unchanged ✓",
     "anamnesisLast": "Last confirmed: {date}",
     "anamnesisNever": "Not confirmed yet",
-    "complete": "Complete visit"
+    "complete": "Complete visit",
+    "readAs": "Read as {amount} {unit}",
+    "notRead": "No number read – not counted in usage or stock"
   },
   "brand": {
     "name": "LOA",
@@ -744,7 +746,8 @@
       "visit": "Visit",
       "discard": "Discarded",
       "correct": "Corrected",
-      "notCounted": "not taken off"
+      "notCounted": "not taken off",
+      "empty": "no quantity given"
     }
   }
 }

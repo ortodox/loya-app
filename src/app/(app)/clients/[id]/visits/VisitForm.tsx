@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { botoxUnits, pieces } from "@/logic/rules/consumption";
+import { botoxUnits, needsReadingHint, pieces } from "@/logic/rules/consumption";
 import type { StockKind } from "@/logic/rules/stock";
 import Link from "next/link";
 import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
@@ -28,7 +28,7 @@ import { PhotoField, type ExistingPhoto, type NewPhoto } from "./PhotoField";
 import { PreparationPicker, type PickerOption } from "./PreparationPicker";
 
 export type FormOption = PickerOption & { procedureTypeId: string; doseHint: string | null; advice: Localized | null };
-export type FormType = { id: string; name: string; doseHint: string | null; advice: Localized | null };
+export type FormType = { id: string; name: string; doseHint: string | null; advice: Localized | null; /** RS1 ✏️: botox is read in units, the rest in pieces. */ botox?: boolean };
 
 /** One preparation row: from the catalogue (preparationId) or typed in by hand (manual*). */
 export type ItemState = {
@@ -346,6 +346,7 @@ export function VisitForm(props: Props) {
                       className={ui.input}
                     />
                     {hint && <span className="text-sm text-muted">{t("visits.quantityHint", { value: hint })}</span>}
+                    <ReadingHint quantity={item.quantity} botox={type?.botox ?? false} />
                     {item.preparationId && props.stock?.[item.preparationId] && (
                       <StockHint
                         stock={props.stock[item.preparationId]}
@@ -604,7 +605,17 @@ function StockHint({ stock, quantity, total }: { stock: { kind: StockKind; avail
     <span className="flex flex-col text-sm">
       <span className="text-muted">{t("inStockHint", { amount: fmt(stock.available), unit })}</span>
       {used > stock.available && <span className="font-semibold text-on-alert">{t("overStock", { amount: fmt(stock.available), unit })}</span>}
-      {stock.kind === "vials" && botoxUnits(quantity) === null && <span className="text-on-alert">{t("notCounted")}</span>}
+      {stock.kind === "vials" && quantity.trim() === "" && <span className="text-on-alert">{t("notCounted")}</span>}
     </span>
   );
+}
+
+/** RS1 ✏️: when the quantity is more than a plain number – how it was read (or that it could not be). */
+function ReadingHint({ quantity, botox }: { quantity: string; botox: boolean }) {
+  const t = useTranslations();
+  if (!needsReadingHint(quantity)) return null;
+  const value = botox ? botoxUnits(quantity) : pieces(quantity);
+  if (value === null) return <span className="text-sm text-on-alert">{t("visits.notRead")}</span>;
+  const amount = String(Math.round(value * 10) / 10).replace(".", ",");
+  return <span className="text-sm text-muted">{t("visits.readAs", { amount, unit: t(botox ? "consumption.units" : "consumption.pieces") })}</span>;
 }

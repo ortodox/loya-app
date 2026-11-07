@@ -1,3 +1,4 @@
+import { botoxTypeCode } from "@/logic/rules/botox";
 import { thumbUrl } from "@/logic/rules/thumbnails";
 import type { Locale } from "@/config/locales";
 import { localized } from "@/logic/rules/catalog-settings";
@@ -27,6 +28,7 @@ export function visitFormProps(data: VisitFormData, locale: Locale, today: strin
     name: typeName.get(t.id)!,
     doseHint: dose(t.doseText, t.doseUnit),
     advice: t.advice,
+    botox: t.code === botoxTypeCode,
   }));
   const known = new Set(options.map((o) => o.id));
   const visit = data.visit;

@@ -24,7 +24,7 @@ export type StockAdjustment = {
 };
 
 /** SK1: one use in a visit done – units or pieces; null = botox without a number (not taken off). */
-export type StockUse = { date: IsoDate; amount: number | null; createdAt: string };
+export type StockUse = { date: IsoDate; amount: number | null; createdAt: string; /** SK3 ✏️: the quantity as typed. */ quantity?: string | null };
 
 export type OpenVial = { key: string; size: number; openedOn: IsoDate; remaining: number };
 
@@ -53,6 +53,8 @@ export type StockHistoryEntry = {
   /** Receipts of vials: «2 × 100»; an already opened vial: opened = true. */
   vials: { size: number; count: number; opened: boolean } | null;
   balance: number;
+  /** SK3 ✏️: a visit's quantity as it was typed («10 штук», «лоб 20»); null for other lines. */
+  text: string | null;
 };
 
 type Vial = { key: string; size: number; order: number; openedOn: IsoDate | null; remaining: number; gone: boolean };
@@ -100,7 +102,7 @@ export function simulateStock(
         available = e.adjustment.amount;
         kind = "correct";
       }
-      history.push({ date: e.date, kind, change: available - before, vials: null, balance: available });
+      history.push({ date: e.date, kind, change: available - before, vials: null, balance: available, text: "use" in e ? e.use.quantity ?? null : null });
     }
     return { available, openVials: [], closed: [], closedVials: [], unknown: 0, history: history.reverse() };
   }
@@ -117,7 +119,7 @@ export function simulateStock(
   const total = () => vials.reduce((sum, v) => sum + (v.gone ? 0 : v.remaining), 0);
   const log = (date: IsoDate, kind: StockHistoryEntry["kind"], before: number, extra: Partial<StockHistoryEntry> = {}) => {
     const balance = total();
-    history.push({ date, kind, change: balance - before, vials: null, balance, ...extra });
+    history.push({ date, kind, change: balance - before, vials: null, balance, text: null, ...extra });
   };
   for (const e of events(receipts, uses, adjustments)) {
     const before = total();
@@ -131,7 +133,7 @@ export function simulateStock(
     } else if ("use" in e) {
       if (e.use.amount === null) {
         unknown++;
-        log(e.date, "visit", before, { change: null });
+        log(e.date, "visit", before, { change: null, text: e.use.quantity ?? null });
         continue;
       }
       let left = e.use.amount;
@@ -142,7 +144,7 @@ export function simulateStock(
         open.remaining -= taken;
         left -= taken;
       }
-      log(e.date, "visit", before);
+      log(e.date, "visit", before, { text: e.use.quantity ?? null });
     } else {
       const vial = vials.find((v) => v.key === e.adjustment.vialKey);
       if (!vial || vial.gone) continue;
