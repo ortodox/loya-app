@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { formatIsoDate } from "@/logic/rules/dates";
+import { needsReadingHint } from "@/logic/rules/consumption";
 import type { StockHistoryEntry } from "@/logic/rules/stock";
 
 const page = 10;
@@ -42,7 +43,11 @@ export function StockHistory({ entries, unit }: { entries: StockHistoryEntry[]; 
               {entries.slice(0, shown).map((e, i) => (
                 <tr key={i} className={`border-t border-line ${e.change === null ? "text-muted" : "text-ink"}`}>
                   <td className="py-2 pr-2 whitespace-nowrap text-muted">{formatIsoDate(e.date)}</td>
-                  <td className="py-2 pr-2">{label(e)}</td>
+                  <td className="py-2 pr-2">
+                    {label(e)}
+                    {e.kind === "visit" && needsReadingHint(e.text) && <span className="block text-xs text-muted">«{e.text!.trim()}»</span>}
+                    {e.kind === "visit" && e.change === null && !needsReadingHint(e.text) && <span className="block text-xs text-muted">{t("history.empty")}</span>}
+                  </td>
                   <td className="py-2 pr-2 text-right whitespace-nowrap tabular-nums">{change(e)}</td>
                   <td className="py-2 text-right whitespace-nowrap font-semibold tabular-nums">{fmt(e.balance)}</td>
                 </tr>

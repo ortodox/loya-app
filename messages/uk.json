@@ -292,7 +292,9 @@
     "anamnesisUnchanged": "Анамнез без змін ✓",
     "anamnesisLast": "Останнє підтвердження: {date}",
     "anamnesisNever": "Ще не підтверджувався",
-    "complete": "Доповнити візит"
+    "complete": "Доповнити візит",
+    "readAs": "Прочитано як {amount} {unit}",
+    "notRead": "Число не прочитано – не потрапить у витрату і на склад"
   },
   "brand": {
     "name": "LOA",
@@ -744,7 +746,8 @@
       "visit": "Візит",
       "discard": "Списано",
       "correct": "Виправлено",
-      "notCounted": "не списано"
+      "notCounted": "не списано",
+      "empty": "кількість не вказано"
     }
   }
 }

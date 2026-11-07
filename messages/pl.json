@@ -292,7 +292,9 @@
     "anamnesisUnchanged": "Wywiad bez zmian ✓",
     "anamnesisLast": "Ostatnie potwierdzenie: {date}",
     "anamnesisNever": "Jeszcze nie potwierdzono",
-    "complete": "Uzupełnij wizytę"
+    "complete": "Uzupełnij wizytę",
+    "readAs": "Odczytano jako {amount} {unit}",
+    "notRead": "Nie odczytano liczby – nie trafi do zużycia ani magazynu"
   },
   "brand": {
     "name": "LOA",
@@ -744,7 +746,8 @@
       "visit": "Wizyta",
       "discard": "Odpisano",
       "correct": "Poprawiono",
-      "notCounted": "nie odpisano"
+      "notCounted": "nie odpisano",
+      "empty": "nie podano ilości"
     }
   }
 }

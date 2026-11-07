@@ -74,6 +74,14 @@ describe("SK1: склад – штуки", () => {
 });
 
 describe("SK3: история склада", () => {
+  it("SK3 ✏️: a visit line keeps the quantity as typed", () => {
+    const s = simulateStock("pieces", [receipt("r", "2026-11-01", null, 20)], [{ date: "2026-11-02", amount: 10, createdAt: "x", quantity: "10 штук" }], []);
+    expect(s.history[0]).toMatchObject({ kind: "visit", change: -10, balance: 10, text: "10 штук" });
+    const v = simulateStock("vials", [receipt("r", "2026-11-01", 100, 1)], [{ date: "2026-11-02", amount: null, createdAt: "x", quantity: "лоб 20" }], []);
+    expect(v.history[0]).toMatchObject({ change: null, text: "лоб 20" });
+    expect(v.history[1].text).toBeNull();
+  });
+
   it("SK3: botox – receipts, visits (also without a number), discard and correction, with what is left after each, newest first", () => {
     const s = simulateStock(
       "vials",
