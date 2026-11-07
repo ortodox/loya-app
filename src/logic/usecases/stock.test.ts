@@ -147,3 +147,14 @@ describe("SK1 ✏️: размеры флаконов и открытый фла
     expect(line.state.openVials.map((v) => v.remaining)).toEqual([20]);
   });
 });
+
+describe("SK6: исправление при минусе", () => {
+  it("SK6: correcting a minus clears it and keeps what is entered", async () => {
+    const { deps, items } = setup([visit("v1", "a", "2026-11-06", BOTOX, "130")]);
+    await addToStock(deps, BOTOX, ["100"], "2026-11-05");
+    await receiveStock(deps, items[0].id, { receivedOn: "2026-11-05", vialSize: "100", count: "1" }, "2026-11-05");
+    expect((await getStockOverview(deps, today))[0].state.available).toBe(-30);
+    expect(await correctStock(deps, items[0].id, { closed: { "100": "1" } }, today)).toBe("ok");
+    expect((await getStockOverview(deps, today))[0].state.available).toBe(100);
+  });
+});

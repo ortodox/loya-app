@@ -706,7 +706,7 @@
     "how1": "«+ Add to stock» – pick a preparation. For botox, tick the vial sizes (e.g. 100 U).",
     "how2": "«+ Delivery» – enter what you have now. An already opened vial: opening date and how much is left.",
     "how3": "After that visits take off by themselves: botox – the units written, from the open vial; others – 1 pc per preparation.",
-    "hint": "«In stock» – after the visits done. «After bookings» – once the planned visits are done too. Changing or deleting a visit recalculates the stock.",
+    "hint": "«In stock» – after the visits done; it can go below zero (the next delivery covers it). «After bookings» – once the planned visits are done too. Changing or deleting a visit recalculates the stock.",
     "receiveTitle": "Delivery",
     "receivedOn": "Delivery date",
     "vialSize": "Vial size",
@@ -723,7 +723,7 @@
     "openVialField": "Opened {date} · {size} U vial – left",
     "closedField": "Closed vials of {size} U",
     "inStockHint": "In stock: {amount} {unit}",
-    "overStock": "Only {amount} {unit} in stock – you can still save",
+    "overStock": "Stock will go below zero: {amount} {unit} – you can still save; the next delivery covers it",
     "notCounted": "Not given – not taken off stock",
     "errors": {
       "notFound": "Preparation not found.",

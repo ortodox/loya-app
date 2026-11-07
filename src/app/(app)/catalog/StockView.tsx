@@ -14,7 +14,8 @@ import { StockHistory } from "./stock/StockHistory";
 export async function StockView({ lines }: { lines: StockLine[] }) {
   const t = await getTranslations();
   const locale = (await getLocale()) as Locale;
-  const fmt = (n: number) => new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(n);
+  // SK6: a real minus sign («−15 ЕД»), not a hyphen.
+  const fmt = (n: number) => new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(n).replace("-", "−");
   const unit = (l: StockLine) => t(l.kind === "vials" ? "stock.units" : "stock.pieces");
   const groups = new Map<string, { label: string; lines: StockLine[] }>();
   for (const l of lines) {
@@ -57,14 +58,15 @@ export async function StockView({ lines }: { lines: StockLine[] }) {
               <li key={l.itemId} className="flex flex-col gap-2 border-b border-line px-4 py-3 last:border-b-0">
                 <div className="flex items-baseline justify-between gap-3">
                   <span className="min-w-0 truncate text-base font-semibold text-ink">{l.name}</span>
-                  <span className="shrink-0 text-right text-base font-semibold text-ink">
+                  {/* SK6: below zero in red – used with nothing in stock, covered by the next receipt. */}
+                  <span className={`shrink-0 text-right text-base font-semibold ${l.state.available < 0 ? "text-on-alert" : "text-ink"}`}>
                     {fmt(l.state.available)} {unit(l)}
                   </span>
                 </div>
                 <div className="flex items-baseline justify-between gap-3 text-sm text-muted">
                   <span>{t("stock.inStock")}</span>
-                  <span className="text-right">
-                    {t("stock.afterPlanned")}: ~{fmt(l.afterPlanned)} {unit(l)}
+                  <span className={`text-right ${l.afterPlanned < 0 ? "font-semibold text-on-alert" : ""}`}>
+                    {t("stock.afterPlanned")}: ~{l.afterPlanned < 0 ? " " : ""}{fmt(l.afterPlanned)} {unit(l)}
                   </span>
                 </div>
                 {l.kind === "vials" && (

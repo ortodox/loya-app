@@ -65,29 +65,25 @@ type Event =
   | { date: IsoDate; rank: 2; at: string; adjustment: StockAdjustment };
 
 /**
- * SK1: receipts first on a day; then visits and corrections in the order they were entered – a
- * correction («Исправить остаток») says what was there at that moment, so a visit entered later the
- * same day is still taken off (SK1 🐞, 07.11.2026).
+ * SK1: events by day; on one day in the order they were entered (SK1 🐞, 07.11.2026) – a correction
+ * («Исправить остаток») says what was there at that moment, so a visit entered later the same day is
+ * still taken off. SK6: since a visit may take stock below zero and the next receipt covers it, a
+ * receipt no longer has to come first on its day.
  */
 function events(receipts: readonly StockReceipt[], uses: readonly StockUse[], adjustments: readonly StockAdjustment[]): Event[] {
   return [
     ...receipts.map((receipt): Event => ({ date: receipt.receivedOn, rank: 0, at: receipt.createdAt, receipt })),
     ...uses.map((use): Event => ({ date: use.date, rank: 1, at: use.createdAt, use })),
     ...adjustments.map((adjustment): Event => ({ date: adjustment.happenedOn, rank: 2, at: adjustment.createdAt, adjustment })),
-  ].sort(
-    (a, b) =>
-      a.date.localeCompare(b.date) ||
-      Number(a.rank !== 0) - Number(b.rank !== 0) ||
-      a.at.localeCompare(b.at) ||
-      a.rank - b.rank,
-  );
+  ].sort((a, b) => a.date.localeCompare(b.date) || a.at.localeCompare(b.at) || a.rank - b.rank);
 }
 
 /**
  * SK1: what is in stock, worked out from scratch every time – receipts, the visits since stock-keeping
  * began and corrections – so changing or deleting a visit is taken into account by itself.
  * Botox: units come out of the oldest opened vial; when it runs out, the next vial (first received)
- * is opened that day. Stock never goes below zero.
+ * is opened that day. SK6 (07.11.2026): a visit always takes everything written – what is missing
+ * goes below zero («−15 ЕД») and the next receipt covers it; «Исправить остаток» clears it.
  */
 export function simulateStock(
   kind: StockKind,
@@ -105,7 +101,7 @@ export function simulateStock(
         available += e.receipt.count;
         kind = "receipt";
       } else if ("use" in e) {
-        available = Math.max(0, available - (e.use.amount ?? 1));
+        available -= e.use.amount ?? 1; // SK6: may go below zero
         kind = "visit";
       } else {
         if (e.adjustment.kind !== "set" || e.adjustment.amount === null) continue;
@@ -120,13 +116,27 @@ export function simulateStock(
   const vials: Vial[] = [];
   let order = 0;
   let unknown = 0;
+  /** SK6: units used with nothing in stock – shown as a minus, covered by the next receipt. */
+  let debt = 0;
   const openNext = (date: IsoDate) => {
     const next = vials.filter((v) => !v.gone && v.openedOn === null).sort((a, b) => a.order - b.order)[0];
     if (next) next.openedOn = date;
     return next ?? null;
   };
   const history: StockHistoryEntry[] = [];
-  const total = () => vials.reduce((sum, v) => sum + (v.gone ? 0 : v.remaining), 0);
+  const total = () => vials.reduce((sum, v) => sum + (v.gone ? 0 : v.remaining), 0) - debt;
+  /** Takes units from the oldest open vial, opening the next one when needed; returns what could not be taken. */
+  const take = (amount: number, date: IsoDate) => {
+    let left = amount;
+    while (left > 0) {
+      const open = vials.filter((v) => !v.gone && v.openedOn !== null && v.remaining > 0).sort((a, b) => a.openedOn!.localeCompare(b.openedOn!) || a.order - b.order)[0] ?? openNext(date);
+      if (!open) break;
+      const taken = Math.min(left, open.remaining);
+      open.remaining -= taken;
+      left -= taken;
+    }
+    return left;
+  };
   const log = (date: IsoDate, kind: StockHistoryEntry["kind"], before: number, extra: Partial<StockHistoryEntry> = {}) => {
     const balance = total();
     history.push({ date, kind, change: balance - before, vials: null, balance, text: null, ...extra });
@@ -139,6 +149,8 @@ export function simulateStock(
       for (let i = 0; i < r.count; i++) {
         vials.push({ key: `${r.id}:${i}`, size, order: order++, openedOn: r.openedOn, remaining: r.openedOn && r.remaining !== null ? Math.min(r.remaining, size) : size, gone: false });
       }
+      // SK6: what was used with nothing in stock comes out of what has just arrived.
+      if (debt > 0) debt = take(debt, e.date);
       log(e.date, "receipt", before, { vials: { size, count: r.count, opened: r.openedOn !== null } });
     } else if ("use" in e) {
       if (e.use.amount === null) {
@@ -146,16 +158,16 @@ export function simulateStock(
         log(e.date, "visit", before, { change: null, text: e.use.quantity ?? null });
         continue;
       }
-      let left = e.use.amount;
-      while (left > 0) {
-        const open = vials.filter((v) => !v.gone && v.openedOn !== null && v.remaining > 0).sort((a, b) => a.openedOn!.localeCompare(b.openedOn!) || a.order - b.order)[0] ?? openNext(e.date);
-        if (!open) break;
-        const taken = Math.min(left, open.remaining);
-        open.remaining -= taken;
-        left -= taken;
-      }
+      debt += take(e.use.amount, e.date); // SK6: what is missing goes below zero
       log(e.date, "visit", before, { text: e.use.quantity ?? null });
     } else {
+      // SK6: «Исправить остаток» says what is really there – a minus is cleared (vialKey null).
+      if (e.adjustment.kind === "set" && e.adjustment.vialKey === null) {
+        if (debt === 0) continue;
+        debt = 0;
+        log(e.date, "correct", before);
+        continue;
+      }
       const vial = vials.find((v) => v.key === e.adjustment.vialKey);
       if (!vial || vial.gone) continue;
       if (e.adjustment.kind === "discard") vial.gone = true;
@@ -170,7 +182,7 @@ export function simulateStock(
   const closed = new Map<number, number>();
   for (const v of present.filter((x) => x.openedOn === null)) closed.set(v.size, (closed.get(v.size) ?? 0) + 1);
   return {
-    available: present.reduce((sum, v) => sum + v.remaining, 0),
+    available: present.reduce((sum, v) => sum + v.remaining, 0) - debt,
     openVials: present
       .filter((v) => v.openedOn !== null)
       .sort((a, b) => a.openedOn!.localeCompare(b.openedOn!) || a.order - b.order)

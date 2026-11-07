@@ -220,6 +220,9 @@ export async function correctStock(deps: Pick<StockDeps, "stock" | "visits">, it
     return "ok";
   }
   const adjustments: { happenedOn: IsoDate; kind: "discard" | "set"; vialKey: string | null; amount: number | null }[] = [];
+  // SK6: the correction says what is really there – a minus is cleared first.
+  const minus = current.state.available - current.state.openVials.reduce((sum, v) => sum + v.remaining, 0) - current.state.closedVials.reduce((sum, v) => sum + v.size, 0);
+  if (minus < 0) adjustments.push({ happenedOn: today, kind: "set", vialKey: null, amount: 0 });
   for (const vial of current.state.openVials) {
     const n = number(form.open?.[vial.key]);
     if (n === null) continue;
