@@ -747,7 +747,18 @@
       "discard": "Списано",
       "correct": "Исправлено",
       "notCounted": "не списано",
-      "empty": "количество не указано"
+      "empty": "количество не указано",
+      "change": {
+        "visitChanged": "Изменение визита {date}",
+        "visitAdded": "Добавлено в визит {date}",
+        "visitRemoved": "Убрано из визита {date}",
+        "visitDate": "Дата визита {from} → {to}",
+        "visitDeleted": "Визит {date} удалён",
+        "receiptChanged": "Поступление {date} изменено",
+        "receiptDeleted": "Поступление {date} удалено",
+        "correctionChanged": "Исправление {date} изменено",
+        "correctionDeleted": "Исправление {date} удалено"
+      }
     }
   }
 }

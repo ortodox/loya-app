@@ -26,6 +26,7 @@ function setup(visits: ConsumptionVisit[] = []) {
         vialSizes,
         receipts: [],
         adjustments: [],
+        changes: [],
       };
       items.push(item);
       return { id: item.id };

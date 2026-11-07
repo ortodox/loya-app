@@ -747,7 +747,18 @@
       "discard": "Списано",
       "correct": "Виправлено",
       "notCounted": "не списано",
-      "empty": "кількість не вказано"
+      "empty": "кількість не вказано",
+      "change": {
+        "visitChanged": "Зміна візиту {date}",
+        "visitAdded": "Додано у візит {date}",
+        "visitRemoved": "Прибрано з візиту {date}",
+        "visitDate": "Дата візиту {from} → {to}",
+        "visitDeleted": "Візит {date} видалено",
+        "receiptChanged": "Надходження {date} змінено",
+        "receiptDeleted": "Надходження {date} видалено",
+        "correctionChanged": "Виправлення {date} змінено",
+        "correctionDeleted": "Виправлення {date} видалено"
+      }
     }
   }
 }

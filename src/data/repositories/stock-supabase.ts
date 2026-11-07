@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Localized } from "@/logic/catalog";
+import type { StockChange } from "@/logic/rules/stock-changes";
 import type { StockItem, StockRepository } from "./stock";
 
 type TypeRow = { id: string; code: string | null; name: Localized | null };
@@ -11,6 +12,19 @@ type Row = {
   preparations: { name: string; procedure_types: TypeRow | TypeRow[] | null } | { name: string; procedure_types: TypeRow | TypeRow[] | null }[] | null;
   stock_receipts: { id: string; received_on: string; vial_size: number | null; count: number; opened_on: string | null; remaining: number | string | null; created_at: string }[];
   stock_adjustments: { happened_on: string; kind: "discard" | "set"; vial_key: string | null; amount: number | string | null; created_at: string }[];
+};
+
+type ChangeRow = {
+  preparation_id: string;
+  changed_at: string;
+  source: StockChange["source"];
+  action: StockChange["action"];
+  visit_id: string | null;
+  visit_date: string | null;
+  new_visit_date: string | null;
+  old_quantity: string | null;
+  new_quantity: string | null;
+  old_data: { received_on?: string; happened_on?: string } | null;
 };
 
 const one = <T>(x: T | T[] | null): T | null => (Array.isArray(x) ? x[0] ?? null : x);
@@ -28,7 +42,31 @@ export function supabaseStockRepository(supabase: SupabaseClient): StockReposito
             "stock_adjustments(happened_on, kind, vial_key, amount, created_at)",
         );
       if (error) throw error;
-      return (data as unknown as Row[]).map((r): StockItem => {
+      const rows = data as unknown as Row[];
+      // SK4: the change log of the preparations kept in stock (written by database triggers).
+      const changes = await supabase
+        .from("stock_changes")
+        .select("preparation_id, changed_at, source, action, visit_id, visit_date, new_visit_date, old_quantity, new_quantity, old_data")
+        .in("preparation_id", rows.length > 0 ? rows.map((r) => r.preparation_id) : ["00000000-0000-0000-0000-000000000000"])
+        .order("changed_at", { ascending: true });
+      if (changes.error) throw changes.error;
+      const changesOf = new Map<string, StockChange[]>();
+      for (const c of changes.data as ChangeRow[]) {
+        const list = changesOf.get(c.preparation_id) ?? [];
+        list.push({
+          at: c.changed_at,
+          source: c.source,
+          action: c.action,
+          visitId: c.visit_id,
+          visitDate: c.visit_date,
+          newVisitDate: c.new_visit_date,
+          oldQuantity: c.old_quantity,
+          newQuantity: c.new_quantity,
+          rowDate: c.old_data?.received_on ?? c.old_data?.happened_on ?? null,
+        });
+        changesOf.set(c.preparation_id, list);
+      }
+      return rows.map((r): StockItem => {
         const preparation = one(r.preparations);
         const type = one(preparation?.procedure_types ?? null);
         return {
@@ -48,6 +86,7 @@ export function supabaseStockRepository(supabase: SupabaseClient): StockReposito
             createdAt: x.created_at,
           })),
           adjustments: r.stock_adjustments.map((x) => ({ happenedOn: x.happened_on, kind: x.kind, vialKey: x.vial_key, amount: num(x.amount), createdAt: x.created_at })),
+          changes: changesOf.get(r.preparation_id) ?? [],
         };
       });
     },

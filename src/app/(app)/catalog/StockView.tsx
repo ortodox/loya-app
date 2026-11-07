@@ -96,7 +96,7 @@ export async function StockView({ lines }: { lines: StockLine[] }) {
                     {t("stock.correct")}
                   </Link>
                 </div>
-                <StockHistory entries={l.state.history} unit={unit(l)} />
+                <StockHistory entries={l.state.history} changes={l.changes} unit={unit(l)} />
               </li>
             ))}
           </ul>
