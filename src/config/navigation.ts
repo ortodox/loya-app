@@ -1,7 +1,7 @@
 // Bottom tab bar (iOS style). Add a tab here – e.g. «Наблюдение» (MVP 3) – and it appears everywhere.
 // Labels live in messages/*.json under tabs.<key>; icons in src/app/components/Icons.tsx.
 
-export type TabKey = "today" | "clients" | "preparations" | "settings";
+export type TabKey = "today" | "clients" | "preparations" | "shop" | "settings";
 
 export type Tab = {
   key: TabKey;
@@ -17,6 +17,8 @@ export const tabs: readonly Tab[] = [
   { key: "today", href: "/today", match: ["/today"] },
   { key: "clients", href: "/clients", match: ["/clients"] },
   { key: "preparations", href: "/catalog", match: ["/catalog"] },
+  // MG1 (10.11.2026): «Магазин» – cosmetics Loya sells, between «Препараты» and ⚙.
+  { key: "shop", href: "/shop", match: ["/shop"] },
   { key: "settings", href: "/settings", match: ["/settings"], iconOnly: true },
 ];
 

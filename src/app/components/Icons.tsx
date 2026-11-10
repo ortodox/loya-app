@@ -77,3 +77,13 @@ export function SettingsIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+/** Tab icon «Магазин»: a shopping basket. */
+export function ShopIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden className={`size-6 ${className ?? ""}`} fill="none">
+      <path d="M3.5 9.5h17l-1.6 9.1a2 2 0 0 1-2 1.65H7.1a2 2 0 0 1-2-1.65L3.5 9.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M8.5 9.5 11 4M15.5 9.5 13 4M9.5 13.5v3M14.5 13.5v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}

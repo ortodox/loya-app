@@ -397,7 +397,8 @@
     "preparations": "Preparaty",
     "today": "Dziś",
     "settings": "Ustawienia",
-    "withCount": "{tab}: {count, plural, one {# klient czeka} few {# klientów czeka} many {# klientów czeka} other {# klienta czeka}}"
+    "withCount": "{tab}: {count, plural, one {# klient czeka} few {# klientów czeka} many {# klientów czeka} other {# klienta czeka}}",
+    "shop": "Sklep"
   },
   "draft": {
     "restored": "Przywrócono niezapisany szkic.",
@@ -777,5 +778,54 @@
     "add": "+ Notatka",
     "edit": "Zmień",
     "failed": "Nie udało się zapisać. Spróbuj ponownie."
+  },
+  "shop": {
+    "title": "Sklep",
+    "newProduct": "+ Produkt",
+    "newTitle": "Nowy produkt",
+    "editTitle": "Produkt",
+    "switchLabel": "Sekcja",
+    "view": {
+      "catalog": "Katalog",
+      "stock": "Magazyn",
+      "sales": "Sprzedaż"
+    },
+    "search": "Szukaj produktu",
+    "brandFilter": "Firma",
+    "all": "Wszystkie",
+    "favorites": "Ulubione",
+    "favorite": "Do ulubionych",
+    "unfavorite": "Usuń z ulubionych",
+    "edit": "Zmień",
+    "sell": "Sprzedano: {name}",
+    "receive": "Przyszło: {name}",
+    "history": "Historia",
+    "historySale": "Sprzedaż −{count}",
+    "historyReceipt": "Dostawa +{count}",
+    "delete": "Usuń",
+    "confirmDelete": "Usunąć wiersz z historii? Stan magazynu się zmieni.",
+    "deleteYes": "Tak, usuń",
+    "cancel": "Anuluj",
+    "failed": "Nie udało się zapisać. Spróbuj ponownie.",
+    "empty": "Nic nie znaleziono.",
+    "monthLabel": "Miesiąc",
+    "previous": "Poprzedni miesiąc",
+    "next": "Następny miesiąc",
+    "sold": "Sprzedano",
+    "pieces": "{count, plural, one {# szt.} few {# szt.} many {# szt.} other {# szt.}}",
+    "noSales": "W tym miesiącu nie było sprzedaży.",
+    "name": "Nazwa",
+    "brand": "Firma",
+    "category": "Kategoria",
+    "size": "Pojemność",
+    "price": "Cena sprzedaży",
+    "currency": "Waluta",
+    "hide": "Ukryj produkt (już nie sprzedaję)",
+    "errors": {
+      "name": "Podaj nazwę.",
+      "brand": "Podaj firmę.",
+      "price": "Sprawdź cenę: liczba od 0.",
+      "currency": "Wybierz walutę."
+    }
   }
 }

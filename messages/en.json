@@ -397,7 +397,8 @@
     "preparations": "Preparations",
     "today": "Today",
     "settings": "Settings",
-    "withCount": "{tab}: {count, plural, one {# client waiting} other {# clients waiting}}"
+    "withCount": "{tab}: {count, plural, one {# client waiting} other {# clients waiting}}",
+    "shop": "Shop"
   },
   "draft": {
     "restored": "Unsaved draft restored.",
@@ -777,5 +778,54 @@
     "add": "+ Note",
     "edit": "Edit",
     "failed": "Could not save. Please try again."
+  },
+  "shop": {
+    "title": "Shop",
+    "newProduct": "+ Product",
+    "newTitle": "New product",
+    "editTitle": "Product",
+    "switchLabel": "Section",
+    "view": {
+      "catalog": "Catalogue",
+      "stock": "Stock",
+      "sales": "Sales"
+    },
+    "search": "Search products",
+    "brandFilter": "Brand",
+    "all": "All",
+    "favorites": "Favourites",
+    "favorite": "Add to favourites",
+    "unfavorite": "Remove from favourites",
+    "edit": "Edit",
+    "sell": "Sold: {name}",
+    "receive": "Came in: {name}",
+    "history": "History",
+    "historySale": "Sale −{count}",
+    "historyReceipt": "Delivery +{count}",
+    "delete": "Delete",
+    "confirmDelete": "Delete this line from the history? The stock will change.",
+    "deleteYes": "Yes, delete",
+    "cancel": "Cancel",
+    "failed": "Could not save. Please try again.",
+    "empty": "Nothing found.",
+    "monthLabel": "Month",
+    "previous": "Previous month",
+    "next": "Next month",
+    "sold": "Sold",
+    "pieces": "{count, plural, one {# pc} other {# pcs}}",
+    "noSales": "No sales this month.",
+    "name": "Name",
+    "brand": "Brand",
+    "category": "Category",
+    "size": "Size",
+    "price": "Selling price",
+    "currency": "Currency",
+    "hide": "Hide product (no longer sold)",
+    "errors": {
+      "name": "Enter a name.",
+      "brand": "Enter a brand.",
+      "price": "Check the price: a number from 0.",
+      "currency": "Choose a currency."
+    }
   }
 }
