@@ -639,6 +639,37 @@ on conflict do nothing;
 commit;
 ```
 
+## 6d. Gjenopprett «Магазин» (MG1–MG4)
+
+Kopiene inneholder `shop_products` (varer og priser) og `shop_movements` (salg og leveranser). Beholdningen
+regnes alltid ut fra bevegelsene. Rader som finnes fra før, røres ikke.
+
+```sql
+begin;
+
+select backup.take_snapshot('før gjenoppretting av magasinet');
+
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.shop_products
+select (jsonb_populate_record(null::public.shop_products, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t and s.table_name = 'shop_products'
+on conflict do nothing;
+
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.shop_movements
+select (jsonb_populate_record(null::public.shop_movements, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t and s.table_name = 'shop_movements'
+on conflict do nothing;
+
+commit;
+```
+
 ## 7. Plass og opprydding
 
 ```sql

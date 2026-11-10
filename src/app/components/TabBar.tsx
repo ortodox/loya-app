@@ -4,12 +4,13 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { activeTab, showTabBar, tabs, type TabKey } from "@/config/navigation";
-import { ClientsIcon, PreparationsIcon, SettingsIcon, TodayIcon } from "./Icons";
+import { ClientsIcon, PreparationsIcon, SettingsIcon, ShopIcon, TodayIcon } from "./Icons";
 
 const icons: Record<TabKey, (p: { className?: string }) => React.ReactNode> = {
   today: TodayIcon,
   clients: ClientsIcon,
   preparations: PreparationsIcon,
+  shop: ShopIcon,
   settings: SettingsIcon,
 };
 

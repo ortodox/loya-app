@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { activeTab, showTabBar, tabs } from "./navigation";
 
 describe("UI1: навигация – панель вкладок", () => {
-  it("UI1/TD1: has the tabs «Сегодня», «Клиенты», «Препараты» and ⚙ in that order; ⚙ is icon only", () => {
-    expect(tabs.map((t) => t.key)).toEqual(["today", "clients", "preparations", "settings"]);
+  it("UI1/TD1: has the tabs «Сегодня», «Клиенты», «Препараты», «Магазин» (MG1) and ⚙ in that order; ⚙ is icon only", () => {
+    expect(tabs.map((t) => t.key)).toEqual(["today", "clients", "preparations", "shop", "settings"]);
     expect(tabs.filter((t) => t.iconOnly).map((t) => t.key)).toEqual(["settings"]);
   });
 
@@ -14,6 +14,7 @@ describe("UI1: навигация – панель вкладок", () => {
     expect(activeTab("/catalog/types/x")).toBe("preparations");
     expect(activeTab("/today")).toBe("today");
     expect(activeTab("/settings")).toBe("settings");
+    expect(activeTab("/shop")).toBe("shop");
     expect(activeTab("/clientsx")).toBeNull();
     expect(activeTab("/login")).toBeNull();
   });
