@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useMemo, useOptimistic, useState, useTransition } from "react";
 import { card, pill, ui } from "@/app/components/ui";
 import { formatIsoDate } from "@/logic/rules/dates";
-import { matchesShopFilter } from "@/logic/rules/shop";
+import { matchesShopFilter, shopStockSections, type ShopMovementKind } from "@/logic/rules/shop";
 import type { ShopLine } from "@/logic/usecases/shop";
 import { deleteShopHistoryAction, tapShopAction, toggleShopFavoriteAction } from "./actions";
 
@@ -13,8 +13,8 @@ type Props = { mode: "catalog" | "stock"; lines: ShopLine[]; brands: string[]; l
 
 /**
  * MG1/MG2: «Каталог» and «Склад» of «Магазин» – search, a filter per brand, ⭐ first, grouped by
- * brand and category. Catalogue: price, ⭐ and «Изменить». Stock: what is there, «−» (sold) and «+»
- * (came in), and «История ▾» per product.
+ * brand and category. Catalogue: price, ⭐ and «Изменить». Stock (MG5): what is in stock first, most
+ * first; «−» asks «Товар продан?» (MG6) and is off at 0 (MG7); «+» (came in); «История ▾» per product.
  */
 export function ShopList({ mode, lines, brands, locale }: Props) {
   const t = useTranslations("shop");
@@ -22,7 +22,8 @@ export function ShopList({ mode, lines, brands, locale }: Props) {
   const [brand, setBrand] = useState<string | null>(null);
   const [open, setOpen] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<{ productId: string; date: string; kind: string } | null>(null);
-  const [failed, setFailed] = useState(false);
+  const [failed, setFailed] = useState<false | "failed" | "negative">(false);
+  const [selling, setSelling] = useState<ShopLine | null>(null);
   const [pending, startTransition] = useTransition();
   // MG2: a tap shows at once; the server's number replaces it when saved.
   const [optimistic, addOptimistic] = useOptimistic(lines, (state, change: { id: string; delta?: number; favorite?: boolean }) =>
@@ -31,16 +32,18 @@ export function ShopList({ mode, lines, brands, locale }: Props) {
   const money = (value: number, currency: string) => new Intl.NumberFormat(locale, { style: "currency", currency, currencyDisplay: "narrowSymbol", maximumFractionDigits: 2 }).format(value);
 
   const shown = useMemo(() => optimistic.filter((l) => matchesShopFilter(l, query, brand)), [optimistic, query, brand]);
-  const favorites = shown.filter((l) => l.favorite);
+  // MG5: in «Склад» one list of what is in stock comes first; the catalogue keeps ⭐ first.
+  const sections = mode === "stock" ? shopStockSections(shown) : { inStock: [], favorites: shown.filter((l) => l.favorite), rest: shown.filter((l) => !l.favorite) };
+  const favorites = sections.favorites;
   const groups = new Map<string, ShopLine[]>();
-  for (const l of shown.filter((x) => !x.favorite)) {
+  for (const l of sections.rest) {
     const key = `${l.brand} · ${l.category || "—"}`;
     groups.set(key, [...(groups.get(key) ?? []), l]);
   }
 
-  const tap = (line: ShopLine, kind: "sale" | "receipt") =>
+  const tap = (line: ShopLine, kind: ShopMovementKind) =>
     startTransition(async () => {
-      addOptimistic({ id: line.id, delta: kind === "sale" ? -1 : 1 });
+      addOptimistic({ id: line.id, delta: kind === "receipt" ? 1 : -1 });
       await tapShopAction(line.id, kind);
     });
   const star = (line: ShopLine) =>
@@ -71,10 +74,10 @@ export function ShopList({ mode, lines, brands, locale }: Props) {
           </Link>
         ) : (
           <div className="flex shrink-0 items-center gap-1">
-            <button type="button" onClick={() => tap(l, "sale")} aria-label={t("sell", { name: l.name })} className="flex size-11 items-center justify-center rounded-full border border-field text-xl text-ink">
+            <button type="button" onClick={() => setSelling(l)} disabled={l.stock <= 0} aria-label={t("sell", { name: l.name })} className="flex size-11 items-center justify-center rounded-full border border-field text-xl text-ink disabled:opacity-30">
               −
             </button>
-            <span className={`w-10 text-center text-lg font-semibold tabular-nums ${l.stock < 0 ? "text-on-alert" : "text-ink"}`}>{String(l.stock).replace("-", "−")}</span>
+            <span className="w-10 text-center text-lg font-semibold tabular-nums text-ink">{Math.max(0, l.stock)}</span>
             <button type="button" onClick={() => tap(l, "receipt")} aria-label={t("receive", { name: l.name })} className="flex size-11 items-center justify-center rounded-full bg-primary text-xl text-on-primary">
               +
             </button>
@@ -91,8 +94,8 @@ export function ShopList({ mode, lines, brands, locale }: Props) {
           {l.history.slice(0, 20).map((h) => (
             <li key={`${h.date}${h.kind}`} className="flex items-center justify-between gap-2 border-t border-line text-sm">
               <span className="text-muted">{formatIsoDate(h.date)}</span>
-              <span className="flex-1">{t(h.kind === "sale" ? "historySale" : "historyReceipt", { count: h.quantity })}</span>
-              <span className="font-semibold tabular-nums">{String(h.balance).replace("-", "−")}</span>
+              <span className="flex-1">{t(h.kind === "sale" ? "historySale" : h.kind === "correction" ? "historyCorrection" : "historyReceipt", { count: h.quantity })}</span>
+              <span className="font-semibold tabular-nums">{h.balance}</span>
               <button type="button" onClick={() => { setFailed(false); setConfirm({ productId: l.id, date: h.date, kind: h.kind }); }} className="inline-flex min-h-11 items-center text-xs text-on-alert">
                 {t("delete")}
               </button>
@@ -114,6 +117,12 @@ export function ShopList({ mode, lines, brands, locale }: Props) {
         ))}
       </div>
       {shown.length === 0 && <p className={`${card.surface} px-5 py-10 text-center ${ui.muted}`}>{t("empty")}</p>}
+      {sections.inStock.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h2 className="px-1 text-sm font-semibold text-muted">{t("inStock")}</h2>
+          <ul className={`${card.surface} flex flex-col`}>{sections.inStock.map(row)}</ul>
+        </section>
+      )}
       {favorites.length > 0 && (
         <section className="flex flex-col gap-2">
           <h2 className="px-1 text-sm font-semibold text-muted">⭐ {t("favorites")}</h2>
@@ -126,10 +135,28 @@ export function ShopList({ mode, lines, brands, locale }: Props) {
           <ul className={`${card.surface} flex flex-col`}>{items.map(row)}</ul>
         </section>
       ))}
+      {selling && (
+        <div role="alertdialog" aria-label={t("soldQuestion")} className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-w-2xl flex-col gap-3 rounded-t-[18px] border-t border-line bg-surface p-4 pb-[calc(1rem+var(--safe-bottom))] text-ink shadow-lg">
+          <p className="text-base">
+            <span className="font-semibold">{t("soldQuestion")}</span>
+            <br />
+            <span className="text-muted">{selling.name}</span>
+          </p>
+          <button type="button" onClick={() => { tap(selling, "sale"); setSelling(null); }} className={ui.button}>
+            {t("soldYes")}
+          </button>
+          <button type="button" onClick={() => { tap(selling, "correction"); setSelling(null); }} className="min-h-11 rounded-[14px] border border-field px-3 text-base text-ink">
+            {t("soldNo")}
+          </button>
+          <button type="button" onClick={() => setSelling(null)} className={`${ui.textButton} justify-center`}>
+            {t("cancel")}
+          </button>
+        </div>
+      )}
       {confirm && (
         <div role="alertdialog" aria-label={t("delete")} className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-w-2xl flex-col gap-3 rounded-t-[18px] bg-alert p-4 pb-[calc(1rem+var(--safe-bottom))] text-on-alert shadow-lg">
           <p className="text-base">{t("confirmDelete")}</p>
-          {failed && <p className="text-sm font-semibold">{t("failed")}</p>}
+          {failed && <p className="text-sm font-semibold">{t(failed === "negative" ? "deleteNegative" : "failed")}</p>}
           <div className="grid grid-cols-2 gap-2">
             <button type="button" onClick={() => setConfirm(null)} className="min-h-11 rounded-[14px] border border-current px-3 text-sm">
               {t("cancel")}
@@ -139,9 +166,9 @@ export function ShopList({ mode, lines, brands, locale }: Props) {
               disabled={pending}
               onClick={() =>
                 startTransition(async () => {
-                  const { ok } = await deleteShopHistoryAction(confirm.productId, confirm.date, confirm.kind);
+                  const { ok, negative } = await deleteShopHistoryAction(confirm.productId, confirm.date, confirm.kind);
                   if (ok) setConfirm(null);
-                  else setFailed(true);
+                  else setFailed(negative ? "negative" : "failed");
                 })
               }
               className="min-h-11 rounded-[14px] bg-on-alert px-3 text-sm font-semibold text-alert disabled:opacity-50"

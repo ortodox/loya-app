@@ -826,6 +826,12 @@
       "brand": "Enter a brand.",
       "price": "Check the price: a number from 0.",
       "currency": "Choose a currency."
-    }
+    },
+    "inStock": "In stock",
+    "soldQuestion": "Was it sold?",
+    "soldYes": "Yes, sold",
+    "soldNo": "No, a correction",
+    "historyCorrection": "Correction −{count}",
+    "deleteNegative": "Can't delete: the product has already been sold. Delete the sale first."
   }
 }

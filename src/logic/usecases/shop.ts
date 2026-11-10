@@ -1,7 +1,7 @@
 import type { IsoDate } from "@/logic/client";
 import { isIsoDate } from "@/logic/rules/dates";
 import { isMonth, monthOf } from "@/logic/rules/consumption";
-import { shopHistory, shopSales, shopStock, sortShopProducts, type ShopHistoryLine, type ShopProduct, type ShopSales } from "@/logic/rules/shop";
+import { shopGoesNegative, shopHistory, shopMovementKinds, shopSales, shopStock, sortShopProducts, type ShopHistoryLine, type ShopMovementKind, type ShopProduct, type ShopSales } from "@/logic/rules/shop";
 import type { ShopProductInput, ShopRepository } from "@/data/repositories/shop";
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -17,11 +17,15 @@ export async function getShop(repo: ShopRepository): Promise<{ lines: ShopLine[]
   return { lines, brands: [...new Set(lines.map((l) => l.brand))].sort() };
 }
 
-/** MG2: «−» (sold one) or «+» (one came in) – a sale keeps today's price. */
-export async function tapShopProduct(repo: ShopRepository, productId: string, kind: "sale" | "receipt", today: IsoDate): Promise<boolean> {
-  if (!uuid.test(productId)) return false;
+/**
+ * MG2/MG6/MG7: «+» (one came in) or «−» – sold (keeps today's price, counts in «Продажи») or a correction
+ * (stock only). «−» only while there is something in stock.
+ */
+export async function tapShopProduct(repo: ShopRepository, productId: string, kind: ShopMovementKind, today: IsoDate): Promise<boolean> {
+  if (!uuid.test(productId) || !shopMovementKinds.includes(kind)) return false;
   const product = await repo.getProduct(productId);
   if (!product) return false;
+  if (kind !== "receipt" && (shopStock(await repo.listMovements()).get(productId) ?? 0) <= 0) return false;
   await repo.addMovement({
     productId,
     happenedOn: today,
@@ -33,10 +37,16 @@ export async function tapShopProduct(repo: ShopRepository, productId: string, ki
   return true;
 }
 
-/** MG2: «Удалить» a line of «История» (all sales or deliveries of that day). */
-export async function deleteShopHistoryLine(repo: ShopRepository, productId: string, date: string, kind: string): Promise<boolean> {
-  if (!uuid.test(productId) || !isIsoDate(date) || (kind !== "sale" && kind !== "receipt")) return false;
-  return (await repo.deleteMovements(productId, date, kind)) > 0;
+/**
+ * MG2/MG7: «Удалить» a line of «История» (all movements of that kind on that day) – refused ("negative")
+ * when it would leave more sold than came in.
+ */
+export async function deleteShopHistoryLine(repo: ShopRepository, productId: string, date: string, kind: string): Promise<"ok" | "negative" | "invalid"> {
+  if (!uuid.test(productId) || !isIsoDate(date) || !shopMovementKinds.includes(kind as ShopMovementKind)) return "invalid";
+  const movements = await repo.listMovements();
+  const left = movements.filter((m) => !(m.productId === productId && m.happenedOn === date && m.kind === kind));
+  if (shopGoesNegative(left, productId) && !shopGoesNegative(movements, productId)) return "negative";
+  return (await repo.deleteMovements(productId, date, kind as ShopMovementKind)) > 0 ? "ok" : "invalid";
 }
 
 /** MG4: ⭐ on and off. */

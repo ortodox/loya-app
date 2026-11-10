@@ -18,7 +18,7 @@ type MovementRow = {
   id: string;
   product_id: string;
   happened_on: string;
-  kind: "sale" | "receipt";
+  kind: "sale" | "receipt" | "correction";
   quantity: number;
   price: number | string | null;
   currency: "PLN" | "EUR" | null;
