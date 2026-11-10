@@ -5,12 +5,13 @@ import { redirect } from "next/navigation";
 import { practiceTimeZone } from "@/config/time";
 import { shopRepository } from "@/data/repositories/server";
 import { todayIn } from "@/logic/rules/dates";
+import type { ShopMovementKind } from "@/logic/rules/shop";
 import { deleteShopHistoryLine, saveShopProduct, tapShopProduct, toggleShopFavorite, type ShopProductErrors, type ShopProductForm } from "@/logic/usecases/shop";
 
 const str = (v: FormDataEntryValue | null) => (typeof v === "string" ? v : "");
 
-/** MG2: «−» (sale) or «+» (delivery). */
-export async function tapShopAction(productId: string, kind: "sale" | "receipt"): Promise<{ ok: boolean }> {
+/** MG2/MG6: «+» (delivery), «−» sold or «−» correction. */
+export async function tapShopAction(productId: string, kind: ShopMovementKind): Promise<{ ok: boolean }> {
   try {
     const ok = await tapShopProduct(await shopRepository(), productId, kind, todayIn(practiceTimeZone));
     if (ok) revalidatePath("/shop");
@@ -32,11 +33,11 @@ export async function toggleShopFavoriteAction(productId: string): Promise<{ ok:
 }
 
 /** MG2: «Удалить» a line of «История». */
-export async function deleteShopHistoryAction(productId: string, date: string, kind: string): Promise<{ ok: boolean }> {
+export async function deleteShopHistoryAction(productId: string, date: string, kind: string): Promise<{ ok: boolean; negative?: boolean }> {
   try {
-    const ok = await deleteShopHistoryLine(await shopRepository(), productId, date, kind);
-    if (ok) revalidatePath("/shop");
-    return { ok };
+    const result = await deleteShopHistoryLine(await shopRepository(), productId, date, kind);
+    if (result === "ok") revalidatePath("/shop");
+    return { ok: result === "ok", negative: result === "negative" };
   } catch {
     return { ok: false };
   }

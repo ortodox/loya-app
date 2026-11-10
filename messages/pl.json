@@ -826,6 +826,12 @@
       "brand": "Podaj firmę.",
       "price": "Sprawdź cenę: liczba od 0.",
       "currency": "Wybierz walutę."
-    }
+    },
+    "inStock": "Na stanie",
+    "soldQuestion": "Produkt sprzedany?",
+    "soldYes": "Tak, sprzedany",
+    "soldNo": "Nie, korekta",
+    "historyCorrection": "Korekta −{count}",
+    "deleteNegative": "Nie można usunąć: produkt został już sprzedany. Najpierw usuń sprzedaż."
   }
 }

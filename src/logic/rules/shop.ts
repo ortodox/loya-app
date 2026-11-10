@@ -14,37 +14,53 @@ export type ShopProduct = {
   sortOrder: number;
 };
 
+/** MG2/MG6: «+» (delivery), «−» sold (sale, keeps its price) or «−» correction (not a sale). */
+export type ShopMovementKind = "sale" | "receipt" | "correction";
+export const shopMovementKinds: readonly ShopMovementKind[] = ["sale", "receipt", "correction"];
+
 /** MG2: «−» (sale) or «+» (delivery); a sale keeps the price it was sold for. */
 export type ShopMovement = {
   id: string;
   productId: string;
   happenedOn: IsoDate;
-  kind: "sale" | "receipt";
+  kind: ShopMovementKind;
   quantity: number;
   price: number | null;
   currency: "PLN" | "EUR" | null;
   createdAt: string;
 };
 
-/** MG2: what is in stock per product – deliveries minus sales (can go below zero, shown in red). */
+const inOrder = (movements: readonly ShopMovement[]) =>
+  [...movements].sort((a, b) => a.happenedOn.localeCompare(b.happenedOn) || a.createdAt.localeCompare(b.createdAt));
+const change = (m: ShopMovement) => (m.kind === "receipt" ? m.quantity : -m.quantity);
+
+/** MG2/MG7: what is in stock per product – deliveries minus sales and corrections, never below zero. */
 export function shopStock(movements: readonly ShopMovement[]): Map<string, number> {
   const stock = new Map<string, number>();
-  for (const m of movements) stock.set(m.productId, (stock.get(m.productId) ?? 0) + (m.kind === "receipt" ? m.quantity : -m.quantity));
+  for (const m of inOrder(movements)) stock.set(m.productId, Math.max(0, (stock.get(m.productId) ?? 0) + change(m)));
   return stock;
 }
 
-/** MG2: one line of «История» – all sales (or deliveries) of one day together, with what was left after. */
-export type ShopHistoryLine = { date: IsoDate; kind: "sale" | "receipt"; quantity: number; balance: number };
+/** MG7: true when these movements of one product would at some point take more out than there is. */
+export function shopGoesNegative(movements: readonly ShopMovement[], productId: string): boolean {
+  let balance = 0;
+  for (const m of inOrder(movements.filter((x) => x.productId === productId))) {
+    balance += change(m);
+    if (balance < 0) return true;
+  }
+  return false;
+}
+
+/** MG2: one line of «История» – all sales (deliveries, corrections) of one day together, with what was left after. */
+export type ShopHistoryLine = { date: IsoDate; kind: ShopMovementKind; quantity: number; balance: number };
 
 /** MG2: the history of one product, newest first; taps of the same kind on the same day are one line. */
 export function shopHistory(movements: readonly ShopMovement[], productId: string): ShopHistoryLine[] {
-  const own = movements
-    .filter((m) => m.productId === productId)
-    .sort((a, b) => a.happenedOn.localeCompare(b.happenedOn) || a.createdAt.localeCompare(b.createdAt));
+  const own = inOrder(movements.filter((m) => m.productId === productId));
   const lines: ShopHistoryLine[] = [];
   let balance = 0;
   for (const m of own) {
-    balance += m.kind === "receipt" ? m.quantity : -m.quantity;
+    balance = Math.max(0, balance + change(m));
     const last = lines[lines.length - 1];
     if (last && last.date === m.happenedOn && last.kind === m.kind) {
       last.quantity += m.quantity;
@@ -91,6 +107,18 @@ export function sortShopProducts<T extends ShopProduct>(products: readonly T[]):
       a.sortOrder - b.sortOrder ||
       a.name.localeCompare(b.name),
   );
+}
+
+/**
+ * MG5 «Склад»: first one list of what is in stock – most first, then brand and name; below it ⭐ (not in
+ * stock), then the rest in the catalogue order.
+ */
+export function shopStockSections<T extends ShopProduct & { stock: number }>(lines: readonly T[]): { inStock: T[]; favorites: T[]; rest: T[] } {
+  const inStock = lines
+    .filter((l) => l.stock > 0)
+    .sort((a, b) => b.stock - a.stock || a.brand.localeCompare(b.brand) || a.name.localeCompare(b.name));
+  const others = lines.filter((l) => l.stock <= 0);
+  return { inStock, favorites: others.filter((l) => l.favorite), rest: others.filter((l) => !l.favorite) };
 }
 
 /** MG1: search in name, size, category and brand; brand filter («Все» = null). */

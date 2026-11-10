@@ -63,17 +63,42 @@ describe("MG2: «−» и «+» в магазине", () => {
 
   it("MG2: «Удалить» a line removes that day's sales of the product", async () => {
     const { repo } = setup();
+    await tapShopProduct(repo, id(1), "receipt", "2026-11-01");
+    await tapShopProduct(repo, id(1), "receipt", "2026-11-01");
     await tapShopProduct(repo, id(1), "sale", today);
     await tapShopProduct(repo, id(1), "sale", today);
-    expect(await deleteShopHistoryLine(repo, id(1), today, "sale")).toBe(true);
-    expect((await getShop(repo)).lines.find((l) => l.id === id(1))!.stock).toBe(0);
-    expect(await deleteShopHistoryLine(repo, id(1), today, "other")).toBe(false);
+    expect(await deleteShopHistoryLine(repo, id(1), today, "sale")).toBe("ok");
+    expect((await getShop(repo)).lines.find((l) => l.id === id(1))!.stock).toBe(2);
+    expect(await deleteShopHistoryLine(repo, id(1), today, "other")).toBe("invalid");
+  });
+
+  it("MG6: «Нет, исправление» lowers the stock but is not a sale", async () => {
+    const { repo, movements } = setup();
+    await tapShopProduct(repo, id(1), "receipt", today);
+    await tapShopProduct(repo, id(1), "receipt", today);
+    expect(await tapShopProduct(repo, id(1), "correction", today)).toBe(true);
+    expect(movements[2]).toMatchObject({ kind: "correction", price: null, currency: null });
+    expect((await getShop(repo)).lines.find((l) => l.id === id(1))!.stock).toBe(1);
+    expect((await getShopSales(repo, undefined, today)).sales.pieces).toBe(0);
+  });
+
+  it("MG7: «−» does nothing at 0; a delivery already sold cannot be deleted", async () => {
+    const { repo, movements } = setup();
+    expect(await tapShopProduct(repo, id(1), "sale", today)).toBe(false);
+    expect(await tapShopProduct(repo, id(1), "correction", today)).toBe(false);
+    expect(movements).toHaveLength(0);
+    await tapShopProduct(repo, id(1), "receipt", "2026-11-01");
+    await tapShopProduct(repo, id(1), "sale", today);
+    expect(await deleteShopHistoryLine(repo, id(1), "2026-11-01", "receipt")).toBe("negative");
+    expect(movements).toHaveLength(2);
   });
 });
 
 describe("MG3/MG4/MG1: продажи, избранное, товар", () => {
   it("MG3: sales of the month asked for, never a future month", async () => {
     const { repo } = setup();
+    await tapShopProduct(repo, id(1), "receipt", today);
+    await tapShopProduct(repo, id(2), "receipt", today);
     await tapShopProduct(repo, id(1), "sale", today);
     await tapShopProduct(repo, id(2), "sale", today);
     const { sales } = await getShopSales(repo, "2026-12", today);
