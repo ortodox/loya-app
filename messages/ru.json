@@ -835,7 +835,7 @@
     "historyCorrection": "Исправление −{count}",
     "deleteNegative": "Нельзя удалить: товар уже продан. Сначала удали продажу.",
     "orders": {
-      "new": "+ Заказ",
+      "new": "Новый",
       "newTitle": "Новый заказ",
       "editTitle": "Заказ",
       "allOrders": "Все заказы",
@@ -896,7 +896,12 @@
         "unpaid": "Не оплачен",
         "partial": "Частично",
         "paid": "Оплачен"
-      }
+      },
+      "badgePaid": "Оплачен ✓",
+      "badgeUnpaid": "Не оплачен · осталось {left}",
+      "badgePartial": "Частично · осталось {left}",
+      "leftToPay": "Осталось оплатить: {left}",
+      "leftShort": "осталось {left}"
     },
     "historyOrder": "Заказ −{count}",
     "historyReturn": "Возврат +{count}",

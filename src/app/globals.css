@@ -21,6 +21,10 @@
   --on-primary: #f4ece2;
   --alert: #f6e3dc;
   --on-alert: #8a2e1e;
+  /* MG15: yellow for what needs doing (waiting, partly paid, «Нужно заказать»); red stays for what is wrong. */
+  --warn: #fff4cc;
+  --on-warn: #6b4e00;
+  --warn-line: #a67c00;
   /* Z5: the face scheme is always on light paper (also in dark mode), so the pens stay the same:
      near-black, bright red and bright blue – clearly visible on skin, never gold or beige. */
   --face-paper: #fbf7f2;
@@ -45,6 +49,9 @@
     --on-primary: #1e1814;
     --alert: #4a2620;
     --on-alert: #f2b8a8;
+    --warn: #3d3210;
+    --on-warn: #f5d76e;
+    --warn-line: #d4ac2b;
   }
 }
 
@@ -61,6 +68,9 @@
   --color-on-primary: var(--on-primary);
   --color-alert: var(--alert);
   --color-on-alert: var(--on-alert);
+  --color-warn: var(--warn);
+  --color-on-warn: var(--on-warn);
+  --color-warn-line: var(--warn-line);
   --color-face-paper: var(--face-paper);
   --font-serif: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
   --font-sans: var(--font-montserrat), Montserrat, -apple-system, BlinkMacSystemFont, sans-serif;

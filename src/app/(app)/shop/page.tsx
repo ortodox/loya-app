@@ -18,8 +18,8 @@ import { ShopSwitch, type ShopView } from "./ShopSwitch";
 export const dynamic = "force-dynamic";
 
 /** MG1–MG4, MG9 «Магазин»: «Каталог | Склад | Заказы | Продажи» (?view=…); «Склад» first – what is in stock. */
-export default async function ShopPage({ searchParams }: { searchParams: Promise<{ view?: string; month?: string; buyer?: string }> }) {
-  const { view: asked, month, buyer } = await searchParams;
+export default async function ShopPage({ searchParams }: { searchParams: Promise<{ view?: string; month?: string; buyer?: string; new?: string }> }) {
+  const { view: asked, month, buyer, new: created } = await searchParams;
   const view: ShopView = asked === "catalog" || asked === "sales" || asked === "orders" ? asked : "stock";
   const t = await getTranslations("shop");
   const locale = await getLocale();
@@ -46,7 +46,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
         await (async () => {
           const orders = await shopOrdersRepository();
           const [list, rate] = await Promise.all([getOrders(repo, orders, buyer && /^[0-9a-f-]{36}$/i.test(buyer) ? buyer : null), getEurRate(orders, fetchNbpEurRate)]);
-          return <OrdersView {...list} rate={rate} locale={locale} />;
+          return <OrdersView {...list} rate={rate} locale={locale} today={today} highlight={created && /^[0-9a-f-]{36}$/i.test(created) ? created : null} />;
         })()
       ) : view === "sales" ? (
         <ShopSalesView {...(await getShopSales(repo, month, today, await shopOrdersRepository()))} current={monthOf(today)} />

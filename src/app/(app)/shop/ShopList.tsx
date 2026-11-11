@@ -140,16 +140,16 @@ export function ShopList({ mode, lines, brands, locale, waiting = {}, buyers = [
       {shown.length === 0 && <p className={`${card.surface} px-5 py-10 text-center ${ui.muted}`}>{t("empty")}</p>}
       {mode === "stock" && Object.keys(waiting).length > 0 && (
         <section className="flex flex-col gap-2">
-          <h2 className="px-1 text-sm font-semibold text-muted">{t("needToOrderTitle")}</h2>
-          <ul className={`${card.surface} flex flex-col`}>
+          <h2 className="px-1 text-base font-semibold text-ink">⚠ {t("needToOrderTitle")}</h2>
+          <ul className="flex flex-col rounded-[18px] border-2 border-warn-line bg-warn text-on-warn">
             {Object.entries(waiting).map(([productId, list]) => {
               const product = lines.find((x) => x.id === productId);
               return (
-                <li key={productId} className="flex flex-col gap-0.5 border-b border-line px-4 py-3 last:border-b-0">
-                  <span className="text-base font-semibold text-ink">
+                <li key={productId} className="flex flex-col gap-0.5 border-b border-warn-line px-4 py-3 last:border-b-0">
+                  <span className="text-base font-semibold">
                     {product?.name ?? "—"} · {t("piecesShort", { count: list.reduce((s, w) => s + w.missing, 0) })}
                   </span>
-                  <span className={ui.muted}>{list.map((w) => `${w.buyerName} (${w.missing})`).join(", ")}</span>
+                  <span className="text-sm">{list.map((w) => `${w.buyerName} (${w.missing})`).join(", ")}</span>
                 </li>
               );
             })}

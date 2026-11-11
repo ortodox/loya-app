@@ -835,7 +835,7 @@
     "historyCorrection": "Korekta −{count}",
     "deleteNegative": "Nie można usunąć: produkt został już sprzedany. Najpierw usuń sprzedaż.",
     "orders": {
-      "new": "+ Zamówienie",
+      "new": "Nowe",
       "newTitle": "Nowe zamówienie",
       "editTitle": "Zamówienie",
       "allOrders": "Wszystkie zamówienia",
@@ -896,7 +896,12 @@
         "unpaid": "Nieopłacone",
         "partial": "Częściowo",
         "paid": "Opłacone"
-      }
+      },
+      "badgePaid": "Opłacone ✓",
+      "badgeUnpaid": "Nieopłacone · zostało {left}",
+      "badgePartial": "Częściowo · zostało {left}",
+      "leftToPay": "Pozostało do zapłaty: {left}",
+      "leftShort": "zostało {left}"
     },
     "historyOrder": "Zamówienie −{count}",
     "historyReturn": "Zwrot +{count}",
