@@ -44,7 +44,7 @@ export async function tapShopProduct(repo: ShopRepository, productId: string, ki
 export async function deleteShopHistoryLine(repo: ShopRepository, productId: string, date: string, kind: string): Promise<"ok" | "negative" | "invalid"> {
   if (!uuid.test(productId) || !isIsoDate(date) || !shopMovementKinds.includes(kind as ShopMovementKind)) return "invalid";
   const movements = await repo.listMovements();
-  const left = movements.filter((m) => !(m.productId === productId && m.happenedOn === date && m.kind === kind));
+  const left = movements.filter((m) => !(m.productId === productId && m.happenedOn === date && m.kind === kind && !m.orderItemId));
   if (shopGoesNegative(left, productId) && !shopGoesNegative(movements, productId)) return "negative";
   return (await repo.deleteMovements(productId, date, kind as ShopMovementKind)) > 0 ? "ok" : "invalid";
 }
