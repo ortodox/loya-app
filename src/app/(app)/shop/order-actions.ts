@@ -21,7 +21,7 @@ export async function saveOrderAction(id: string | null, input: OrderFormInput):
   }
   if (!result.ok) return "errors" in result ? { errors: result.errors } : { failed: true };
   revalidatePath("/shop");
-  redirect("/shop?view=orders");
+  redirect(`/shop?view=orders&new=${result.id}`);
 }
 
 /** MG12: «Выдан ✓» or back to waiting. */

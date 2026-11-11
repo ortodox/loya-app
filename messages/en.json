@@ -835,7 +835,7 @@
     "historyCorrection": "Correction −{count}",
     "deleteNegative": "Can't delete: the product has already been sold. Delete the sale first.",
     "orders": {
-      "new": "+ Order",
+      "new": "New",
       "newTitle": "New order",
       "editTitle": "Order",
       "allOrders": "All orders",
@@ -896,7 +896,12 @@
         "unpaid": "Not paid",
         "partial": "Partly paid",
         "paid": "Paid"
-      }
+      },
+      "badgePaid": "Paid ✓",
+      "badgeUnpaid": "Not paid · {left} left",
+      "badgePartial": "Partly paid · {left} left",
+      "leftToPay": "Left to pay: {left}",
+      "leftShort": "{left} left"
     },
     "historyOrder": "Order −{count}",
     "historyReturn": "Return +{count}",

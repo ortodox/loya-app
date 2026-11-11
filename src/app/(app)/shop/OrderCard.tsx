@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { card, ui } from "@/app/components/ui";
 import { formatIsoDate } from "@/logic/rules/dates";
 import type { OrderView } from "@/logic/usecases/shop-orders";
@@ -10,13 +10,27 @@ import { addPaymentAction, deletePaymentAction, handOverOrderAction } from "./or
 import { BuyerContacts } from "./BuyerContacts";
 
 /** MG9/MG12: one order – buyer, all products together, total in zł, «Выдан ✓» / «Изменить». */
-export function OrderCard({ order, locale }: { order: OrderView; locale: string }) {
+export function OrderCard({ order, locale, today, highlight = false }: { order: OrderView; locale: string; today: string; highlight?: boolean }) {
   const t = useTranslations("shop.orders");
   const [pending, startTransition] = useTransition();
   const [failed, setFailed] = useState(false);
   const [paying, setPaying] = useState(false);
   const [amount, setAmount] = useState("");
   const [removing, setRemoving] = useState<string | null>(null);
+  // MG15: after «Сохранить» the page scrolls to the new order.
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (highlight) ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [highlight]);
+  const missing = order.lines.some((l) => l.missing > 0);
+  // MG15: red frame – not paid; yellow – partly paid, waiting for hand-over or for stock; thin – done.
+  const frame =
+    order.payment.status === "unpaid"
+      ? "border-2 border-on-alert"
+      : order.payment.status === "partial" || !order.handedOverOn || missing
+        ? "border-2 border-warn-line"
+        : "border border-line";
+  const badge = "inline-flex min-h-8 items-center rounded-full px-3 text-sm font-semibold";
   const zl = (v: number) => new Intl.NumberFormat(locale, { style: "currency", currency: "PLN", currencyDisplay: "narrowSymbol", maximumFractionDigits: 2 }).format(v);
   const handOver = (handed: boolean) =>
     startTransition(async () => {
@@ -26,18 +40,26 @@ export function OrderCard({ order, locale }: { order: OrderView; locale: string 
     });
 
   return (
-    <article className={`${card.surface} flex flex-col gap-3 p-4`}>
-      <header className="flex flex-col gap-0.5">
+    <article ref={ref} id={`order-${order.id}`} className={`${card.surface} ${frame} flex flex-col gap-3 p-4 ${highlight ? "ring-4 ring-warn" : ""}`}>
+      <header className="flex flex-col gap-1">
         <Link href={`/shop?view=orders&buyer=${order.buyer.id}`} className="text-lg font-semibold text-ink underline-offset-2 hover:underline">
           {order.buyer.name}
           {order.buyer.instagram && <span className="font-normal text-muted"> · @{order.buyer.instagram}</span>}
         </Link>
         <span className={ui.muted}>
-          {formatIsoDate(order.orderedOn)} · {order.handedOverOn ? t("handedOn", { date: formatIsoDate(order.handedOverOn) }) : t("waitingShort")}
+          {formatIsoDate(order.orderedOn)}
+          {order.orderedOn === today && <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-on-primary">{t("new")}</span>}
         </span>
-        <span className={`self-start rounded-full px-2 py-0.5 text-xs font-semibold ${order.payment.status === "paid" ? "border border-field text-muted" : "bg-alert text-on-alert"}`}>
-          {t(`pay.${order.payment.status}`)}
-        </span>
+        <div className="flex flex-wrap gap-2 pt-1">
+          <span
+            className={`${badge} ${order.payment.status === "unpaid" ? "bg-alert text-on-alert" : order.payment.status === "partial" ? "bg-warn text-on-warn" : "border border-field text-muted"}`}
+          >
+            💳 {order.payment.status === "paid" ? t("badgePaid") : t(order.payment.status === "unpaid" ? "badgeUnpaid" : "badgePartial", { left: zl(order.payment.left) })}
+          </span>
+          <span className={`${badge} ${order.handedOverOn ? "border border-field text-muted" : "bg-warn text-on-warn"}`}>
+            📦 {order.handedOverOn ? t("handedOn", { date: formatIsoDate(order.handedOverOn) }) : t("waitingShort")}
+          </span>
+        </div>
       </header>
       <ul className="flex flex-col">
         {order.lines.map((l) => (
@@ -48,7 +70,7 @@ export function OrderCard({ order, locale }: { order: OrderView; locale: string 
             </span>
             <span className="shrink-0 text-right text-ink">
               {t("pieces", { count: l.quantity })} · {zl(l.price * l.quantity)}
-              {l.missing > 0 && <span className="block text-sm font-semibold text-accent">{t("needToOrder", { count: l.missing })}</span>}
+              {l.missing > 0 && <span className="mt-1 block rounded-[10px] border-2 border-warn-line bg-warn px-2 py-0.5 text-sm font-semibold text-on-warn">{t("needToOrder", { count: l.missing })}</span>}
             </span>
           </li>
         ))}
@@ -59,6 +81,7 @@ export function OrderCard({ order, locale }: { order: OrderView; locale: string 
       {/* MG11: payments – «Оплачено 500 zł из 1 330 zł», each can be taken back. */}
       <div className="flex flex-col gap-1">
         {order.payment.status !== "unpaid" && <span className="text-sm text-ink">{t("paidOf", { paid: zl(order.payment.paid), total: zl(order.total.value) })}</span>}
+        {order.payment.left > 0 && <span className="text-lg font-semibold text-on-alert">{t("leftToPay", { left: zl(order.payment.left) })}</span>}
         {order.payments.map((p) => (
           <span key={p.id} className="flex items-center justify-between gap-2 text-sm text-muted">
             {formatIsoDate(p.paidOn)} · {zl(p.amount)}
@@ -118,9 +141,9 @@ export function OrderCard({ order, locale }: { order: OrderView; locale: string 
                 setAmount(String(order.payment.left).replace(".", ","));
                 setPaying(true);
               }}
-              className={`${ui.textButton} self-start text-sm`}
+              className="flex min-h-11 w-full items-center justify-center rounded-[14px] border-2 border-on-alert px-4 text-base font-semibold text-on-alert"
             >
-              {t("payment")}
+              💳 {t("payment")}
             </button>
           )
         )}
