@@ -7,18 +7,18 @@ import { card, pill, ui } from "@/app/components/ui";
 import { formatIsoDate } from "@/logic/rules/dates";
 import { matchesShopFilter, shopStockSections, type ShopMovementKind } from "@/logic/rules/shop";
 import type { ShopLine } from "@/logic/usecases/shop";
-import type { WaitingLine } from "@/logic/rules/shop-orders";
-import { giveReceiptAction } from "./order-actions";
+import { matchesBuyer, type ShopBuyer, type WaitingLine } from "@/logic/rules/shop-orders";
+import { giveReceiptAction, sellToBuyerAction } from "./order-actions";
 import { deleteShopHistoryAction, tapShopAction, toggleShopFavoriteAction } from "./actions";
 
-type Props = { mode: "catalog" | "stock"; lines: ShopLine[]; brands: string[]; locale: string; waiting?: Record<string, WaitingLine[]> };
+type Props = { mode: "catalog" | "stock"; lines: ShopLine[]; brands: string[]; locale: string; waiting?: Record<string, WaitingLine[]>; buyers?: ShopBuyer[] };
 
 /**
  * MG1/MG2: «Каталог» and «Склад» of «Магазин» – search, a filter per brand, ⭐ first, grouped by
  * brand and category. Catalogue: price, ⭐ and «Изменить». Stock (MG5): what is in stock first, most
  * first; «−» asks «Товар продан?» (MG6) and is off at 0 (MG7); «+» (came in); «История ▾» per product.
  */
-export function ShopList({ mode, lines, brands, locale, waiting = {} }: Props) {
+export function ShopList({ mode, lines, brands, locale, waiting = {}, buyers = [] }: Props) {
   const t = useTranslations("shop");
   const [query, setQuery] = useState("");
   const [brand, setBrand] = useState<string | null>(null);
@@ -26,6 +26,23 @@ export function ShopList({ mode, lines, brands, locale, waiting = {} }: Props) {
   const [confirm, setConfirm] = useState<{ productId: string; date: string; kind: string } | null>(null);
   const [failed, setFailed] = useState<false | "failed" | "negative">(false);
   const [selling, setSelling] = useState<ShopLine | null>(null);
+  // MG14: after «Да, продан» – «Кому?» (a buyer, a new one, or «Без имени»).
+  const [askWho, setAskWho] = useState(false);
+  const [who, setWho] = useState({ name: "", phone: "", instagram: "" });
+  const [whoFailed, setWhoFailed] = useState<false | "failed" | "empty" | "noRate">(false);
+  const closeSelling = () => {
+    setSelling(null);
+    setAskWho(false);
+    setWho({ name: "", phone: "", instagram: "" });
+    setWhoFailed(false);
+  };
+  const sellTo = (line: ShopLine, buyer: { buyerId?: string; name: string; phone?: string; instagram?: string }) =>
+    startTransition(async () => {
+      addOptimistic({ id: line.id, delta: -1 });
+      const { ok, reason } = await sellToBuyerAction(line.id, buyer);
+      if (ok) closeSelling();
+      else setWhoFailed(reason ?? "failed");
+    });
   // MG10: «+» on a product orders wait for → «Для какого заказа?».
   const [receiving, setReceiving] = useState<ShopLine | null>(null);
   const [pending, startTransition] = useTransition();
@@ -192,19 +209,63 @@ export function ShopList({ mode, lines, brands, locale, waiting = {} }: Props) {
         </div>
       )}
       {selling && (
-        <div role="alertdialog" aria-label={t("soldQuestion")} className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-w-2xl flex-col gap-3 rounded-t-[18px] border-t border-line bg-surface p-4 pb-[calc(1rem+var(--safe-bottom))] text-ink shadow-lg">
+        <div role="alertdialog" aria-label={askWho ? t("whoQuestion") : t("soldQuestion")} className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[85vh] max-w-2xl flex-col gap-3 overflow-y-auto rounded-t-[18px] border-t border-line bg-surface p-4 pb-[calc(1rem+var(--safe-bottom))] text-ink shadow-lg">
           <p className="text-base">
-            <span className="font-semibold">{t("soldQuestion")}</span>
+            <span className="font-semibold">{askWho ? t("whoQuestion") : t("soldQuestion")}</span>
             <br />
             <span className="text-muted">{selling.name}</span>
           </p>
-          <button type="button" onClick={() => { tap(selling, "sale"); setSelling(null); }} className={ui.button}>
-            {t("soldYes")}
-          </button>
-          <button type="button" onClick={() => { tap(selling, "correction"); setSelling(null); }} className="min-h-11 rounded-[14px] border border-field px-3 text-base text-ink">
-            {t("soldNo")}
-          </button>
-          <button type="button" onClick={() => setSelling(null)} className={`${ui.textButton} justify-center`}>
+          {!askWho ? (
+            <>
+              <button type="button" onClick={() => setAskWho(true)} className={ui.button}>
+                {t("soldYes")}
+              </button>
+              <button type="button" onClick={() => { tap(selling, "correction"); closeSelling(); }} className="min-h-11 rounded-[14px] border border-field px-3 text-base text-ink">
+                {t("soldNo")}
+              </button>
+            </>
+          ) : (
+            <>
+              <input
+                value={who.name}
+                onChange={(e) => setWho({ ...who, name: e.target.value })}
+                autoComplete="off"
+                placeholder={t("whoPlaceholder")}
+                aria-label={t("whoPlaceholder")}
+                className={ui.input}
+              />
+              {who.name.trim() && (
+                <ul className="flex flex-col rounded-[14px] border border-field">
+                  {buyers
+                    .filter((b) => matchesBuyer(b, who.name))
+                    .slice(0, 5)
+                    .map((b) => (
+                      <li key={b.id}>
+                        <button type="button" disabled={pending} onClick={() => sellTo(selling, { buyerId: b.id, name: b.name, phone: b.phone, instagram: b.instagram })} className="flex min-h-11 w-full flex-col items-start border-b border-line px-4 py-2 text-left last:border-b-0">
+                          <span className="text-base text-ink">{b.name}</span>
+                          <span className={ui.muted}>{[b.instagram && `@${b.instagram}`, b.phone].filter(Boolean).join(" · ")}</span>
+                        </button>
+                      </li>
+                    ))}
+                  <li className="flex flex-col gap-2 p-3">
+                    <span className="text-sm font-semibold text-ink">{t("newBuyer", { name: who.name.trim() })}</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input value={who.phone} onChange={(e) => setWho({ ...who, phone: e.target.value })} type="tel" inputMode="tel" placeholder={t("phone")} aria-label={t("phone")} className={ui.input} />
+                      <input value={who.instagram} onChange={(e) => setWho({ ...who, instagram: e.target.value })} autoCapitalize="none" placeholder="@Instagram" aria-label="Instagram" className={ui.input} />
+                    </div>
+                    <button type="button" disabled={pending} onClick={() => sellTo(selling, { name: who.name, phone: who.phone, instagram: who.instagram })} className={ui.button}>
+                      {t("saveSale")}
+                    </button>
+                  </li>
+                </ul>
+              )}
+              {whoFailed && <p className={ui.error}>{t(whoFailed === "empty" ? "whoEmpty" : whoFailed === "noRate" ? "whoNoRate" : "failed")}</p>}
+              <button type="button" onClick={() => { tap(selling, "sale"); closeSelling(); }} className="min-h-11 rounded-[14px] border border-field px-3 text-base text-ink">
+                {t("noName")}
+              </button>
+            </>
+          )}
+          <button type="button" onClick={closeSelling} className={`${ui.textButton} justify-center`}>
             {t("cancel")}
           </button>
         </div>

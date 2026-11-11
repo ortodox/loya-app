@@ -6,6 +6,7 @@ import { practiceTimeZone } from "@/config/time";
 import { fetchNbpEurRate } from "@/data/nbp";
 import { shopOrdersRepository, shopRepository } from "@/data/repositories/server";
 import { todayIn } from "@/logic/rules/dates";
+import { sellToBuyer } from "@/logic/usecases/shop-orders";
 import { addPayment, cancelOrder, deletePayment, getEurRate, giveReceiptToOrder, saveOrder, setOrderHandedOver, setOwnEurRate, type OrderErrors, type OrderFormInput } from "@/logic/usecases/shop-orders";
 
 /** MG9: «Сохранить» a new or changed order; back to «Заказы» when saved. */
@@ -86,6 +87,22 @@ export async function deletePaymentAction(paymentId: string): Promise<{ ok: bool
     const ok = await deletePayment(await shopOrdersRepository(), paymentId);
     if (ok) revalidatePath("/shop");
     return { ok };
+  } catch {
+    return { ok: false };
+  }
+}
+
+/** MG14 «−» → «Да, продан» → «Кому?» → this buyer. */
+export async function sellToBuyerAction(
+  productId: string,
+  buyer: { buyerId?: string | null; name?: string; phone?: string; instagram?: string },
+): Promise<{ ok: boolean; reason?: "empty" | "noRate" }> {
+  try {
+    const orders = await shopOrdersRepository();
+    const { rate } = await getEurRate(orders, fetchNbpEurRate);
+    const result = await sellToBuyer(await shopRepository(), orders, productId, buyer, todayIn(practiceTimeZone), rate);
+    if (result === "ok") revalidatePath("/shop");
+    return { ok: result === "ok", reason: result === "empty" || result === "noRate" ? result : undefined };
   } catch {
     return { ok: false };
   }

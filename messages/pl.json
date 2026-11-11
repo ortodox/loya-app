@@ -911,6 +911,14 @@
     "forWhichOrder": "Dla którego zamówienia?",
     "needToOrderShort": "brakuje {count} szt.",
     "justToStock": "Po prostu na stan",
-    "unpaidOf": "Z tego nieopłacone: {amount}"
+    "unpaidOf": "Z tego nieopłacone: {amount}",
+    "whoQuestion": "Komu?",
+    "whoPlaceholder": "Imię, @Instagram lub telefon",
+    "newBuyer": "Nowy kupujący: {name}",
+    "phone": "Telefon",
+    "saveSale": "Zapisz sprzedaż",
+    "noName": "Bez imienia",
+    "whoEmpty": "Brak produktu na stanie.",
+    "whoNoRate": "Kurs € nieznany – sprzedaj przez «+ Zamówienie» i wpisz cenę w zł."
   }
 }

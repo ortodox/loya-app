@@ -911,6 +911,14 @@
     "forWhichOrder": "For which order?",
     "needToOrderShort": "{count} pcs missing",
     "justToStock": "Just to stock",
-    "unpaidOf": "Not paid yet: {amount}"
+    "unpaidOf": "Not paid yet: {amount}",
+    "whoQuestion": "Sold to whom?",
+    "whoPlaceholder": "Name, @Instagram or phone",
+    "newBuyer": "New buyer: {name}",
+    "phone": "Phone",
+    "saveSale": "Save sale",
+    "noName": "No name",
+    "whoEmpty": "Not in stock.",
+    "whoNoRate": "€ rate unknown – sell via «+ Order» and enter the price in zł."
   }
 }

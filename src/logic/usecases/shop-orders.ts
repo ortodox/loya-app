@@ -227,3 +227,43 @@ export async function cancelOrder(orders: ShopOrdersRepository, id: string): Pro
   if (!uuid.test(id)) return false;
   return orders.deleteOrder(id);
 }
+
+/** MG14: the buyers to choose from after «Да, продан». */
+export async function listBuyers(orders: ShopOrdersRepository): Promise<ShopBuyer[]> {
+  return orders.listBuyers();
+}
+
+/**
+ * MG14 «−» → «Да, продан» → «Кому?»: one piece sold to a buyer becomes an order of 1 piece, handed over at
+ * once and not paid until «Оплата». Price in zł (Medik8 from the catalogue, Instytutum by the € rate).
+ */
+export async function sellToBuyer(
+  shop: ShopRepository,
+  orders: ShopOrdersRepository,
+  productId: string,
+  buyer: { buyerId?: string | null; name?: string; phone?: string; instagram?: string },
+  today: IsoDate,
+  rate: EurRate | null,
+): Promise<"ok" | "invalid" | "empty" | "noRate"> {
+  if (!uuid.test(productId)) return "invalid";
+  const name = (buyer.name ?? "").trim().slice(0, 120);
+  if (!name) return "invalid";
+  const product = await shop.getProduct(productId);
+  if (!product) return "invalid";
+  if ((shopStock(await shop.listMovements()).get(productId) ?? 0) <= 0) return "empty";
+  const price = orderPrice(product, rate);
+  if (price === null) return "noRate";
+  const buyerId = buyer.buyerId && uuid.test(buyer.buyerId) && (await orders.listBuyers()).some((b) => b.id === buyer.buyerId) ? buyer.buyerId : null;
+  const { id } = await orders.saveOrder(null, {
+    buyerId,
+    buyerName: name,
+    buyerPhone: (buyer.phone ?? "").trim().slice(0, 40),
+    buyerInstagram: instagramHandle(buyer.instagram ?? ""),
+    orderedOn: today,
+    eurRate: product.currency === "EUR" ? (rate?.rate ?? null) : null,
+    rateSource: product.currency === "EUR" ? (rate?.source ?? null) : null,
+    items: [{ productId, quantity: 1, price, missing: 0 }],
+  });
+  await orders.setHandedOver(id, today);
+  return "ok";
+}
