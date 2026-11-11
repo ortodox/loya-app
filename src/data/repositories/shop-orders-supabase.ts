@@ -10,10 +10,11 @@ type OrderRow = {
   rate_source: "nbp" | "own" | null;
   handed_over_on: string | null;
   created_at: string;
-  shop_order_items: { id: string; product_id: string; quantity: number; price: number | string; sort_order: number }[];
+  shop_order_items: { id: string; product_id: string; quantity: number; price: number | string; sort_order: number; missing: number }[];
+  shop_payments: { id: string; amount: number | string; paid_on: string; created_at: string }[];
 };
 
-const orderColumns = "id, buyer_id, ordered_on, eur_rate, rate_source, handed_over_on, created_at, shop_order_items(id, product_id, quantity, price, sort_order)";
+const orderColumns = "id, buyer_id, ordered_on, eur_rate, rate_source, handed_over_on, created_at, shop_order_items(id, product_id, quantity, price, sort_order, missing), shop_payments(id, amount, paid_on, created_at)";
 const toOrder = (r: OrderRow): ShopOrder => ({
   id: r.id,
   buyerId: r.buyer_id,
@@ -24,7 +25,10 @@ const toOrder = (r: OrderRow): ShopOrder => ({
   createdAt: r.created_at,
   items: [...r.shop_order_items]
     .sort((a, b) => a.sort_order - b.sort_order)
-    .map((i) => ({ id: i.id, productId: i.product_id, quantity: i.quantity, price: Number(i.price) })),
+    .map((i) => ({ id: i.id, productId: i.product_id, quantity: i.quantity, price: Number(i.price), missing: i.missing ?? 0 })),
+  payments: [...(r.shop_payments ?? [])]
+    .sort((a, b) => a.paid_on.localeCompare(b.paid_on) || a.created_at.localeCompare(b.created_at))
+    .map((p) => ({ id: p.id, amount: Number(p.amount), paidOn: p.paid_on })),
 });
 
 /** Supabase-backed orders and buyers. RLS limits every query to the signed-in doctor. */
@@ -58,7 +62,7 @@ export function supabaseShopOrdersRepository(supabase: SupabaseClient): ShopOrde
         p_ordered_on: input.orderedOn,
         p_eur_rate: input.eurRate,
         p_rate_source: input.rateSource,
-        p_items: input.items.map((i) => ({ product_id: i.productId, quantity: i.quantity, price: i.price })),
+        p_items: input.items.map((i) => ({ product_id: i.productId, quantity: i.quantity, price: i.price, missing: i.missing })),
       });
       if (error) throw error;
       return { id: data as string };
@@ -72,6 +76,23 @@ export function supabaseShopOrdersRepository(supabase: SupabaseClient): ShopOrde
 
     async deleteOrder(id) {
       const { data, error } = await supabase.from("shop_orders").delete().eq("id", id).is("handed_over_on", null).select("id");
+      if (error) throw error;
+      return data.length > 0;
+    },
+
+    async giveReceiptToOrder(orderItemId, on) {
+      const { data, error } = await supabase.rpc("give_shop_receipt_to_order", { p_order_item_id: orderItemId, p_on: on });
+      if (error) throw error;
+      return data === true;
+    },
+
+    async addPayment(orderId, amount, on) {
+      const { error } = await supabase.from("shop_payments").insert({ order_id: orderId, amount, paid_on: on });
+      if (error) throw error;
+    },
+
+    async deletePayment(paymentId) {
+      const { data, error } = await supabase.from("shop_payments").delete().eq("id", paymentId).select("id");
       if (error) throw error;
       return data.length > 0;
     },

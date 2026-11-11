@@ -1,6 +1,7 @@
 import type { IsoDate } from "@/logic/client";
 import { isIsoDate } from "@/logic/rules/dates";
 import { isMonth, monthOf } from "@/logic/rules/consumption";
+import { orderSales, type ShopOrder } from "@/logic/rules/shop-orders";
 import { shopGoesNegative, shopHistory, shopMovementKinds, shopSales, shopStock, sortShopProducts, type ShopHistoryLine, type ShopMovementKind, type ShopProduct, type ShopSales } from "@/logic/rules/shop";
 import type { ShopProductInput, ShopRepository } from "@/data/repositories/shop";
 
@@ -57,20 +58,28 @@ export async function toggleShopFavorite(repo: ShopRepository, productId: string
   return repo.setFavorite(productId, !product.favorite);
 }
 
-/** MG3/MG9 «Продажи»: the month asked for (current month when missing or invalid); order rows name the buyer. */
+/** MG3/MG9/MG11 «Продажи»: the month asked for (current when missing or invalid) – taps in «Склад» and orders (zł). */
 export async function getShopSales(
   repo: ShopRepository,
   month: string | undefined,
   today: IsoDate,
-  orders?: { listOrders(): Promise<{ id: string; buyerId: string; handedOverOn: string | null; items: { id: string }[] }[]>; listBuyers(): Promise<{ id: string; name: string }[]> },
+  orders?: { listOrders(): Promise<ShopOrder[]>; listBuyers(): Promise<{ id: string; name: string }[]> },
 ): Promise<{ sales: ShopSales; products: ShopProduct[]; orders: Record<string, { buyerId: string; buyerName: string; handed: boolean }> }> {
   const [products, movements, list, buyers] = await Promise.all([repo.listProducts(), repo.listMovements(), orders?.listOrders() ?? [], orders?.listBuyers() ?? []]);
   const current = monthOf(today);
   const chosen = month && isMonth(month) && month <= current ? month : current;
-  const orderOfItem = new Map(list.flatMap((o) => o.items.map((i) => [i.id, o.id] as const)));
+  const taps = shopSales(movements, products, chosen);
+  const fromOrders = orderSales(list, chosen);
   const names = new Map(buyers.map((b) => [b.id, b.name]));
   const info = Object.fromEntries(list.map((o) => [o.id, { buyerId: o.buyerId, buyerName: names.get(o.buyerId) ?? "—", handed: Boolean(o.handedOverOn) }]));
-  return { sales: shopSales(movements, products, chosen, orderOfItem), products, orders: info };
+  const sales: ShopSales = {
+    month: chosen,
+    pieces: taps.pieces + fromOrders.pieces,
+    value: { PLN: Math.round((taps.value.PLN + fromOrders.value) * 100) / 100, EUR: taps.value.EUR },
+    rows: [...taps.rows, ...fromOrders.rows.map((r) => ({ ...r, currency: "PLN" as const }))].sort((a, b) => b.quantity - a.quantity),
+    unpaid: fromOrders.unpaid,
+  };
+  return { sales, products, orders: info };
 }
 
 /**

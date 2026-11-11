@@ -10,7 +10,7 @@ export type ShopOrderInput = {
   orderedOn: IsoDate;
   eurRate: number | null;
   rateSource: "nbp" | "own" | null;
-  items: { productId: string; quantity: number; price: number }[];
+  items: { productId: string; quantity: number; price: number; missing: number }[];
 };
 
 export type ShopSettings = { ownEurRate: number | null; nbpEurRate: number | null; nbpRateDate: IsoDate | null };
@@ -25,6 +25,11 @@ export interface ShopOrdersRepository {
   setHandedOver(id: string, on: IsoDate | null): Promise<boolean>;
   /** «Отменить заказ»: removes the order, its lines and their sales. */
   deleteOrder(id: string): Promise<boolean>;
+  /** MG10: one delivered piece goes to this order line (delivery +1 and the order's sale +1, missing −1). */
+  giveReceiptToOrder(orderItemId: string, on: IsoDate): Promise<boolean>;
+  /** MG11 «Оплата». */
+  addPayment(orderId: string, amount: number, on: IsoDate): Promise<void>;
+  deletePayment(paymentId: string): Promise<boolean>;
   getSettings(): Promise<ShopSettings>;
   saveNbpRate(rate: number, date: IsoDate): Promise<void>;
   setOwnRate(rate: number | null): Promise<void>;

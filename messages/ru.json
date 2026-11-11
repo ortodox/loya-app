@@ -842,7 +842,6 @@
       "waiting": "Ожидают выдачи",
       "waitingShort": "Ожидает выдачи",
       "noneWaiting": "Все заказы выданы.",
-      "handed": "Выданные",
       "handedOn": "Выдан {date}",
       "handOver": "Выдан ✓",
       "undoHandOver": "Вернуть в «Ожидают выдачи»",
@@ -882,8 +881,21 @@
         "buyerName": "Укажи имя покупателя.",
         "items": "Добавь хотя бы один товар.",
         "quantity": "Количество – целое число от 1.",
-        "price": "Проверь цену: число от 0.",
-        "stock": "На складе только {count} – больше нельзя."
+        "price": "Проверь цену: число от 0."
+      },
+      "unpaid": "Не оплачены",
+      "done": "Выполненные",
+      "needToOrder": "Нужно заказать: {count} шт",
+      "payment": "Оплата",
+      "paymentAmount": "Получено, zł",
+      "paidOf": "Оплачено {paid} из {total}",
+      "removePayment": "Удалить",
+      "removePaymentSure": "Да, удалить",
+      "waitsForStock": "«Выдан ✓» – когда придёт весь товар.",
+      "pay": {
+        "unpaid": "Не оплачен",
+        "partial": "Частично",
+        "paid": "Оплачен"
       }
     },
     "historyOrder": "Заказ −{count}",
@@ -893,6 +905,12 @@
     "yes": "Да",
     "no": "Нет",
     "inOrder": "В заказе {name}",
-    "inOrderEdit": "В заказе {name} – изменить"
+    "inOrderEdit": "В заказе {name} – изменить",
+    "needToOrderTitle": "Нужно заказать",
+    "piecesShort": "{count} шт",
+    "forWhichOrder": "Для какого заказа?",
+    "needToOrderShort": "не хватает {count} шт",
+    "justToStock": "Просто на склад",
+    "unpaidOf": "Из них не оплачено: {amount}"
   }
 }

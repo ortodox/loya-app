@@ -842,7 +842,6 @@
       "waiting": "Waiting for hand-over",
       "waitingShort": "Waiting for hand-over",
       "noneWaiting": "All orders handed over.",
-      "handed": "Handed over",
       "handedOn": "Handed over {date}",
       "handOver": "Handed over ✓",
       "undoHandOver": "Back to «Waiting»",
@@ -882,8 +881,21 @@
         "buyerName": "Enter the buyer's name.",
         "items": "Add at least one product.",
         "quantity": "Quantity – a whole number from 1.",
-        "price": "Check the price: a number from 0.",
-        "stock": "Only {count} in stock – no more."
+        "price": "Check the price: a number from 0."
+      },
+      "unpaid": "Not paid",
+      "done": "Done",
+      "needToOrder": "To order: {count} pcs",
+      "payment": "Payment",
+      "paymentAmount": "Received, zł",
+      "paidOf": "Paid {paid} of {total}",
+      "removePayment": "Delete",
+      "removePaymentSure": "Yes, delete",
+      "waitsForStock": "«Handed over ✓» – once all products are in.",
+      "pay": {
+        "unpaid": "Not paid",
+        "partial": "Partly paid",
+        "paid": "Paid"
       }
     },
     "historyOrder": "Order −{count}",
@@ -893,6 +905,12 @@
     "yes": "Yes",
     "no": "No",
     "inOrder": "In {name}'s order",
-    "inOrderEdit": "In {name}'s order – edit"
+    "inOrderEdit": "In {name}'s order – edit",
+    "needToOrderTitle": "To order",
+    "piecesShort": "{count} pcs",
+    "forWhichOrder": "For which order?",
+    "needToOrderShort": "{count} pcs missing",
+    "justToStock": "Just to stock",
+    "unpaidOf": "Not paid yet: {amount}"
   }
 }

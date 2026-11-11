@@ -642,7 +642,7 @@ commit;
 ## 6d. Gjenopprett «Магазин» (MG1–MG4)
 
 Kopiene inneholder `shop_products` (varer og priser), `shop_movements` (salg og leveranser) og bestillingene
-(MG9): `shop_buyers`, `shop_orders`, `shop_order_items` og `shop_settings`. Legg tilbake i rekkefølgen under
+(MG9): `shop_buyers`, `shop_orders`, `shop_order_items`, `shop_settings` og betalingene `shop_payments` (MG11). Legg tilbake i rekkefølgen under
 (kjøpere før bestillinger, bestillinger før linjer, linjer før bevegelser). Beholdningen
 regnes alltid ut fra bevegelsene. Rader som finnes fra før, røres ikke.
 
@@ -694,6 +694,15 @@ insert into public.shop_settings
 select (jsonb_populate_record(null::public.shop_settings, s.row_data)).*
 from backup.snapshots s, valgt
 where s.taken_at = valgt.t and s.table_name = 'shop_settings'
+on conflict do nothing;
+
+with valgt as (
+  select max(taken_at) as t from backup.snapshots where taken_at <= 'TIDSPUNKT'
+)
+insert into public.shop_payments
+select (jsonb_populate_record(null::public.shop_payments, s.row_data)).*
+from backup.snapshots s, valgt
+where s.taken_at = valgt.t and s.table_name = 'shop_payments'
 on conflict do nothing;
 
 with valgt as (

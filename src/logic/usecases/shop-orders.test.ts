@@ -3,8 +3,9 @@ import type { ShopRepository } from "@/data/repositories/shop";
 import type { ShopOrderInput, ShopOrdersRepository, ShopSettings } from "@/data/repositories/shop-orders";
 import type { ShopMovement, ShopProduct } from "@/logic/rules/shop";
 import { shopStock } from "@/logic/rules/shop";
+import { getShopSales } from "./shop";
 import type { ShopBuyer, ShopOrder } from "@/logic/rules/shop-orders";
-import { cancelOrder, getEurRate, getOrders, saveOrder, setOrderHandedOver, setOwnEurRate } from "./shop-orders";
+import { addPayment, cancelOrder, deletePayment, getEurRate, getOrders, getWaitingForStock, giveReceiptToOrder, saveOrder, setOrderHandedOver, setOwnEurRate } from "./shop-orders";
 
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const today = "2026-11-11";
@@ -39,12 +40,15 @@ function setup() {
         for (let i = movements.length - 1; i >= 0; i--) if (movements[i].orderItemId && old.has(movements[i].orderItemId!)) movements.splice(i, 1);
         Object.assign(order, { buyerId, eurRate: input.eurRate, rateSource: input.rateSource });
       } else {
-        order = { id: id(n++), buyerId, orderedOn: input.orderedOn, eurRate: input.eurRate, rateSource: input.rateSource, handedOverOn: null, createdAt: `${input.orderedOn}T12:00:00Z`, items: [] };
+        order = { id: id(n++), buyerId, orderedOn: input.orderedOn, eurRate: input.eurRate, rateSource: input.rateSource, handedOverOn: null, createdAt: `${input.orderedOn}T12:00:00Z`, items: [], payments: [] };
         orders.push(order);
       }
-      order.items = input.items.map((i) => ({ id: id(n++), ...i }));
-      for (const i of order.items) movements.push({ id: `m${n++}`, productId: i.productId, happenedOn: order.orderedOn, kind: "sale", quantity: i.quantity, price: i.price, currency: "PLN", createdAt: "2026-11-11T12:00:00Z", orderItemId: i.id });
-      return { id: order.id };
+      const saved = order;
+      saved.items = input.items.map((i) => ({ id: id(n++), ...i }));
+      for (const i of saved.items)
+        if (i.quantity - i.missing > 0)
+          movements.push({ id: `m${n++}`, productId: i.productId, happenedOn: input.orderedOn, kind: "sale", quantity: i.quantity - i.missing, price: i.price, currency: "PLN", createdAt: `${input.orderedOn}T12:00:${String(n).padStart(2, "0")}Z`, orderItemId: i.id });
+      return { id: saved.id };
     },
     async setHandedOver(oid, on) {
       const o = orders.find((x) => x.id === oid);
@@ -58,6 +62,28 @@ function setup() {
       for (let i = movements.length - 1; i >= 0; i--) if (movements[i].orderItemId && items.has(movements[i].orderItemId!)) movements.splice(i, 1);
       orders.splice(orders.indexOf(o), 1);
       return true;
+    },
+    async giveReceiptToOrder(itemId, on) {
+      const found = orders.find((o) => !o.handedOverOn && o.items.some((i) => i.id === itemId && i.missing > 0));
+      if (!found) return false;
+      const item = found.items.find((i) => i.id === itemId)!;
+      item.missing -= 1;
+      movements.push({ id: `m${n++}`, productId: item.productId, happenedOn: on, kind: "receipt", quantity: 1, price: null, currency: null, createdAt: `${on}T13:00:${String(n).padStart(2, "0")}Z` });
+      movements.push({ id: `m${n++}`, productId: item.productId, happenedOn: on, kind: "sale", quantity: 1, price: item.price, currency: "PLN", createdAt: `${on}T13:00:${String(n).padStart(2, "0")}Z`, orderItemId: itemId });
+      return true;
+    },
+    async addPayment(orderId, amount, on) {
+      orders.find((o) => o.id === orderId)!.payments.push({ id: id(n++), amount, paidOn: on });
+    },
+    async deletePayment(pid) {
+      for (const o of orders) {
+        const k = o.payments.findIndex((p) => p.id === pid);
+        if (k >= 0) {
+          o.payments.splice(k, 1);
+          return true;
+        }
+      }
+      return false;
     },
     getSettings: async () => ({ ...settings }),
     async saveNbpRate(rate, date) {
@@ -102,7 +128,6 @@ describe("MG9: заказ", () => {
       ok: false,
       errors: { lines: { 0: "quantity", 1: "price" } },
     });
-    expect(await saveOrder(shop, repo, null, { buyerName: "Анна", items: [{ productId: id(2), quantity: "2", price: "340" }] }, today, null)).toEqual({ ok: false, errors: { stock: { [id(2)]: 1 } } });
     expect(orders).toHaveLength(0);
   });
 
@@ -115,7 +140,7 @@ describe("MG9: заказ", () => {
     expect(buyers).toHaveLength(1);
     expect(buyers[0].name).toBe("Анна К.");
     expect(shopStock(movements).get(id(1))).toBe(2);
-    expect(movements.filter((m) => m.orderItemId).map((m) => m.happenedOn)).toEqual(["2026-11-11"]);
+    expect(movements.filter((m) => m.orderItemId).map((m) => m.happenedOn)).toEqual(["2026-11-20"]);
   });
 });
 
@@ -124,8 +149,8 @@ describe("MG12: выдача и отмена", () => {
     const { shop, repo } = setup();
     const { id: oid } = (await saveOrder(shop, repo, null, { buyerName: "Анна", items: [{ productId: id(1), quantity: "1", price: "530" }] }, today, null)) as { id: string };
     expect(await setOrderHandedOver(repo, oid, true, today)).toBe(true);
-    const { waiting, handed } = await getOrders(shop, repo, null);
-    expect([waiting.length, handed[0].handedOverOn]).toEqual([0, today]);
+    const { waiting, unpaid } = await getOrders(shop, repo, null);
+    expect([waiting.length, unpaid[0].handedOverOn]).toEqual([0, today]);
     expect(await saveOrder(shop, repo, oid, { buyerName: "Анна", items: [{ productId: id(1), quantity: "1", price: "1" }] }, today, null)).toEqual({ ok: false, notFound: true });
     expect(await cancelOrder(repo, oid)).toBe(false);
   });
@@ -136,5 +161,44 @@ describe("MG12: выдача и отмена", () => {
     expect(shopStock(movements).get(id(1))).toBe(0);
     expect(await cancelOrder(repo, oid)).toBe(true);
     expect(shopStock(movements).get(id(1))).toBe(3);
+  });
+});
+
+describe("MG10/MG11: нужно заказать и оплата", () => {
+  it("MG10: more than in stock is saved – the rest is «Нужно заказать», stock stays at 0, no hand-over yet", async () => {
+    const { shop, repo, movements } = setup();
+    const { id: oid } = (await saveOrder(shop, repo, null, { buyerName: "Анна", items: [{ productId: id(2), quantity: "3", price: "340" }] }, today, null)) as { id: string };
+    const { waiting } = await getOrders(shop, repo, null);
+    expect(waiting[0].lines[0].missing).toBe(2);
+    expect(waiting[0].canHandOver).toBe(false);
+    expect(shopStock(movements).get(id(2))).toBe(0);
+    expect(await setOrderHandedOver(repo, oid, true, today)).toBe(false);
+    const wait = await getWaitingForStock(repo);
+    expect(wait[id(2)].map((w) => [w.buyerName, w.missing])).toEqual([["Анна", 2]]);
+  });
+
+  it("MG10: «+» → «Для какого заказа?» → the piece goes to the order; once all is there it can be handed over", async () => {
+    const { shop, repo, movements } = setup();
+    const { id: oid } = (await saveOrder(shop, repo, null, { buyerName: "Анна", items: [{ productId: id(2), quantity: "2", price: "340" }] }, today, null)) as { id: string };
+    const itemId = (await repo.getOrder(oid))!.items[0].id;
+    expect(await giveReceiptToOrder(repo, itemId, "2026-11-12")).toBe(true);
+    expect(shopStock(movements).get(id(2))).toBe(0);
+    expect(await giveReceiptToOrder(repo, itemId, "2026-11-12")).toBe(false);
+    expect(await setOrderHandedOver(repo, oid, true, "2026-11-12")).toBe(true);
+  });
+
+  it("MG11: payments in zł – partly, then paid; a wrong one can be taken back; «Продажи» shows what is not paid", async () => {
+    const { shop, repo } = setup();
+    const { id: oid } = (await saveOrder(shop, repo, null, { buyerName: "Анна", items: [{ productId: id(1), quantity: "2", price: "500" }] }, today, null)) as { id: string };
+    expect(await addPayment(repo, oid, "300", today)).toBe(true);
+    expect(await addPayment(repo, oid, "0", today)).toBe(false);
+    expect(await addPayment(repo, oid, "abc", today)).toBe(false);
+    expect((await getOrders(shop, repo, null)).waiting[0].payment).toEqual({ paid: 300, left: 700, status: "partial" });
+    expect((await getShopSales(shop, "2026-11", today, repo)).sales).toMatchObject({ pieces: 2, value: { PLN: 1000, EUR: 0 }, unpaid: 700 });
+    expect(await addPayment(repo, oid, "700,00", today)).toBe(true);
+    const order = (await getOrders(shop, repo, null)).waiting[0];
+    expect(order.payment.status).toBe("paid");
+    expect(await deletePayment(repo, order.payments[1].id)).toBe(true);
+    expect((await getOrders(shop, repo, null)).waiting[0].payment.status).toBe("partial");
   });
 });

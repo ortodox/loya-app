@@ -6,7 +6,7 @@ import { practiceTimeZone } from "@/config/time";
 import { fetchNbpEurRate } from "@/data/nbp";
 import { shopOrdersRepository, shopRepository } from "@/data/repositories/server";
 import { todayIn } from "@/logic/rules/dates";
-import { cancelOrder, getEurRate, saveOrder, setOrderHandedOver, setOwnEurRate, type OrderErrors, type OrderFormInput } from "@/logic/usecases/shop-orders";
+import { addPayment, cancelOrder, deletePayment, getEurRate, giveReceiptToOrder, saveOrder, setOrderHandedOver, setOwnEurRate, type OrderErrors, type OrderFormInput } from "@/logic/usecases/shop-orders";
 
 /** MG9: «Сохранить» a new or changed order; back to «Заказы» when saved. */
 export async function saveOrderAction(id: string | null, input: OrderFormInput): Promise<{ errors?: OrderErrors; failed?: boolean }> {
@@ -51,6 +51,39 @@ export async function cancelOrderAction(id: string): Promise<{ ok: boolean }> {
 export async function setOwnRateAction(input: string): Promise<{ ok: boolean }> {
   try {
     const ok = await setOwnEurRate(await shopOrdersRepository(), input);
+    if (ok) revalidatePath("/shop");
+    return { ok };
+  } catch {
+    return { ok: false };
+  }
+}
+
+/** MG10: «+» → «Для какого заказа?» → this order. */
+export async function giveReceiptAction(orderItemId: string): Promise<{ ok: boolean }> {
+  try {
+    const ok = await giveReceiptToOrder(await shopOrdersRepository(), orderItemId, todayIn(practiceTimeZone));
+    if (ok) revalidatePath("/shop");
+    return { ok };
+  } catch {
+    return { ok: false };
+  }
+}
+
+/** MG11 «Оплата». */
+export async function addPaymentAction(orderId: string, amount: string): Promise<{ ok: boolean }> {
+  try {
+    const ok = await addPayment(await shopOrdersRepository(), orderId, amount, todayIn(practiceTimeZone));
+    if (ok) revalidatePath("/shop");
+    return { ok };
+  } catch {
+    return { ok: false };
+  }
+}
+
+/** MG11: a payment entered by mistake. */
+export async function deletePaymentAction(paymentId: string): Promise<{ ok: boolean }> {
+  try {
+    const ok = await deletePayment(await shopOrdersRepository(), paymentId);
     if (ok) revalidatePath("/shop");
     return { ok };
   } catch {

@@ -7,16 +7,18 @@ import { card, pill, ui } from "@/app/components/ui";
 import { formatIsoDate } from "@/logic/rules/dates";
 import { matchesShopFilter, shopStockSections, type ShopMovementKind } from "@/logic/rules/shop";
 import type { ShopLine } from "@/logic/usecases/shop";
+import type { WaitingLine } from "@/logic/rules/shop-orders";
+import { giveReceiptAction } from "./order-actions";
 import { deleteShopHistoryAction, tapShopAction, toggleShopFavoriteAction } from "./actions";
 
-type Props = { mode: "catalog" | "stock"; lines: ShopLine[]; brands: string[]; locale: string };
+type Props = { mode: "catalog" | "stock"; lines: ShopLine[]; brands: string[]; locale: string; waiting?: Record<string, WaitingLine[]> };
 
 /**
  * MG1/MG2: «Каталог» and «Склад» of «Магазин» – search, a filter per brand, ⭐ first, grouped by
  * brand and category. Catalogue: price, ⭐ and «Изменить». Stock (MG5): what is in stock first, most
  * first; «−» asks «Товар продан?» (MG6) and is off at 0 (MG7); «+» (came in); «История ▾» per product.
  */
-export function ShopList({ mode, lines, brands, locale }: Props) {
+export function ShopList({ mode, lines, brands, locale, waiting = {} }: Props) {
   const t = useTranslations("shop");
   const [query, setQuery] = useState("");
   const [brand, setBrand] = useState<string | null>(null);
@@ -24,6 +26,8 @@ export function ShopList({ mode, lines, brands, locale }: Props) {
   const [confirm, setConfirm] = useState<{ productId: string; date: string; kind: string } | null>(null);
   const [failed, setFailed] = useState<false | "failed" | "negative">(false);
   const [selling, setSelling] = useState<ShopLine | null>(null);
+  // MG10: «+» on a product orders wait for → «Для какого заказа?».
+  const [receiving, setReceiving] = useState<ShopLine | null>(null);
   const [pending, startTransition] = useTransition();
   // MG2: a tap shows at once; the server's number replaces it when saved.
   const [optimistic, addOptimistic] = useOptimistic(lines, (state, change: { id: string; delta?: number; favorite?: boolean }) =>
@@ -78,7 +82,7 @@ export function ShopList({ mode, lines, brands, locale }: Props) {
               −
             </button>
             <span className="w-10 text-center text-lg font-semibold tabular-nums text-ink">{Math.max(0, l.stock)}</span>
-            <button type="button" onClick={() => tap(l, "receipt")} aria-label={t("receive", { name: l.name })} className="flex size-11 items-center justify-center rounded-full bg-primary text-xl text-on-primary">
+            <button type="button" onClick={() => (waiting[l.id]?.length ? setReceiving(l) : tap(l, "receipt"))} aria-label={t("receive", { name: l.name })} className="flex size-11 items-center justify-center rounded-full bg-primary text-xl text-on-primary">
               +
             </button>
           </div>
@@ -117,6 +121,24 @@ export function ShopList({ mode, lines, brands, locale }: Props) {
         ))}
       </div>
       {shown.length === 0 && <p className={`${card.surface} px-5 py-10 text-center ${ui.muted}`}>{t("empty")}</p>}
+      {mode === "stock" && Object.keys(waiting).length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h2 className="px-1 text-sm font-semibold text-muted">{t("needToOrderTitle")}</h2>
+          <ul className={`${card.surface} flex flex-col`}>
+            {Object.entries(waiting).map(([productId, list]) => {
+              const product = lines.find((x) => x.id === productId);
+              return (
+                <li key={productId} className="flex flex-col gap-0.5 border-b border-line px-4 py-3 last:border-b-0">
+                  <span className="text-base font-semibold text-ink">
+                    {product?.name ?? "—"} · {t("piecesShort", { count: list.reduce((s, w) => s + w.missing, 0) })}
+                  </span>
+                  <span className={ui.muted}>{list.map((w) => `${w.buyerName} (${w.missing})`).join(", ")}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
       {sections.inStock.length > 0 && (
         <section className="flex flex-col gap-2">
           <h2 className="px-1 text-sm font-semibold text-muted">{t("inStock")}</h2>
@@ -135,6 +157,40 @@ export function ShopList({ mode, lines, brands, locale }: Props) {
           <ul className={`${card.surface} flex flex-col`}>{items.map(row)}</ul>
         </section>
       ))}
+      {receiving && (
+        <div role="alertdialog" aria-label={t("forWhichOrder")} className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-w-2xl flex-col gap-2 rounded-t-[18px] border-t border-line bg-surface p-4 pb-[calc(1rem+var(--safe-bottom))] text-ink shadow-lg">
+          <p className="text-base">
+            <span className="font-semibold">{t("forWhichOrder")}</span>
+            <br />
+            <span className="text-muted">{receiving.name}</span>
+          </p>
+          {(waiting[receiving.id] ?? []).map((w) => (
+            <button
+              key={w.itemId}
+              type="button"
+              disabled={pending}
+              onClick={() =>
+                startTransition(async () => {
+                  await giveReceiptAction(w.itemId);
+                  setReceiving(null);
+                })
+              }
+              className="flex min-h-11 flex-col items-start rounded-[14px] border border-field px-4 py-2 text-left"
+            >
+              <span className="text-base text-ink">{w.buyerName}</span>
+              <span className={ui.muted}>
+                {formatIsoDate(w.orderedOn)} · {t("needToOrderShort", { count: w.missing })}
+              </span>
+            </button>
+          ))}
+          <button type="button" onClick={() => { tap(receiving, "receipt"); setReceiving(null); }} className="min-h-11 rounded-[14px] border border-field px-3 text-base text-ink">
+            {t("justToStock")}
+          </button>
+          <button type="button" onClick={() => setReceiving(null)} className={`${ui.textButton} justify-center`}>
+            {t("cancel")}
+          </button>
+        </div>
+      )}
       {selling && (
         <div role="alertdialog" aria-label={t("soldQuestion")} className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-w-2xl flex-col gap-3 rounded-t-[18px] border-t border-line bg-surface p-4 pb-[calc(1rem+var(--safe-bottom))] text-ink shadow-lg">
           <p className="text-base">

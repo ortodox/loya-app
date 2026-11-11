@@ -91,23 +91,24 @@ export type ShopSales = {
   value: { PLN: number; EUR: number };
   /** orderId: sales of one order (MG9, changed in the order); null = taps in «Склад» (MG13 «Исправить»). */
   rows: { productId: string; quantity: number; value: number; currency: "PLN" | "EUR"; orderId: string | null }[];
+  /** MG11: what is not paid yet of the month's orders, in zł. */
+  unpaid?: number;
 };
 
-/** MG3/MG9/MG13: returned sales do not count; sales of an order are their own row (orderOfItem: order line → order). */
-export function shopSales(movements: readonly ShopMovement[], products: readonly ShopProduct[], month: string, orderOfItem: ReadonlyMap<string, string> = new Map()): ShopSales {
+/** MG3/MG13: sales made in «Склад» in a month; returned sales do not count (orders: see orderSales, MG9/MG10). */
+export function shopSales(movements: readonly ShopMovement[], products: readonly ShopProduct[], month: string): ShopSales {
   const byId = new Map(products.map((p) => [p.id, p]));
   const rows = new Map<string, ShopSales["rows"][number]>();
   const value = { PLN: 0, EUR: 0 };
   let pieces = 0;
   for (const m of movements) {
-    if (m.kind !== "sale" || m.returnedOn || m.happenedOn.slice(0, 7) !== month) continue;
+    // MG10: an order's sales are counted from the order itself (all its pieces, on the order day) – orderSales.
+    if (m.kind !== "sale" || m.returnedOn || m.orderItemId || m.happenedOn.slice(0, 7) !== month) continue;
     const product = byId.get(m.productId);
     const currency = m.currency ?? product?.currency ?? "PLN";
     const amount = (m.price ?? product?.price ?? 0) * m.quantity;
-    // One row per product, currency and order: an Instytutum order is in zł, a tap in «Склад» in €.
-    const orderId = m.orderItemId ? (orderOfItem.get(m.orderItemId) ?? m.orderItemId) : null;
-    const key = `${m.productId}:${currency}:${orderId ?? ""}`;
-    const row = rows.get(key) ?? { productId: m.productId, quantity: 0, value: 0, currency, orderId };
+    const key = `${m.productId}:${currency}`;
+    const row = rows.get(key) ?? { productId: m.productId, quantity: 0, value: 0, currency, orderId: null };
     row.quantity += m.quantity;
     row.value = Math.round((row.value + amount) * 100) / 100;
     rows.set(key, row);

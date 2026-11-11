@@ -9,7 +9,7 @@ import { todayIn } from "@/logic/rules/dates";
 import { getShop, getShopSales } from "@/logic/usecases/shop";
 import { fetchNbpEurRate } from "@/data/nbp";
 import { shopOrdersRepository } from "@/data/repositories/server";
-import { getEurRate, getOrders } from "@/logic/usecases/shop-orders";
+import { getEurRate, getOrders, getWaitingForStock } from "@/logic/usecases/shop-orders";
 import { OrdersView } from "./OrdersView";
 import { ShopList } from "./ShopList";
 import { ShopSalesView } from "./ShopSalesView";
@@ -51,7 +51,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
       ) : view === "sales" ? (
         <ShopSalesView {...(await getShopSales(repo, month, today, await shopOrdersRepository()))} current={monthOf(today)} />
       ) : (
-        <ShopList mode={view} locale={locale} {...(await getShop(repo))} />
+        <ShopList mode={view} locale={locale} {...(await getShop(repo))} waiting={view === "stock" ? await getWaitingForStock(await shopOrdersRepository()) : {}} />
       )}
     </main>
   );
