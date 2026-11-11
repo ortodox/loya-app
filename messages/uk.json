@@ -886,6 +886,13 @@
         "stock": "На складі лише {count} – більше не можна."
       }
     },
-    "historyOrder": "Замовлення −{count}"
+    "historyOrder": "Замовлення −{count}",
+    "historyReturn": "Повернення +{count}",
+    "fix": "Виправити",
+    "returnQuestion": "Повернути 1 шт на склад? Продаж буде прибрано з «Продажі».",
+    "yes": "Так",
+    "no": "Ні",
+    "inOrder": "У замовленні {name}",
+    "inOrderEdit": "У замовленні {name} – змінити"
   }
 }

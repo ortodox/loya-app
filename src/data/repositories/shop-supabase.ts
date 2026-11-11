@@ -24,6 +24,8 @@ type MovementRow = {
   currency: "PLN" | "EUR" | null;
   created_at: string;
   order_item_id: string | null;
+  returned_on: string | null;
+  returned_at: string | null;
 };
 
 const productColumns = "id, brand, category, name, size, currency, price, favorite, active, sort_order";
@@ -87,7 +89,7 @@ export function supabaseShopRepository(supabase: SupabaseClient): ShopRepository
     },
 
     async listMovements() {
-      const { data, error } = await supabase.from("shop_movements").select("id, product_id, happened_on, kind, quantity, price, currency, created_at, order_item_id");
+      const { data, error } = await supabase.from("shop_movements").select("id, product_id, happened_on, kind, quantity, price, currency, created_at, order_item_id, returned_on, returned_at");
       if (error) throw error;
       return (data as MovementRow[]).map(
         (m): ShopMovement => ({
@@ -100,6 +102,8 @@ export function supabaseShopRepository(supabase: SupabaseClient): ShopRepository
           currency: m.currency,
           createdAt: m.created_at,
           orderItemId: m.order_item_id,
+          returnedOn: m.returned_on,
+          returnedAt: m.returned_at,
         }),
       );
     },
@@ -114,6 +118,18 @@ export function supabaseShopRepository(supabase: SupabaseClient): ShopRepository
         currency: input.currency,
       });
       if (error) throw error;
+    },
+
+    async markReturned(movementId, on) {
+      const { data, error } = await supabase
+        .from("shop_movements")
+        .update({ returned_on: on, returned_at: new Date().toISOString() })
+        .eq("id", movementId)
+        .is("returned_on", null)
+        .is("order_item_id", null)
+        .select("id");
+      if (error) throw error;
+      return data.length > 0;
     },
 
     async deleteMovements(productId, date, kind) {

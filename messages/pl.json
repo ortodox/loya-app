@@ -886,6 +886,13 @@
         "stock": "Na stanie tylko {count} – więcej nie można."
       }
     },
-    "historyOrder": "Zamówienie −{count}"
+    "historyOrder": "Zamówienie −{count}",
+    "historyReturn": "Zwrot +{count}",
+    "fix": "Popraw",
+    "returnQuestion": "Zwrócić 1 szt. na stan? Sprzedaż zniknie ze «Sprzedaży».",
+    "yes": "Tak",
+    "no": "Nie",
+    "inOrder": "W zamówieniu: {name}",
+    "inOrderEdit": "W zamówieniu: {name} – zmień"
   }
 }

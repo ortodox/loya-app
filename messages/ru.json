@@ -886,6 +886,13 @@
         "stock": "На складе только {count} – больше нельзя."
       }
     },
-    "historyOrder": "Заказ −{count}"
+    "historyOrder": "Заказ −{count}",
+    "historyReturn": "Возврат +{count}",
+    "fix": "Исправить",
+    "returnQuestion": "Вернуть 1 шт на склад? Продажа будет убрана из «Продажи».",
+    "yes": "Да",
+    "no": "Нет",
+    "inOrder": "В заказе {name}",
+    "inOrderEdit": "В заказе {name} – изменить"
   }
 }
