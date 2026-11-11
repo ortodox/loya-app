@@ -134,7 +134,9 @@ export function OrderForm({ products, buyers, order, buyer, rate, locale }: Prop
           <ul className="flex flex-col">
             {lines.map((l, n) => {
               const p = byId.get(l.productId);
-              const short = errors.stock?.[l.productId];
+              // MG10: the stock is shared out over the lines in order; what is left over is «Нужно заказать».
+              const before = lines.slice(0, n).filter((x) => x.productId === l.productId).reduce((s, x) => s + (Number(x.quantity) || 0), 0);
+              const missing = Math.max(0, (Number(l.quantity) || 0) - Math.max(0, (p?.stock ?? 0) - before));
               return (
                 <li key={l.key} className="flex flex-col gap-2 border-t border-line py-3">
                   <div className="flex items-start justify-between gap-2">
@@ -161,7 +163,7 @@ export function OrderForm({ products, buyers, order, buyer, rate, locale }: Prop
                     {p?.currency === "EUR" && ` · ${t("catalogEur", { price: num(p.price) })}`}
                   </span>
                   {errors.lines?.[n] && <p className={ui.error}>{t(`errors.${errors.lines[n]}`)}</p>}
-                  {short !== undefined && <p className={ui.error}>{t("errors.stock", { count: short })}</p>}
+                  {missing > 0 && <p className="text-sm font-semibold text-accent">{t("needToOrder", { count: missing })}</p>}
                 </li>
               );
             })}

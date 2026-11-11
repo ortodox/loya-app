@@ -4,15 +4,20 @@ import type { ShopOrdersRepository } from "@/data/repositories/shop-orders";
 import { isIsoDate } from "@/logic/rules/dates";
 import { shopStock, sortShopProducts, type ShopProduct } from "@/logic/rules/shop";
 import {
+  canHandOver,
   effectiveRate,
   instagramHandle,
+  orderMissing,
   orderPrice,
   orderSections,
-  orderShortages,
   orderTotal,
+  paymentState,
+  waitingForStock,
   type EurRate,
+  type PaymentState,
   type ShopBuyer,
   type ShopOrder,
+  type WaitingLine,
 } from "@/logic/rules/shop-orders";
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -49,19 +54,21 @@ export async function setOwnEurRate(orders: ShopOrdersRepository, input: string)
   return true;
 }
 
-/** MG9/MG12: one order as shown – buyer, lines with product names, total in zł. */
+/** MG9–MG12: one order as shown – buyer, lines with product names and what is missing, total and payment in zł. */
 export type OrderView = ShopOrder & {
   buyer: ShopBuyer;
-  lines: { id: string; productId: string; name: string; size: string; brand: string; quantity: number; price: number }[];
+  lines: { id: string; productId: string; name: string; size: string; brand: string; quantity: number; price: number; missing: number }[];
   total: { pieces: number; value: number };
+  payment: PaymentState;
+  canHandOver: boolean;
 };
 
-/** MG12 «Заказы»: waiting (oldest first) and handed over (newest first); only one buyer's when asked. */
+/** MG12/MG11 «Заказы»: waiting, handed over but not paid, done; only one buyer's when asked. */
 export async function getOrders(
   shop: ShopRepository,
   orders: ShopOrdersRepository,
   buyerId: string | null,
-): Promise<{ waiting: OrderView[]; handed: OrderView[]; buyer: ShopBuyer | null }> {
+): Promise<{ waiting: OrderView[]; unpaid: OrderView[]; done: OrderView[]; buyer: ShopBuyer | null }> {
   const [products, buyers, list] = await Promise.all([shop.listProducts(), orders.listBuyers(), orders.listOrders()]);
   const productById = new Map(products.map((p) => [p.id, p]));
   const buyerById = new Map(buyers.map((b) => [b.id, b]));
@@ -72,9 +79,11 @@ export async function getOrders(
       buyer: buyerById.get(o.buyerId) ?? { id: o.buyerId, name: "—", phone: "", instagram: "" },
       lines: o.items.map((i) => {
         const p = productById.get(i.productId);
-        return { id: i.id, productId: i.productId, name: p?.name ?? "—", size: p?.size ?? "", brand: p?.brand ?? "", quantity: i.quantity, price: i.price };
+        return { id: i.id, productId: i.productId, name: p?.name ?? "—", size: p?.size ?? "", brand: p?.brand ?? "", quantity: i.quantity, price: i.price, missing: i.missing };
       }),
       total: orderTotal(o.items),
+      payment: paymentState(orderTotal(o.items).value, o.payments),
+      canHandOver: canHandOver(o),
     }));
   return { ...orderSections(views), buyer: buyerId ? (buyerById.get(buyerId) ?? null) : null };
 }
@@ -123,12 +132,12 @@ export type OrderErrors = {
   buyerName?: "required";
   items?: "required";
   lines?: Record<number, "quantity" | "price">;
-  stock?: Record<string, number>;
 };
 
 /**
- * MG9: «Сохранить» – buyer name and at least one product needed; whole pieces 1–1000, price ≥ 0 zł; never
- * more than is in stock (MG7). Phone and Instagram are optional.
+ * MG9/MG10: «Сохранить» – buyer name and at least one product needed; whole pieces 1–1000, price ≥ 0 zł.
+ * What is not in stock is kept as «Нужно заказать» (MG10) – the stock never goes below zero (MG7).
+ * Phone and Instagram are optional.
  */
 export async function saveOrder(
   shop: ShopRepository,
@@ -157,11 +166,8 @@ export async function saveOrder(
   });
   if (Object.keys(lineErrors).length > 0) errors.lines = lineErrors;
   else if (items.length === 0) errors.items = "required";
-  if (items.length > 0 && !errors.lines) {
-    const short = orderShortages(await shop.listMovements(), items, new Set(existing?.items.map((i) => i.id) ?? []));
-    if (short.size > 0) errors.stock = Object.fromEntries(short);
-  }
   if (Object.keys(errors).length > 0) return { ok: false, errors };
+  const missing = orderMissing(await shop.listMovements(), items, new Set(existing?.items.map((i) => i.id) ?? []));
 
   const buyerId = input.buyerId && uuid.test(input.buyerId) && (await orders.listBuyers()).some((b) => b.id === input.buyerId) ? input.buyerId : null;
   const result = await orders.saveOrder(existing?.id ?? null, {
@@ -169,18 +175,51 @@ export async function saveOrder(
     buyerName,
     buyerPhone: (input.buyerPhone ?? "").trim().slice(0, 40),
     buyerInstagram: instagramHandle(input.buyerInstagram ?? ""),
-    orderedOn: existing?.orderedOn ?? today,
+    orderedOn: today, // a new order's day; when changed, its sales are taken out today
     eurRate: rate?.rate ?? null,
     rateSource: rate?.source ?? null,
-    items,
+    items: items.map((i, n) => ({ ...i, missing: missing[n] })),
   });
   return { ok: true, id: result.id };
 }
 
-/** MG12: «Выдан ✓» (the whole order, today) – or back to waiting. */
+/** MG12: «Выдан ✓» (the whole order, today) – only when nothing is missing (MG10) – or back to waiting. */
 export async function setOrderHandedOver(orders: ShopOrdersRepository, id: string, handed: boolean, today: IsoDate): Promise<boolean> {
   if (!uuid.test(id)) return false;
+  if (handed) {
+    const order = await orders.getOrder(id);
+    if (!order || !canHandOver(order)) return false;
+  }
   return orders.setHandedOver(id, handed ? today : null);
+}
+
+/** MG10 «Нужно заказать» in «Склад»: per product, the orders waiting for it (oldest first). */
+export async function getWaitingForStock(orders: ShopOrdersRepository): Promise<Record<string, WaitingLine[]>> {
+  const [list, buyers] = await Promise.all([orders.listOrders(), orders.listBuyers()]);
+  const names = new Map(buyers.map((b) => [b.id, b.name]));
+  return Object.fromEntries(waitingForStock(list.map((o) => ({ ...o, buyerName: names.get(o.buyerId) ?? "—" }))));
+}
+
+/** MG10: «+» → «Для какого заказа?» → this order: the piece comes in and goes straight to the order. */
+export async function giveReceiptToOrder(orders: ShopOrdersRepository, orderItemId: string, today: IsoDate): Promise<boolean> {
+  if (!uuid.test(orderItemId)) return false;
+  return orders.giveReceiptToOrder(orderItemId, today);
+}
+
+/** MG11 «Оплата»: an amount in zł («500», «500,50»), more than 0. */
+export async function addPayment(orders: ShopOrdersRepository, orderId: string, input: string, today: IsoDate): Promise<boolean> {
+  if (!uuid.test(orderId)) return false;
+  const amount = Number(input.trim().replace(",", ".").replace(/\s/g, ""));
+  if (!Number.isFinite(amount) || amount <= 0 || amount > 1_000_000) return false;
+  if (!(await orders.getOrder(orderId))) return false;
+  await orders.addPayment(orderId, Math.round(amount * 100) / 100, today);
+  return true;
+}
+
+/** MG11: take back a payment entered by mistake. */
+export async function deletePayment(orders: ShopOrdersRepository, paymentId: string): Promise<boolean> {
+  if (!uuid.test(paymentId)) return false;
+  return orders.deletePayment(paymentId);
 }
 
 /** MG12: «Отменить заказ» – only while it is waiting; the products go back to stock. */

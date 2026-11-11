@@ -9,14 +9,15 @@ import { RateForm } from "./RateForm";
 
 type Props = {
   waiting: OrderView[];
-  handed: OrderView[];
+  unpaid: OrderView[];
+  done: OrderView[];
   buyer: ShopBuyer | null;
   rate: { rate: EurRate | null; own: number | null; nbp: { rate: number; date: string } | null };
   locale: string;
 };
 
-/** MG9/MG12 «Заказы»: waiting for hand-over on top, handed over below; one buyer's orders when chosen. */
-export async function OrdersView({ waiting, handed, buyer, rate, locale }: Props) {
+/** MG9–MG12 «Заказы»: waiting for hand-over, handed over but not paid, done; one buyer's orders when chosen. */
+export async function OrdersView({ waiting, unpaid, done, buyer, rate, locale }: Props) {
   const t = await getTranslations("shop.orders");
   return (
     <div className="flex flex-col gap-4">
@@ -41,15 +42,17 @@ export async function OrdersView({ waiting, handed, buyer, rate, locale }: Props
           waiting.map((o) => <OrderCard key={o.id} order={o} locale={locale} />)
         )}
       </section>
-      {handed.length > 0 && (
-        <section className="flex flex-col gap-2">
-          <h2 className="px-1 text-sm font-semibold text-muted">
-            {t("handed")} ({handed.length})
-          </h2>
-          {handed.slice(0, 50).map((o) => (
-            <OrderCard key={o.id} order={o} locale={locale} />
-          ))}
-        </section>
+      {[["unpaid", unpaid] as const, ["done", done] as const].map(([key, list]) =>
+        list.length > 0 ? (
+          <section key={key} className="flex flex-col gap-2">
+            <h2 className="px-1 text-sm font-semibold text-muted">
+              {t(key)} ({list.length})
+            </h2>
+            {list.slice(0, 50).map((o) => (
+              <OrderCard key={o.id} order={o} locale={locale} />
+            ))}
+          </section>
+        ) : null,
       )}
     </div>
   );

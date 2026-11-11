@@ -54,6 +54,7 @@ export async function ShopSalesView({
           {t("pieces", { count: sales.pieces })}
           {totals.length > 0 && ` · ${totals.join(" / ")}`}
         </span>
+        {(sales.unpaid ?? 0) > 0 && <span className="text-sm font-semibold text-on-alert">{t("unpaidOf", { amount: money(sales.unpaid ?? 0, "PLN") })}</span>}
       </section>
       {sales.rows.length === 0 && <p className={`${card.surface} px-5 py-10 text-center ${ui.muted}`}>{t("noSales")}</p>}
       {[...groups.entries()].map(([brand, rows]) => (

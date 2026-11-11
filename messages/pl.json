@@ -842,7 +842,6 @@
       "waiting": "Czekają na wydanie",
       "waitingShort": "Czeka na wydanie",
       "noneWaiting": "Wszystkie zamówienia wydane.",
-      "handed": "Wydane",
       "handedOn": "Wydano {date}",
       "handOver": "Wydano ✓",
       "undoHandOver": "Przywróć do «Czekają na wydanie»",
@@ -882,8 +881,21 @@
         "buyerName": "Podaj imię kupującego.",
         "items": "Dodaj co najmniej jeden produkt.",
         "quantity": "Ilość – liczba całkowita od 1.",
-        "price": "Sprawdź cenę: liczba od 0.",
-        "stock": "Na stanie tylko {count} – więcej nie można."
+        "price": "Sprawdź cenę: liczba od 0."
+      },
+      "unpaid": "Nieopłacone",
+      "done": "Zrealizowane",
+      "needToOrder": "Do zamówienia: {count} szt.",
+      "payment": "Płatność",
+      "paymentAmount": "Otrzymano, zł",
+      "paidOf": "Zapłacono {paid} z {total}",
+      "removePayment": "Usuń",
+      "removePaymentSure": "Tak, usuń",
+      "waitsForStock": "«Wydano ✓» – gdy przyjdzie cały towar.",
+      "pay": {
+        "unpaid": "Nieopłacone",
+        "partial": "Częściowo",
+        "paid": "Opłacone"
       }
     },
     "historyOrder": "Zamówienie −{count}",
@@ -893,6 +905,12 @@
     "yes": "Tak",
     "no": "Nie",
     "inOrder": "W zamówieniu: {name}",
-    "inOrderEdit": "W zamówieniu: {name} – zmień"
+    "inOrderEdit": "W zamówieniu: {name} – zmień",
+    "needToOrderTitle": "Do zamówienia",
+    "piecesShort": "{count} szt.",
+    "forWhichOrder": "Dla którego zamówienia?",
+    "needToOrderShort": "brakuje {count} szt.",
+    "justToStock": "Po prostu na stan",
+    "unpaidOf": "Z tego nieopłacone: {amount}"
   }
 }
