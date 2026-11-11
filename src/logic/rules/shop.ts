@@ -28,6 +28,8 @@ export type ShopMovement = {
   price: number | null;
   currency: "PLN" | "EUR" | null;
   createdAt: string;
+  /** MG9: the order line this sale belongs to (removed with the order); null/missing = a tap in «Склад». */
+  orderItemId?: string | null;
 };
 
 const inOrder = (movements: readonly ShopMovement[]) =>
@@ -52,7 +54,7 @@ export function shopGoesNegative(movements: readonly ShopMovement[], productId: 
 }
 
 /** MG2: one line of «История» – all sales (deliveries, corrections) of one day together, with what was left after. */
-export type ShopHistoryLine = { date: IsoDate; kind: ShopMovementKind; quantity: number; balance: number };
+export type ShopHistoryLine = { date: IsoDate; kind: ShopMovementKind | "order"; quantity: number; balance: number };
 
 /** MG2: the history of one product, newest first; taps of the same kind on the same day are one line. */
 export function shopHistory(movements: readonly ShopMovement[], productId: string): ShopHistoryLine[] {
@@ -61,11 +63,13 @@ export function shopHistory(movements: readonly ShopMovement[], productId: strin
   let balance = 0;
   for (const m of own) {
     balance = Math.max(0, balance + change(m));
+    // MG9: sales from orders are their own line («Заказ −2») – changed in the order, not here.
+    const kind = m.orderItemId ? "order" : m.kind;
     const last = lines[lines.length - 1];
-    if (last && last.date === m.happenedOn && last.kind === m.kind) {
+    if (last && last.date === m.happenedOn && last.kind === kind) {
       last.quantity += m.quantity;
       last.balance = balance;
-    } else lines.push({ date: m.happenedOn, kind: m.kind, quantity: m.quantity, balance });
+    } else lines.push({ date: m.happenedOn, kind, quantity: m.quantity, balance });
   }
   return lines.reverse();
 }
@@ -88,10 +92,12 @@ export function shopSales(movements: readonly ShopMovement[], products: readonly
     const product = byId.get(m.productId);
     const currency = m.currency ?? product?.currency ?? "PLN";
     const amount = (m.price ?? product?.price ?? 0) * m.quantity;
-    const row = rows.get(m.productId) ?? { productId: m.productId, quantity: 0, value: 0, currency };
+    // One row per product and currency: an Instytutum order is in zł, a tap in «Склад» in €.
+    const key = `${m.productId}:${currency}`;
+    const row = rows.get(key) ?? { productId: m.productId, quantity: 0, value: 0, currency };
     row.quantity += m.quantity;
     row.value = Math.round((row.value + amount) * 100) / 100;
-    rows.set(m.productId, row);
+    rows.set(key, row);
     value[currency] = Math.round((value[currency] + amount) * 100) / 100;
     pieces += m.quantity;
   }

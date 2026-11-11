@@ -13,6 +13,6 @@ export interface ShopRepository {
   setFavorite(id: string, favorite: boolean): Promise<boolean>;
   listMovements(): Promise<ShopMovement[]>;
   addMovement(input: ShopMovementInput): Promise<void>;
-  /** MG2: «Удалить» a line of «История» – all movements of that kind on that day. */
+  /** MG2: «Удалить» a line of «История» – all taps of that kind on that day (never sales from orders, MG9). */
   deleteMovements(productId: string, date: IsoDate, kind: ShopMovement["kind"]): Promise<number>;
 }

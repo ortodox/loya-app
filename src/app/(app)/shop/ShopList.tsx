@@ -94,11 +94,11 @@ export function ShopList({ mode, lines, brands, locale }: Props) {
           {l.history.slice(0, 20).map((h) => (
             <li key={`${h.date}${h.kind}`} className="flex items-center justify-between gap-2 border-t border-line text-sm">
               <span className="text-muted">{formatIsoDate(h.date)}</span>
-              <span className="flex-1">{t(h.kind === "sale" ? "historySale" : h.kind === "correction" ? "historyCorrection" : "historyReceipt", { count: h.quantity })}</span>
+              <span className="flex-1">{t(h.kind === "sale" ? "historySale" : h.kind === "correction" ? "historyCorrection" : h.kind === "order" ? "historyOrder" : "historyReceipt", { count: h.quantity })}</span>
               <span className="font-semibold tabular-nums">{h.balance}</span>
-              <button type="button" onClick={() => { setFailed(false); setConfirm({ productId: l.id, date: h.date, kind: h.kind }); }} className="inline-flex min-h-11 items-center text-xs text-on-alert">
+              {h.kind === "order" ? <span className="min-w-14" /> : <button type="button" onClick={() => { setFailed(false); setConfirm({ productId: l.id, date: h.date, kind: h.kind }); }} className="inline-flex min-h-11 items-center text-xs text-on-alert">
                 {t("delete")}
-              </button>
+              </button>}
             </li>
           ))}
         </ul>

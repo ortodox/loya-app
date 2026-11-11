@@ -3,6 +3,7 @@ import { supabaseArchiveLogRepository } from "./archive-log-supabase";
 import { supabaseConsumptionRepository } from "./consumption-supabase";
 import { supabaseStockRepository } from "./stock-supabase";
 import { supabaseShopRepository } from "./shop-supabase";
+import { supabaseShopOrdersRepository } from "./shop-orders-supabase";
 import { supabaseCatalogRepository } from "./catalog-supabase";
 import { supabaseCareRepository } from "./care-supabase";
 import { supabaseClientPhotoRepository } from "./client-photos-supabase";
@@ -68,4 +69,8 @@ export async function stockRepository() {
 
 export async function shopRepository() {
   return supabaseShopRepository(await createClient());
+}
+
+export async function shopOrdersRepository() {
+  return supabaseShopOrdersRepository(await createClient());
 }
