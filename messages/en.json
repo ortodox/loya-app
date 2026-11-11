@@ -886,6 +886,13 @@
         "stock": "Only {count} in stock – no more."
       }
     },
-    "historyOrder": "Order −{count}"
+    "historyOrder": "Order −{count}",
+    "historyReturn": "Return +{count}",
+    "fix": "Correct",
+    "returnQuestion": "Put 1 piece back in stock? The sale will be removed from «Sales».",
+    "yes": "Yes",
+    "no": "No",
+    "inOrder": "In {name}'s order",
+    "inOrderEdit": "In {name}'s order – edit"
   }
 }

@@ -13,6 +13,8 @@ export interface ShopRepository {
   setFavorite(id: string, favorite: boolean): Promise<boolean>;
   listMovements(): Promise<ShopMovement[]>;
   addMovement(input: ShopMovementInput): Promise<void>;
+  /** MG13: the sale goes back to stock on that day (kept, marked as returned). */
+  markReturned(movementId: string, on: IsoDate): Promise<boolean>;
   /** MG2: «Удалить» a line of «История» – all taps of that kind on that day (never sales from orders, MG9). */
   deleteMovements(productId: string, date: IsoDate, kind: ShopMovement["kind"]): Promise<number>;
 }

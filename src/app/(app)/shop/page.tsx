@@ -49,7 +49,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
           return <OrdersView {...list} rate={rate} locale={locale} />;
         })()
       ) : view === "sales" ? (
-        <ShopSalesView {...(await getShopSales(repo, month, today))} current={monthOf(today)} />
+        <ShopSalesView {...(await getShopSales(repo, month, today, await shopOrdersRepository()))} current={monthOf(today)} />
       ) : (
         <ShopList mode={view} locale={locale} {...(await getShop(repo))} />
       )}

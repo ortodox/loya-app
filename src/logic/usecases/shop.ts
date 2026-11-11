@@ -57,12 +57,33 @@ export async function toggleShopFavorite(repo: ShopRepository, productId: string
   return repo.setFavorite(productId, !product.favorite);
 }
 
-/** MG3 «Продажи»: the month asked for (current month when missing or invalid). */
-export async function getShopSales(repo: ShopRepository, month: string | undefined, today: IsoDate): Promise<{ sales: ShopSales; products: ShopProduct[] }> {
-  const [products, movements] = await Promise.all([repo.listProducts(), repo.listMovements()]);
+/** MG3/MG9 «Продажи»: the month asked for (current month when missing or invalid); order rows name the buyer. */
+export async function getShopSales(
+  repo: ShopRepository,
+  month: string | undefined,
+  today: IsoDate,
+  orders?: { listOrders(): Promise<{ id: string; buyerId: string; handedOverOn: string | null; items: { id: string }[] }[]>; listBuyers(): Promise<{ id: string; name: string }[]> },
+): Promise<{ sales: ShopSales; products: ShopProduct[]; orders: Record<string, { buyerId: string; buyerName: string; handed: boolean }> }> {
+  const [products, movements, list, buyers] = await Promise.all([repo.listProducts(), repo.listMovements(), orders?.listOrders() ?? [], orders?.listBuyers() ?? []]);
   const current = monthOf(today);
   const chosen = month && isMonth(month) && month <= current ? month : current;
-  return { sales: shopSales(movements, products, chosen), products };
+  const orderOfItem = new Map(list.flatMap((o) => o.items.map((i) => [i.id, o.id] as const)));
+  const names = new Map(buyers.map((b) => [b.id, b.name]));
+  const info = Object.fromEntries(list.map((o) => [o.id, { buyerId: o.buyerId, buyerName: names.get(o.buyerId) ?? "—", handed: Boolean(o.handedOverOn) }]));
+  return { sales: shopSales(movements, products, chosen, orderOfItem), products, orders: info };
+}
+
+/**
+ * MG13 «Исправить» in «Продажи» → «Да»: the newest sale of the product in that month made in «Склад» (not
+ * from an order) goes back to stock – kept in «История» with «Возврат +1» today, gone from «Продажи».
+ */
+export async function returnShopSale(repo: ShopRepository, productId: string, month: string, currency: string, today: IsoDate): Promise<boolean> {
+  if (!uuid.test(productId) || !isMonth(month) || (currency !== "PLN" && currency !== "EUR")) return false;
+  const sale = (await repo.listMovements())
+    .filter((m) => m.productId === productId && m.kind === "sale" && !m.orderItemId && !m.returnedOn && m.happenedOn.slice(0, 7) === month && (m.currency ?? currency) === currency)
+    .sort((a, b) => b.happenedOn.localeCompare(a.happenedOn) || b.createdAt.localeCompare(a.createdAt))[0];
+  if (!sale) return false;
+  return repo.markReturned(sale.id, today);
 }
 
 export type ShopProductForm = { brand?: string; category?: string; name?: string; size?: string; currency?: string; price?: string; favorite?: string; hidden?: string };

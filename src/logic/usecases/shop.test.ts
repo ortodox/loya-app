@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ShopRepository } from "@/data/repositories/shop";
 import type { ShopMovement, ShopProduct } from "@/logic/rules/shop";
-import { deleteShopHistoryLine, getShop, getShopSales, saveShopProduct, tapShopProduct, toggleShopFavorite } from "./shop";
+import { deleteShopHistoryLine, getShop, getShopSales, returnShopSale, saveShopProduct, tapShopProduct, toggleShopFavorite } from "./shop";
 
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const today = "2026-11-10";
@@ -36,6 +36,11 @@ function setup() {
     listMovements: async () => movements.map((m) => ({ ...m })),
     addMovement: async (input) => {
       movements.push({ ...input, id: `m${n++}`, createdAt: `${input.happenedOn}T10:00:${String(n).padStart(2, "0")}Z` });
+    },
+    markReturned: async (mid, on) => {
+      const m = movements.find((x) => x.id === mid && !x.returnedOn);
+      if (m) Object.assign(m, { returnedOn: on, returnedAt: `${on}T15:00:00Z` });
+      return Boolean(m);
     },
     deleteMovements: async (pid, date, kind) => {
       const before = movements.length;
@@ -123,5 +128,34 @@ describe("MG3/MG4/MG1: продажи, избранное, товар", () => {
     expect(products.at(-1)).toMatchObject({ name: "New", price: 99.9, favorite: true, active: true });
     expect(await saveShopProduct(repo, id(1), { brand: "Medik8", name: "C-Tetra", price: "240", currency: "PLN", hidden: "on" })).toEqual({ ok: true, id: id(1) });
     expect(products[0]).toMatchObject({ price: 240, active: false });
+  });
+});
+
+describe("MG13: исправить продажу", () => {
+  it("MG13: «Исправить» → «Да» gives the newest sale back: stock +1, out of «Продажи», «Возврат +1» in «История»", async () => {
+    const { repo, movements } = setup();
+    await tapShopProduct(repo, id(1), "receipt", "2026-11-01");
+    await tapShopProduct(repo, id(1), "receipt", "2026-11-01");
+    await tapShopProduct(repo, id(1), "sale", "2026-11-05");
+    await tapShopProduct(repo, id(1), "sale", "2026-11-08");
+    expect(await returnShopSale(repo, id(1), "2026-11", "PLN", today)).toBe(true);
+    expect(movements.find((m) => m.happenedOn === "2026-11-08")?.returnedOn).toBe(today);
+    const line = (await getShop(repo)).lines.find((l) => l.id === id(1))!;
+    expect(line.stock).toBe(1);
+    expect(line.history.map((h) => [h.date, h.kind, h.quantity, h.balance])).toEqual([
+      [today, "return", 1, 1],
+      ["2026-11-08", "sale", 1, 0],
+      ["2026-11-05", "sale", 1, 1],
+      ["2026-11-01", "receipt", 2, 2],
+    ]);
+    const { sales } = await getShopSales(repo, "2026-11", today);
+    expect([sales.pieces, sales.value.PLN]).toEqual([1, 230.41]);
+  });
+
+  it("MG13: nothing to give back – no sale that month, wrong month or currency", async () => {
+    const { repo } = setup();
+    expect(await returnShopSale(repo, id(1), "2026-11", "PLN", today)).toBe(false);
+    expect(await returnShopSale(repo, id(1), "2026-13", "PLN", today)).toBe(false);
+    expect(await returnShopSale(repo, "nope", "2026-11", "PLN", today)).toBe(false);
   });
 });

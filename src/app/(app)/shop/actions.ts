@@ -6,6 +6,7 @@ import { practiceTimeZone } from "@/config/time";
 import { shopRepository } from "@/data/repositories/server";
 import { todayIn } from "@/logic/rules/dates";
 import type { ShopMovementKind } from "@/logic/rules/shop";
+import { returnShopSale } from "@/logic/usecases/shop";
 import { deleteShopHistoryLine, saveShopProduct, tapShopProduct, toggleShopFavorite, type ShopProductErrors, type ShopProductForm } from "@/logic/usecases/shop";
 
 const str = (v: FormDataEntryValue | null) => (typeof v === "string" ? v : "");
@@ -59,4 +60,15 @@ export async function saveShopProductAction(id: string | null, _: ShopProductSta
   if (!result.ok) return "errors" in result ? { values, errors: result.errors } : { values, failed: true };
   revalidatePath("/shop");
   redirect("/shop?view=catalog");
+}
+
+/** MG13: «Исправить» in «Продажи» → «Да» – one piece back to stock. */
+export async function returnSaleAction(productId: string, month: string, currency: string): Promise<{ ok: boolean }> {
+  try {
+    const ok = await returnShopSale(await shopRepository(), productId, month, currency, todayIn(practiceTimeZone));
+    if (ok) revalidatePath("/shop");
+    return { ok };
+  } catch {
+    return { ok: false };
+  }
 }

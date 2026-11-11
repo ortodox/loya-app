@@ -3,9 +3,20 @@ import Link from "next/link";
 import { card, ui } from "@/app/components/ui";
 import { nextMonth, previousMonth } from "@/logic/rules/consumption";
 import type { ShopProduct, ShopSales } from "@/logic/rules/shop";
+import { ReturnSaleButton } from "./ReturnSaleButton";
 
 /** MG3 «Продажи»: a month – pieces and value per currency, per brand and product. */
-export async function ShopSalesView({ sales, products, current }: { sales: ShopSales; products: ShopProduct[]; current: string }) {
+export async function ShopSalesView({
+  sales,
+  products,
+  orders,
+  current,
+}: {
+  sales: ShopSales;
+  products: ShopProduct[];
+  orders: Record<string, { buyerId: string; buyerName: string; handed: boolean }>;
+  current: string;
+}) {
   const t = await getTranslations("shop");
   const locale = await getLocale();
   const byId = new Map(products.map((p) => [p.id, p]));
@@ -51,15 +62,28 @@ export async function ShopSalesView({ sales, products, current }: { sales: ShopS
           <ul className={`${card.surface} flex flex-col`}>
             {rows.map((r) => {
               const p = byId.get(r.productId);
+              const order = r.orderId ? orders[r.orderId] : undefined;
               return (
-                <li key={r.productId} className="flex items-baseline justify-between gap-3 border-b border-line px-4 py-3 last:border-b-0">
-                  <span className="min-w-0 break-words text-base text-ink">
-                    {p?.name ?? "—"}
-                    {p?.size && <span className="text-muted"> · {p.size}</span>}
-                  </span>
-                  <span className="shrink-0 text-right text-base text-ink">
-                    {t("pieces", { count: r.quantity })} · {money(r.value, r.currency)}
-                  </span>
+                <li key={`${r.productId}:${r.currency}:${r.orderId ?? ""}`} className="flex flex-col gap-1 border-b border-line px-4 py-3 last:border-b-0">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="min-w-0 break-words text-base text-ink">
+                      {p?.name ?? "—"}
+                      {p?.size && <span className="text-muted"> · {p.size}</span>}
+                    </span>
+                    <span className="shrink-0 text-right text-base text-ink">
+                      {t("pieces", { count: r.quantity })} · {money(r.value, r.currency)}
+                    </span>
+                  </div>
+                  {r.orderId ? (
+                    <Link
+                      href={order && !order.handed ? `/shop/orders/${r.orderId}/edit` : `/shop?view=orders${order ? `&buyer=${order.buyerId}` : ""}`}
+                      className={`${ui.textButton} self-start text-sm`}
+                    >
+                      {t(order && !order.handed ? "inOrderEdit" : "inOrder", { name: order?.buyerName ?? "—" })}
+                    </Link>
+                  ) : (
+                    <ReturnSaleButton productId={r.productId} month={sales.month} currency={r.currency} name={p?.name ?? ""} />
+                  )}
                 </li>
               );
             })}
