@@ -911,6 +911,14 @@
     "forWhichOrder": "Для якого замовлення?",
     "needToOrderShort": "бракує {count} шт",
     "justToStock": "Просто на склад",
-    "unpaidOf": "З них не оплачено: {amount}"
+    "unpaidOf": "З них не оплачено: {amount}",
+    "whoQuestion": "Кому?",
+    "whoPlaceholder": "Ім'я, @Instagram або телефон",
+    "newBuyer": "Новий покупець: {name}",
+    "phone": "Телефон",
+    "saveSale": "Зберегти продаж",
+    "noName": "Без імені",
+    "whoEmpty": "Товару немає на складі.",
+    "whoNoRate": "Курс € невідомий – продай через «+ Замовлення» і впиши ціну в zł."
   }
 }

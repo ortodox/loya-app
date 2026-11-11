@@ -5,7 +5,7 @@ import type { ShopMovement, ShopProduct } from "@/logic/rules/shop";
 import { shopStock } from "@/logic/rules/shop";
 import { getShopSales } from "./shop";
 import type { ShopBuyer, ShopOrder } from "@/logic/rules/shop-orders";
-import { addPayment, cancelOrder, deletePayment, getEurRate, getOrders, getWaitingForStock, giveReceiptToOrder, saveOrder, setOrderHandedOver, setOwnEurRate } from "./shop-orders";
+import { addPayment, cancelOrder, deletePayment, getEurRate, getOrders, getWaitingForStock, giveReceiptToOrder, saveOrder, sellToBuyer, setOrderHandedOver, setOwnEurRate } from "./shop-orders";
 
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const today = "2026-11-11";
@@ -23,7 +23,7 @@ function setup() {
   const buyers: ShopBuyer[] = [];
   const orders: ShopOrder[] = [];
   const settings: ShopSettings = { ownEurRate: null, nbpEurRate: 4.2, nbpRateDate: "2026-11-10" };
-  const shop = { listProducts: async () => products, listMovements: async () => movements.map((m) => ({ ...m })) } as unknown as ShopRepository;
+  const shop = { listProducts: async () => products, getProduct: async (pid: string) => products.find((p) => p.id === pid) ?? null, listMovements: async () => movements.map((m) => ({ ...m })) } as unknown as ShopRepository;
   const repo: ShopOrdersRepository = {
     listBuyers: async () => buyers.map((b) => ({ ...b })),
     listOrders: async () => orders.map((o) => ({ ...o, items: [...o.items] })),
@@ -200,5 +200,29 @@ describe("MG10/MG11: нужно заказать и оплата", () => {
     expect(order.payment.status).toBe("paid");
     expect(await deletePayment(repo, order.payments[1].id)).toBe(true);
     expect((await getOrders(shop, repo, null)).waiting[0].payment.status).toBe("partial");
+  });
+});
+
+describe("MG14: «Кому?» при продаже", () => {
+  it("MG14: sold to a buyer = an order of 1 piece, handed over at once, not paid; € by the rate in zł", async () => {
+    const { shop, repo, movements, buyers } = setup();
+    const rate = { rate: 4.31, source: "nbp" as const, date: today };
+    expect(await sellToBuyer(shop, repo, id(2), { name: "Анна", instagram: "@anna.test" }, today, rate)).toBe("ok");
+    const { unpaid } = await getOrders(shop, repo, null);
+    expect(unpaid).toHaveLength(1);
+    expect(unpaid[0]).toMatchObject({ handedOverOn: today, eurRate: 4.31, total: { pieces: 1, value: 340 }, payment: { status: "unpaid" } });
+    expect(buyers.map((b) => [b.name, b.instagram])).toEqual([["Анна", "anna.test"]]);
+    expect(shopStock(movements).get(id(2))).toBe(0);
+    expect(await sellToBuyer(shop, repo, id(1), { buyerId: buyers[0].id, name: "Анна" }, today, null)).toBe("ok");
+    expect(buyers).toHaveLength(1);
+  });
+
+  it("MG14: nothing in stock, no rate for €, or no name – no sale", async () => {
+    const { shop, repo, orders } = setup();
+    expect(await sellToBuyer(shop, repo, id(2), { name: "Анна" }, today, null)).toBe("noRate");
+    expect(await sellToBuyer(shop, repo, id(1), { name: " " }, today, null)).toBe("invalid");
+    await sellToBuyer(shop, repo, id(2), { name: "Анна" }, today, { rate: 4.3, source: "own", date: null });
+    expect(await sellToBuyer(shop, repo, id(2), { name: "Анна" }, today, { rate: 4.3, source: "own", date: null })).toBe("empty");
+    expect(orders).toHaveLength(1);
   });
 });
