@@ -206,14 +206,13 @@ export async function giveReceiptToOrder(orders: ShopOrdersRepository, orderItem
   return orders.giveReceiptToOrder(orderItemId, today);
 }
 
-/** MG11 «Оплата»: an amount in zł («500», «500,50»), more than 0. */
-export async function addPayment(orders: ShopOrdersRepository, orderId: string, input: string, today: IsoDate): Promise<boolean> {
-  if (!uuid.test(orderId)) return false;
+/** MG11 «Оплата»: an amount in zł («500», «500,50»), more than 0. Returns the payment's id (UX3 «Отменить»). */
+export async function addPayment(orders: ShopOrdersRepository, orderId: string, input: string, today: IsoDate): Promise<string | null> {
+  if (!uuid.test(orderId)) return null;
   const amount = Number(input.trim().replace(",", ".").replace(/\s/g, ""));
-  if (!Number.isFinite(amount) || amount <= 0 || amount > 1_000_000) return false;
-  if (!(await orders.getOrder(orderId))) return false;
-  await orders.addPayment(orderId, Math.round(amount * 100) / 100, today);
-  return true;
+  if (!Number.isFinite(amount) || amount <= 0 || amount > 1_000_000) return null;
+  if (!(await orders.getOrder(orderId))) return null;
+  return (await orders.addPayment(orderId, Math.round(amount * 100) / 100, today)).id;
 }
 
 /** MG11: take back a payment entered by mistake. */
@@ -244,15 +243,16 @@ export async function sellToBuyer(
   buyer: { buyerId?: string | null; name?: string; phone?: string; instagram?: string },
   today: IsoDate,
   rate: EurRate | null,
-): Promise<"ok" | "invalid" | "empty" | "noRate"> {
-  if (!uuid.test(productId)) return "invalid";
+): Promise<{ status: "ok" | "invalid" | "empty" | "noRate"; orderId?: string }> {
+  const fail = (status: "invalid" | "empty" | "noRate") => ({ status });
+  if (!uuid.test(productId)) return fail("invalid");
   const name = (buyer.name ?? "").trim().slice(0, 120);
-  if (!name) return "invalid";
+  if (!name) return fail("invalid");
   const product = await shop.getProduct(productId);
-  if (!product) return "invalid";
-  if ((shopStock(await shop.listMovements()).get(productId) ?? 0) <= 0) return "empty";
+  if (!product) return fail("invalid");
+  if ((shopStock(await shop.listMovements()).get(productId) ?? 0) <= 0) return fail("empty");
   const price = orderPrice(product, rate);
-  if (price === null) return "noRate";
+  if (price === null) return fail("noRate");
   const buyerId = buyer.buyerId && uuid.test(buyer.buyerId) && (await orders.listBuyers()).some((b) => b.id === buyer.buyerId) ? buyer.buyerId : null;
   const { id } = await orders.saveOrder(null, {
     buyerId,
@@ -265,5 +265,12 @@ export async function sellToBuyer(
     items: [{ productId, quantity: 1, price, missing: 0 }],
   });
   await orders.setHandedOver(id, today);
-  return "ok";
+  return { status: "ok", orderId: id };
+}
+
+/** UX3 «Отменить» right after «Кому?»: the order of one piece goes away again (products back in stock). */
+export async function undoSaleToBuyer(orders: ShopOrdersRepository, orderId: string): Promise<boolean> {
+  if (!uuid.test(orderId)) return false;
+  await orders.setHandedOver(orderId, null);
+  return orders.deleteOrder(orderId);
 }

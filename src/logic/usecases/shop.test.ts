@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ShopRepository } from "@/data/repositories/shop";
 import type { ShopMovement, ShopProduct } from "@/logic/rules/shop";
-import { deleteShopHistoryLine, getShop, getShopSales, returnShopSale, saveShopProduct, tapShopProduct, toggleShopFavorite } from "./shop";
+import { deleteShopHistoryLine, getShop, getShopSales, returnShopSale, saveShopProduct, tapShopProduct, toggleShopFavorite, undoShopTap } from "./shop";
 
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const today = "2026-11-10";
@@ -35,7 +35,14 @@ function setup() {
     },
     listMovements: async () => movements.map((m) => ({ ...m })),
     addMovement: async (input) => {
-      movements.push({ ...input, id: `m${n++}`, createdAt: `${input.happenedOn}T10:00:${String(n).padStart(2, "0")}Z` });
+      const mid = id(n++);
+      movements.push({ ...input, id: mid, createdAt: `${input.happenedOn}T10:00:${String(n).padStart(2, "0")}Z` });
+      return { id: mid };
+    },
+    deleteMovement: async (mid) => {
+      const k = movements.findIndex((m) => m.id === mid && !m.orderItemId);
+      if (k >= 0) movements.splice(k, 1);
+      return k >= 0;
     },
     markReturned: async (mid, on) => {
       const m = movements.find((x) => x.id === mid && !x.returnedOn);
@@ -54,16 +61,16 @@ function setup() {
 describe("MG2: «−» и «+» в магазине", () => {
   it("MG2: «+» adds one, «−» sells one at today's price; hidden products are not shown", async () => {
     const { repo, movements, products } = setup();
-    expect(await tapShopProduct(repo, id(1), "receipt", today)).toBe(true);
-    expect(await tapShopProduct(repo, id(1), "receipt", today)).toBe(true);
-    expect(await tapShopProduct(repo, id(1), "sale", today)).toBe(true);
+    expect(await tapShopProduct(repo, id(1), "receipt", today)).toBeTruthy();
+    expect(await tapShopProduct(repo, id(1), "receipt", today)).toBeTruthy();
+    expect(await tapShopProduct(repo, id(1), "sale", today)).toBeTruthy();
     expect(movements[2]).toMatchObject({ kind: "sale", price: 230.41, currency: "PLN" });
     products[0].price = 250; // a later price change does not change the sale already made
     const { lines, brands } = await getShop(repo);
     expect(lines.map((l) => [l.name, l.stock])).toEqual([["Retinol Serum", 0], ["C-Tetra", 1]]);
     expect(lines[1].history.map((h) => [h.kind, h.quantity, h.balance])).toEqual([["sale", 1, 1], ["receipt", 2, 2]]);
     expect(brands).toEqual(["Instytutum", "Medik8"]);
-    expect(await tapShopProduct(repo, "nope", "sale", today)).toBe(false);
+    expect(await tapShopProduct(repo, "nope", "sale", today)).toBeNull();
   });
 
   it("MG2: «Удалить» a line removes that day's sales of the product", async () => {
@@ -81,7 +88,7 @@ describe("MG2: «−» и «+» в магазине", () => {
     const { repo, movements } = setup();
     await tapShopProduct(repo, id(1), "receipt", today);
     await tapShopProduct(repo, id(1), "receipt", today);
-    expect(await tapShopProduct(repo, id(1), "correction", today)).toBe(true);
+    expect(await tapShopProduct(repo, id(1), "correction", today)).toBeTruthy();
     expect(movements[2]).toMatchObject({ kind: "correction", price: null, currency: null });
     expect((await getShop(repo)).lines.find((l) => l.id === id(1))!.stock).toBe(1);
     expect((await getShopSales(repo, undefined, today)).sales.pieces).toBe(0);
@@ -89,8 +96,8 @@ describe("MG2: «−» и «+» в магазине", () => {
 
   it("MG7: «−» does nothing at 0; a delivery already sold cannot be deleted", async () => {
     const { repo, movements } = setup();
-    expect(await tapShopProduct(repo, id(1), "sale", today)).toBe(false);
-    expect(await tapShopProduct(repo, id(1), "correction", today)).toBe(false);
+    expect(await tapShopProduct(repo, id(1), "sale", today)).toBeNull();
+    expect(await tapShopProduct(repo, id(1), "correction", today)).toBeNull();
     expect(movements).toHaveLength(0);
     await tapShopProduct(repo, id(1), "receipt", "2026-11-01");
     await tapShopProduct(repo, id(1), "sale", today);
@@ -157,5 +164,26 @@ describe("MG13: исправить продажу", () => {
     expect(await returnShopSale(repo, id(1), "2026-11", "PLN", today)).toBe(false);
     expect(await returnShopSale(repo, id(1), "2026-13", "PLN", today)).toBe(false);
     expect(await returnShopSale(repo, "nope", "2026-11", "PLN", today)).toBe(false);
+  });
+});
+
+describe("UX3/UX6: отменить и поступление количеством", () => {
+  it("UX6: «Сколько пришло?» – several at once (1–100); «−» always one", async () => {
+    const { repo } = setup();
+    expect(await tapShopProduct(repo, id(1), "receipt", today, 12)).toBeTruthy();
+    expect((await getShop(repo)).lines.find((l) => l.id === id(1))!.stock).toBe(12);
+    expect(await tapShopProduct(repo, id(1), "receipt", today, 0)).toBeNull();
+    expect(await tapShopProduct(repo, id(1), "receipt", today, 101)).toBeNull();
+    expect(await tapShopProduct(repo, id(1), "sale", today, 2)).toBeNull();
+  });
+
+  it("UX3: «Отменить» takes the tap back; a delivery already sold cannot be taken back (MG7)", async () => {
+    const { repo } = setup();
+    const receipt = (await tapShopProduct(repo, id(1), "receipt", today))!;
+    const sale = (await tapShopProduct(repo, id(1), "sale", today))!;
+    expect(await undoShopTap(repo, receipt)).toBe(false);
+    expect(await undoShopTap(repo, sale)).toBe(true);
+    expect(await undoShopTap(repo, receipt)).toBe(true);
+    expect((await getShop(repo)).lines.find((l) => l.id === id(1))!.stock).toBe(0);
   });
 });

@@ -28,7 +28,7 @@ export interface ShopOrdersRepository {
   /** MG10: one delivered piece goes to this order line (delivery +1 and the order's sale +1, missing −1). */
   giveReceiptToOrder(orderItemId: string, on: IsoDate): Promise<boolean>;
   /** MG11 «Оплата». */
-  addPayment(orderId: string, amount: number, on: IsoDate): Promise<void>;
+  addPayment(orderId: string, amount: number, on: IsoDate): Promise<{ id: string }>;
   deletePayment(paymentId: string): Promise<boolean>;
   getSettings(): Promise<ShopSettings>;
   saveNbpRate(rate: number, date: IsoDate): Promise<void>;

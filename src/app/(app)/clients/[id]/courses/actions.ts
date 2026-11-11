@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { withSaved } from "@/logic/rules/saved";
 import { practiceTimeZone } from "@/config/time";
 import type { CourseForm } from "@/logic/rules/courses";
 import { todayIn } from "@/logic/rules/dates";
@@ -28,7 +29,7 @@ const fields = ["diagnosis", "prescription", "startDate", "endDate", "labEnabled
 function backToCard(clientId: string): never {
   revalidatePath("/clients");
   revalidatePath(`/clients/${clientId}`);
-  redirect(`/clients/${clientId}`);
+  redirect(withSaved(`/clients/${clientId}`));
 }
 
 /** LE1/LE3: save the course form with new and removed prescription photos. */

@@ -8,6 +8,7 @@ import { formatIsoDate } from "@/logic/rules/dates";
 import type { OrderView } from "@/logic/usecases/shop-orders";
 import { addPaymentAction, deletePaymentAction, handOverOrderAction } from "./order-actions";
 import { BuyerContacts } from "./BuyerContacts";
+import { useToast } from "@/app/components/Toast";
 
 /** MG9/MG12: one order – buyer, all products together, total in zł, «Выдан ✓» / «Изменить». */
 export function OrderCard({ order, locale, today, highlight = false }: { order: OrderView; locale: string; today: string; highlight?: boolean }) {
@@ -32,11 +33,17 @@ export function OrderCard({ order, locale, today, highlight = false }: { order: 
         : "border border-line";
   const badge = "inline-flex min-h-8 items-center rounded-full px-3 text-sm font-semibold";
   const zl = (v: number) => new Intl.NumberFormat(locale, { style: "currency", currency: "PLN", currencyDisplay: "narrowSymbol", maximumFractionDigits: 2 }).format(v);
+  const toast = useToast();
+  const tt = useTranslations("toast");
+  const undo = async (run: () => Promise<{ ok: boolean }>) => toast(tt((await run()).ok ? "undone" : "undoFailed"));
   const handOver = (handed: boolean) =>
     startTransition(async () => {
       setFailed(false);
       const { ok } = await handOverOrderAction(order.id, handed);
       if (!ok) setFailed(true);
+      // UX3: «Выдан ✓ · Отменить».
+      else if (handed) toast(tt("handedOver"), () => undo(() => handOverOrderAction(order.id, false)));
+      else toast(tt("handedBack"));
     });
 
   return (
@@ -122,9 +129,13 @@ export function OrderCard({ order, locale, today, highlight = false }: { order: 
                 disabled={pending}
                 onClick={() =>
                   startTransition(async () => {
-                    const { ok } = await addPaymentAction(order.id, amount);
+                    const { ok, id } = await addPaymentAction(order.id, amount);
                     setFailed(!ok);
-                    if (ok) setPaying(false);
+                    if (ok) {
+                      setPaying(false);
+                      // UX3: «Оплата 500 zł · Отменить».
+                      if (id) toast(tt("paid", { amount: zl(Number(amount.replace(",", ".")) || 0) }), () => undo(() => deletePaymentAction(id)));
+                    }
                   })
                 }
                 className={ui.button}

@@ -2,11 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { withSaved } from "@/logic/rules/saved";
 import { practiceTimeZone } from "@/config/time";
 import { fetchNbpEurRate } from "@/data/nbp";
 import { shopOrdersRepository, shopRepository } from "@/data/repositories/server";
 import { todayIn } from "@/logic/rules/dates";
-import { sellToBuyer } from "@/logic/usecases/shop-orders";
+import { sellToBuyer, undoSaleToBuyer } from "@/logic/usecases/shop-orders";
 import { addPayment, cancelOrder, deletePayment, getEurRate, giveReceiptToOrder, saveOrder, setOrderHandedOver, setOwnEurRate, type OrderErrors, type OrderFormInput } from "@/logic/usecases/shop-orders";
 
 /** MG9: «Сохранить» a new or changed order; back to «Заказы» when saved. */
@@ -21,7 +22,7 @@ export async function saveOrderAction(id: string | null, input: OrderFormInput):
   }
   if (!result.ok) return "errors" in result ? { errors: result.errors } : { failed: true };
   revalidatePath("/shop");
-  redirect(`/shop?view=orders&new=${result.id}`);
+  redirect(withSaved(`/shop?view=orders&new=${result.id}`));
 }
 
 /** MG12: «Выдан ✓» or back to waiting. */
@@ -70,12 +71,12 @@ export async function giveReceiptAction(orderItemId: string): Promise<{ ok: bool
   }
 }
 
-/** MG11 «Оплата». */
-export async function addPaymentAction(orderId: string, amount: string): Promise<{ ok: boolean }> {
+/** MG11 «Оплата»; the id is for «Отменить». */
+export async function addPaymentAction(orderId: string, amount: string): Promise<{ ok: boolean; id?: string }> {
   try {
-    const ok = await addPayment(await shopOrdersRepository(), orderId, amount, todayIn(practiceTimeZone));
-    if (ok) revalidatePath("/shop");
-    return { ok };
+    const id = await addPayment(await shopOrdersRepository(), orderId, amount, todayIn(practiceTimeZone));
+    if (id) revalidatePath("/shop");
+    return { ok: Boolean(id), id: id ?? undefined };
   } catch {
     return { ok: false };
   }
@@ -96,13 +97,24 @@ export async function deletePaymentAction(paymentId: string): Promise<{ ok: bool
 export async function sellToBuyerAction(
   productId: string,
   buyer: { buyerId?: string | null; name?: string; phone?: string; instagram?: string },
-): Promise<{ ok: boolean; reason?: "empty" | "noRate" }> {
+): Promise<{ ok: boolean; reason?: "empty" | "noRate"; orderId?: string }> {
   try {
     const orders = await shopOrdersRepository();
     const { rate } = await getEurRate(orders, fetchNbpEurRate);
     const result = await sellToBuyer(await shopRepository(), orders, productId, buyer, todayIn(practiceTimeZone), rate);
-    if (result === "ok") revalidatePath("/shop");
-    return { ok: result === "ok", reason: result === "empty" || result === "noRate" ? result : undefined };
+    if (result.status === "ok") revalidatePath("/shop");
+    return { ok: result.status === "ok", reason: result.status === "empty" || result.status === "noRate" ? result.status : undefined, orderId: result.orderId };
+  } catch {
+    return { ok: false };
+  }
+}
+
+/** UX3 «Отменить» right after «Кому?». */
+export async function undoSaleToBuyerAction(orderId: string): Promise<{ ok: boolean }> {
+  try {
+    const ok = await undoSaleToBuyer(await shopOrdersRepository(), orderId);
+    if (ok) revalidatePath("/shop");
+    return { ok };
   } catch {
     return { ok: false };
   }

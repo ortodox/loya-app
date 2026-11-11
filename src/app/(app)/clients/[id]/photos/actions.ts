@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { withSaved } from "@/logic/rules/saved";
 import { practiceTimeZone } from "@/config/time";
 import { maxClientPhotosPerSave } from "@/logic/rules/client-photos";
 import { todayIn } from "@/logic/rules/dates";
@@ -28,7 +29,7 @@ export async function addClientPhotosAction(clientId: string, courseId: string |
   }
   if (!result.ok) return "errors" in result ? { takenOn, errors: result.errors } : { takenOn, failed: true };
   revalidatePath(`/clients/${clientId}`);
-  redirect(`/clients/${clientId}#${courseId ? `course-${courseId}` : "client-photos"}`);
+  redirect(withSaved(`/clients/${clientId}#${courseId ? `course-${courseId}` : "client-photos"}`));
 }
 
 /** FK4: delete a photo – asked first in the UI. */

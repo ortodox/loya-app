@@ -654,7 +654,14 @@
     "empty": "На сегодня всё спокойно.",
     "due": "⏰ Пора",
     "agenda": "Записи",
-    "birthdays": "Дни рождения"
+    "birthdays": "Дни рождения",
+    "unpaid": "💳 Не оплачены ({count}) · осталось {left}",
+    "stockMinus": "⚠ Склад препаратов в минусе ({count})",
+    "handOver": "📦 Ожидают выдачи ({count})",
+    "needToOrder": "⚠ Нужно заказать ({count})",
+    "waitsForStock": "ждёт товар",
+    "units": "{count} ЕД",
+    "pieces": "{count} шт"
   },
   "settings": {
     "title": "Настройки",
@@ -924,6 +931,21 @@
     "saveSale": "Сохранить продажу",
     "noName": "Без имени",
     "whoEmpty": "Товара нет на складе.",
-    "whoNoRate": "Курс € неизвестен – продай через «+ Заказ» и впиши цену в zł."
+    "whoNoRate": "Курс € неизвестен – продай через «+ Заказ» и впиши цену в zł.",
+    "howMany": "Сколько пришло?",
+    "addMany": "Добавить на склад: {count} шт"
+  },
+  "toast": {
+    "undo": "Отменить",
+    "saved": "Сохранено ✓",
+    "sold": "Продано: {name}",
+    "soldTo": "Продано {buyer}: {name}",
+    "corrected": "Исправлено: {name} −1",
+    "received": "Поступление: {name} +{count}",
+    "handedOver": "Выдан ✓",
+    "handedBack": "Снова ждёт выдачи",
+    "paid": "Оплата {amount}",
+    "undone": "Отменено",
+    "undoFailed": "Отменить не получилось"
   }
 }

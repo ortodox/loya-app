@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { withSaved } from "@/logic/rules/saved";
 import { practiceTimeZone } from "@/config/time";
 import { todayIn } from "@/logic/rules/dates";
 import { addToStock, correctStock, deleteHistoryLine, discardVial, type HistoryLineRef, receiveStock, type ReceiptErrors, type ReceiptForm } from "@/logic/usecases/stock";
@@ -41,7 +42,7 @@ export async function receiveStockAction(itemId: string, _: ReceiptState, fd: Fo
     return { values, failed: true };
   }
   revalidatePath("/catalog");
-  redirect(stockHome);
+  redirect(withSaved(stockHome));
 }
 
 /** SK1 «Исправить остаток»: field names «pieces», «open.<vial>», «closed.<size>». */
@@ -61,7 +62,7 @@ export async function correctStockAction(itemId: string, _: { failed?: boolean; 
     return { failed: true };
   }
   revalidatePath("/catalog");
-  redirect(stockHome);
+  redirect(withSaved(stockHome));
 }
 
 /** SK1 «Списать остаток». */

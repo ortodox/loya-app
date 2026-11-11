@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { withSaved } from "@/logic/rules/saved";
 import { practiceTimeZone } from "@/config/time";
 import { todayIn } from "@/logic/rules/dates";
 import { saveCare, type SaveCareResult } from "@/logic/usecases/care";
@@ -27,5 +28,5 @@ export async function saveCareAction(clientId: string, _: CareFormState, fd: For
   }
   if (!result.ok) return "errors" in result ? { text, errors: result.errors } : { text, failed: true };
   revalidatePath(`/clients/${clientId}`);
-  redirect(`/clients/${clientId}`);
+  redirect(withSaved(`/clients/${clientId}`));
 }

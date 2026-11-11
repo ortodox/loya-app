@@ -19,23 +19,35 @@ export async function getShop(repo: ShopRepository): Promise<{ lines: ShopLine[]
 }
 
 /**
- * MG2/MG6/MG7: «+» (one came in) or «−» – sold (keeps today's price, counts in «Продажи») or a correction
- * (stock only). «−» only while there is something in stock.
+ * MG2/MG6/MG7: «+» (came in – UX6: several at once, 1–100) or «−» – sold (keeps today's price, counts in
+ * «Продажи») or a correction (stock only). «−» only while there is something in stock. Returns the new
+ * movement's id (UX3 «Отменить»), or null.
  */
-export async function tapShopProduct(repo: ShopRepository, productId: string, kind: ShopMovementKind, today: IsoDate): Promise<boolean> {
-  if (!uuid.test(productId) || !shopMovementKinds.includes(kind)) return false;
+export async function tapShopProduct(repo: ShopRepository, productId: string, kind: ShopMovementKind, today: IsoDate, quantity = 1): Promise<string | null> {
+  if (!uuid.test(productId) || !shopMovementKinds.includes(kind)) return null;
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > 100 || (kind !== "receipt" && quantity !== 1)) return null;
   const product = await repo.getProduct(productId);
-  if (!product) return false;
-  if (kind !== "receipt" && (shopStock(await repo.listMovements()).get(productId) ?? 0) <= 0) return false;
-  await repo.addMovement({
+  if (!product) return null;
+  if (kind !== "receipt" && (shopStock(await repo.listMovements()).get(productId) ?? 0) <= 0) return null;
+  const { id } = await repo.addMovement({
     productId,
     happenedOn: today,
     kind,
-    quantity: 1,
+    quantity,
     price: kind === "sale" ? product.price : null,
     currency: kind === "sale" ? product.currency : null,
   });
-  return true;
+  return id;
+}
+
+/** UX3 «Отменить» right after a tap – refused when taking a delivery back would leave more sold than came in (MG7). */
+export async function undoShopTap(repo: ShopRepository, movementId: string): Promise<boolean> {
+  if (!uuid.test(movementId)) return false;
+  const movements = await repo.listMovements();
+  const m = movements.find((x) => x.id === movementId);
+  if (!m || m.orderItemId) return false;
+  if (shopGoesNegative(movements.filter((x) => x.id !== movementId), m.productId)) return false;
+  return repo.deleteMovement(movementId);
 }
 
 /**

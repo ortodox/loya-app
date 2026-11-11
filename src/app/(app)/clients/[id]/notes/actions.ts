@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { withSaved } from "@/logic/rules/saved";
 import { clientRepository } from "@/data/repositories/server";
 import { updateNotes } from "@/logic/usecases/clients";
 
@@ -17,5 +18,5 @@ export async function saveNotesAction(clientId: string, _: { failed?: boolean },
   if (!ok) return { failed: true };
   revalidatePath(`/clients/${clientId}`);
   revalidatePath("/clients");
-  redirect(`/clients/${clientId}#notes`);
+  redirect(withSaved(`/clients/${clientId}#notes`));
 }

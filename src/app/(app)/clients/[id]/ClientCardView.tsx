@@ -300,8 +300,8 @@ export async function ClientCardView(props: Props) {
           </p>
         ) : (
           /* DM1: older clients without a direction – set it with one tap. */
-          <form action={setMissingDirectionAction.bind(null, id)} className="flex flex-col gap-2 rounded-[14px] border border-field p-3">
-            <p className="text-sm font-semibold text-ink">{t("direction.missing")}</p>
+          <form action={setMissingDirectionAction.bind(null, id)} className="flex flex-col gap-2 rounded-[14px] border-2 border-warn-line bg-warn p-3 text-on-warn">
+            <p className="text-sm font-semibold">{t("direction.missing")}</p>
             <div className="flex flex-wrap gap-2">
               {directions.map((d) => (
                 <button key={d} type="submit" name="direction" value={d} className={`${pill.base} ${pill.off}`}>
@@ -309,7 +309,7 @@ export async function ClientCardView(props: Props) {
                 </button>
               ))}
             </div>
-            <p className="text-xs text-muted">{t("direction.missingHint")}</p>
+            <p className="text-xs">{t("direction.missingHint")}</p>
           </form>
         )}
         {/* KT1: call or write right from the top of the card. */}
@@ -336,14 +336,14 @@ export async function ClientCardView(props: Props) {
 
       {/* N7 ✏️: «⏰ Пора: Ботокс» from the reminder day – each reminder with its own «Готово». */}
       {data.reminder.due.length > 0 && (
-        <section role="status" className="flex flex-col divide-y divide-line rounded-[18px] border border-accent bg-surface px-4">
+        <section role="status" className="flex flex-col divide-y divide-warn-line rounded-[18px] border-2 border-warn-line bg-warn px-4 text-on-warn">
           {data.reminder.due.map((r) => (
             <div key={r.visitId} className="flex items-center justify-between gap-3 py-3">
               <div className="flex min-w-0 flex-col">
-                <p className="text-base font-semibold text-ink">
+                <p className="text-base font-semibold">
                   {t("reminders.due", { types: reminderTypesText((key) => t(`reminders.${key}`), [r], locale as Locale) })}
                 </p>
-                <p className="text-sm text-muted">{t("reminders.since", { date: formatIsoDate(r.remindOn) })}</p>
+                <p className="text-sm">{t("reminders.since", { date: formatIsoDate(r.remindOn) })}</p>
               </div>
               <ReminderDone clientId={id} visitId={r.visitId} />
             </div>
