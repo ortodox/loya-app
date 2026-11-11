@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { withSaved } from "@/logic/rules/saved";
 import { practiceTimeZone } from "@/config/time";
 import { clientRepository } from "@/data/repositories/server";
 import { anamnesisFields } from "@/config/kartaTemplate";
@@ -50,7 +51,7 @@ async function save(
   if (!result.ok) return "errors" in result ? { values, errors: result.errors } : { values, failed: true };
 
   revalidatePath("/clients");
-  redirect(created ? `/clients/${result.id}?created=1` : `/clients/${result.id}`);
+  redirect(withSaved(created ? `/clients/${result.id}?created=1` : `/clients/${result.id}`));
 }
 
 export async function createClientAction(_: ClientFormState, formData: FormData) {
@@ -84,5 +85,5 @@ export async function updateAnamnesisSectionAction(id: string, section: string, 
   }
   if (!ok) return { failed: true };
   revalidatePath(`/clients/${id}`);
-  redirect(`/clients/${id}#anketa`);
+  redirect(withSaved(`/clients/${id}#anketa`));
 }

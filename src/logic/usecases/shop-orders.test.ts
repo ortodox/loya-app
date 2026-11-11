@@ -5,7 +5,7 @@ import type { ShopMovement, ShopProduct } from "@/logic/rules/shop";
 import { shopStock } from "@/logic/rules/shop";
 import { getShopSales } from "./shop";
 import type { ShopBuyer, ShopOrder } from "@/logic/rules/shop-orders";
-import { addPayment, cancelOrder, deletePayment, getEurRate, getOrders, getWaitingForStock, giveReceiptToOrder, saveOrder, sellToBuyer, setOrderHandedOver, setOwnEurRate } from "./shop-orders";
+import { addPayment, cancelOrder, deletePayment, getEurRate, getOrders, getWaitingForStock, giveReceiptToOrder, saveOrder, sellToBuyer, setOrderHandedOver, setOwnEurRate, undoSaleToBuyer } from "./shop-orders";
 
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const today = "2026-11-11";
@@ -73,7 +73,9 @@ function setup() {
       return true;
     },
     async addPayment(orderId, amount, on) {
-      orders.find((o) => o.id === orderId)!.payments.push({ id: id(n++), amount, paidOn: on });
+      const pid = id(n++);
+      orders.find((o) => o.id === orderId)!.payments.push({ id: pid, amount, paidOn: on });
+      return { id: pid };
     },
     async deletePayment(pid) {
       for (const o of orders) {
@@ -190,12 +192,12 @@ describe("MG10/MG11: нужно заказать и оплата", () => {
   it("MG11: payments in zł – partly, then paid; a wrong one can be taken back; «Продажи» shows what is not paid", async () => {
     const { shop, repo } = setup();
     const { id: oid } = (await saveOrder(shop, repo, null, { buyerName: "Анна", items: [{ productId: id(1), quantity: "2", price: "500" }] }, today, null)) as { id: string };
-    expect(await addPayment(repo, oid, "300", today)).toBe(true);
-    expect(await addPayment(repo, oid, "0", today)).toBe(false);
-    expect(await addPayment(repo, oid, "abc", today)).toBe(false);
+    expect(await addPayment(repo, oid, "300", today)).toBeTruthy();
+    expect(await addPayment(repo, oid, "0", today)).toBeNull();
+    expect(await addPayment(repo, oid, "abc", today)).toBeNull();
     expect((await getOrders(shop, repo, null)).waiting[0].payment).toEqual({ paid: 300, left: 700, status: "partial" });
     expect((await getShopSales(shop, "2026-11", today, repo)).sales).toMatchObject({ pieces: 2, value: { PLN: 1000, EUR: 0 }, unpaid: 700 });
-    expect(await addPayment(repo, oid, "700,00", today)).toBe(true);
+    expect(await addPayment(repo, oid, "700,00", today)).toBeTruthy();
     const order = (await getOrders(shop, repo, null)).waiting[0];
     expect(order.payment.status).toBe("paid");
     expect(await deletePayment(repo, order.payments[1].id)).toBe(true);
@@ -207,22 +209,33 @@ describe("MG14: «Кому?» при продаже", () => {
   it("MG14: sold to a buyer = an order of 1 piece, handed over at once, not paid; € by the rate in zł", async () => {
     const { shop, repo, movements, buyers } = setup();
     const rate = { rate: 4.31, source: "nbp" as const, date: today };
-    expect(await sellToBuyer(shop, repo, id(2), { name: "Анна", instagram: "@anna.test" }, today, rate)).toBe("ok");
+    expect((await sellToBuyer(shop, repo, id(2), { name: "Анна", instagram: "@anna.test" }, today, rate)).status).toBe("ok");
     const { unpaid } = await getOrders(shop, repo, null);
     expect(unpaid).toHaveLength(1);
     expect(unpaid[0]).toMatchObject({ handedOverOn: today, eurRate: 4.31, total: { pieces: 1, value: 340 }, payment: { status: "unpaid" } });
     expect(buyers.map((b) => [b.name, b.instagram])).toEqual([["Анна", "anna.test"]]);
     expect(shopStock(movements).get(id(2))).toBe(0);
-    expect(await sellToBuyer(shop, repo, id(1), { buyerId: buyers[0].id, name: "Анна" }, today, null)).toBe("ok");
+    expect((await sellToBuyer(shop, repo, id(1), { buyerId: buyers[0].id, name: "Анна" }, today, null)).status).toBe("ok");
     expect(buyers).toHaveLength(1);
   });
 
   it("MG14: nothing in stock, no rate for €, or no name – no sale", async () => {
     const { shop, repo, orders } = setup();
-    expect(await sellToBuyer(shop, repo, id(2), { name: "Анна" }, today, null)).toBe("noRate");
-    expect(await sellToBuyer(shop, repo, id(1), { name: " " }, today, null)).toBe("invalid");
+    expect((await sellToBuyer(shop, repo, id(2), { name: "Анна" }, today, null)).status).toBe("noRate");
+    expect((await sellToBuyer(shop, repo, id(1), { name: " " }, today, null)).status).toBe("invalid");
     await sellToBuyer(shop, repo, id(2), { name: "Анна" }, today, { rate: 4.3, source: "own", date: null });
-    expect(await sellToBuyer(shop, repo, id(2), { name: "Анна" }, today, { rate: 4.3, source: "own", date: null })).toBe("empty");
+    expect((await sellToBuyer(shop, repo, id(2), { name: "Анна" }, today, { rate: 4.3, source: "own", date: null })).status).toBe("empty");
     expect(orders).toHaveLength(1);
+  });
+});
+
+describe("UX3: отменить продажу покупателю", () => {
+  it("UX3: «Отменить» after «Кому?» removes the order; the piece is back in stock", async () => {
+    const { shop, repo, movements, orders } = setup();
+    const { orderId } = await sellToBuyer(shop, repo, id(1), { name: "Анна" }, today, null);
+    expect(shopStock(movements).get(id(1))).toBe(2);
+    expect(await undoSaleToBuyer(repo, orderId!)).toBe(true);
+    expect(orders).toHaveLength(0);
+    expect(shopStock(movements).get(id(1))).toBe(3);
   });
 });

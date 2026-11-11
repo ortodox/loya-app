@@ -109,15 +109,26 @@ export function supabaseShopRepository(supabase: SupabaseClient): ShopRepository
     },
 
     async addMovement(input) {
-      const { error } = await supabase.from("shop_movements").insert({
-        product_id: input.productId,
-        happened_on: input.happenedOn,
-        kind: input.kind,
-        quantity: input.quantity,
-        price: input.price,
-        currency: input.currency,
-      });
+      const { data, error } = await supabase
+        .from("shop_movements")
+        .insert({
+          product_id: input.productId,
+          happened_on: input.happenedOn,
+          kind: input.kind,
+          quantity: input.quantity,
+          price: input.price,
+          currency: input.currency,
+        })
+        .select("id")
+        .single();
       if (error) throw error;
+      return { id: data.id as string };
+    },
+
+    async deleteMovement(id) {
+      const { data, error } = await supabase.from("shop_movements").delete().eq("id", id).is("order_item_id", null).select("id");
+      if (error) throw error;
+      return data.length > 0;
     },
 
     async markReturned(movementId, on) {

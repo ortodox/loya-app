@@ -2,19 +2,31 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { withSaved } from "@/logic/rules/saved";
 import { practiceTimeZone } from "@/config/time";
 import { shopRepository } from "@/data/repositories/server";
 import { todayIn } from "@/logic/rules/dates";
 import type { ShopMovementKind } from "@/logic/rules/shop";
-import { returnShopSale } from "@/logic/usecases/shop";
+import { returnShopSale, undoShopTap } from "@/logic/usecases/shop";
 import { deleteShopHistoryLine, saveShopProduct, tapShopProduct, toggleShopFavorite, type ShopProductErrors, type ShopProductForm } from "@/logic/usecases/shop";
 
 const str = (v: FormDataEntryValue | null) => (typeof v === "string" ? v : "");
 
-/** MG2/MG6: «+» (delivery), «−» sold or «−» correction. */
-export async function tapShopAction(productId: string, kind: ShopMovementKind): Promise<{ ok: boolean }> {
+/** MG2/MG6/UX6: «+» (delivery, also several at once), «−» sold or «−» correction; the id is for «Отменить». */
+export async function tapShopAction(productId: string, kind: ShopMovementKind, quantity = 1): Promise<{ ok: boolean; id?: string }> {
   try {
-    const ok = await tapShopProduct(await shopRepository(), productId, kind, todayIn(practiceTimeZone));
+    const id = await tapShopProduct(await shopRepository(), productId, kind, todayIn(practiceTimeZone), quantity);
+    if (id) revalidatePath("/shop");
+    return { ok: Boolean(id), id: id ?? undefined };
+  } catch {
+    return { ok: false };
+  }
+}
+
+/** UX3 «Отменить» right after a tap in «Склад». */
+export async function undoTapAction(movementId: string): Promise<{ ok: boolean }> {
+  try {
+    const ok = await undoShopTap(await shopRepository(), movementId);
     if (ok) revalidatePath("/shop");
     return { ok };
   } catch {
@@ -59,7 +71,7 @@ export async function saveShopProductAction(id: string | null, _: ShopProductSta
   }
   if (!result.ok) return "errors" in result ? { values, errors: result.errors } : { values, failed: true };
   revalidatePath("/shop");
-  redirect("/shop?view=catalog");
+  redirect(withSaved("/shop?view=catalog"));
 }
 
 /** MG13: «Исправить» in «Продажи» → «Да» – one piece back to stock. */

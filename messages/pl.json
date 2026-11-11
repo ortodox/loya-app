@@ -654,7 +654,14 @@
     "empty": "Na dziś wszystko spokojnie.",
     "due": "⏰ Czas",
     "agenda": "Wizyty",
-    "birthdays": "Urodziny"
+    "birthdays": "Urodziny",
+    "unpaid": "💳 Nieopłacone ({count}) · zostało {left}",
+    "stockMinus": "⚠ Magazyn preparatów na minusie ({count})",
+    "handOver": "📦 Czekają na wydanie ({count})",
+    "needToOrder": "⚠ Do zamówienia ({count})",
+    "waitsForStock": "czeka na towar",
+    "units": "{count} j.",
+    "pieces": "{count} szt."
   },
   "settings": {
     "title": "Ustawienia",
@@ -924,6 +931,21 @@
     "saveSale": "Zapisz sprzedaż",
     "noName": "Bez imienia",
     "whoEmpty": "Brak produktu na stanie.",
-    "whoNoRate": "Kurs € nieznany – sprzedaj przez «+ Zamówienie» i wpisz cenę w zł."
+    "whoNoRate": "Kurs € nieznany – sprzedaj przez «+ Zamówienie» i wpisz cenę w zł.",
+    "howMany": "Ile przyszło?",
+    "addMany": "Dodaj na stan: {count} szt."
+  },
+  "toast": {
+    "undo": "Cofnij",
+    "saved": "Zapisano ✓",
+    "sold": "Sprzedano: {name}",
+    "soldTo": "Sprzedano {buyer}: {name}",
+    "corrected": "Poprawiono: {name} −1",
+    "received": "Dostawa: {name} +{count}",
+    "handedOver": "Wydano ✓",
+    "handedBack": "Znowu czeka na wydanie",
+    "paid": "Płatność {amount}",
+    "undone": "Cofnięto",
+    "undoFailed": "Nie udało się cofnąć"
   }
 }

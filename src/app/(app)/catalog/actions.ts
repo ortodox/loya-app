@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { withSaved } from "@/logic/rules/saved";
 import { locales } from "@/config/locales";
 import { catalogRepository } from "@/data/repositories/server";
 import type { Localized } from "@/logic/catalog";
@@ -37,7 +38,7 @@ async function run<T>(values: T, save: () => Promise<SaveResult>, path: (id: str
   }
   if (!result.ok) return "errors" in result ? { values, errors: result.errors } : { values, failed: true };
   revalidatePath("/catalog", "layout");
-  redirect(path(result.id));
+  redirect(withSaved(path(result.id)));
 }
 
 export async function saveTypeAction(

@@ -87,8 +87,9 @@ export function supabaseShopOrdersRepository(supabase: SupabaseClient): ShopOrde
     },
 
     async addPayment(orderId, amount, on) {
-      const { error } = await supabase.from("shop_payments").insert({ order_id: orderId, amount, paid_on: on });
+      const { data, error } = await supabase.from("shop_payments").insert({ order_id: orderId, amount, paid_on: on }).select("id").single();
       if (error) throw error;
+      return { id: data.id as string };
     },
 
     async deletePayment(paymentId) {

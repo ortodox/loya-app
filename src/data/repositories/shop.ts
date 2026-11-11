@@ -12,7 +12,9 @@ export interface ShopRepository {
   updateProduct(id: string, input: ShopProductInput): Promise<boolean>;
   setFavorite(id: string, favorite: boolean): Promise<boolean>;
   listMovements(): Promise<ShopMovement[]>;
-  addMovement(input: ShopMovementInput): Promise<void>;
+  addMovement(input: ShopMovementInput): Promise<{ id: string }>;
+  /** UX3 «Отменить»: one tap in «Склад» taken back (never a sale from an order). */
+  deleteMovement(id: string): Promise<boolean>;
   /** MG13: the sale goes back to stock on that day (kept, marked as returned). */
   markReturned(movementId: string, on: IsoDate): Promise<boolean>;
   /** MG2: «Удалить» a line of «История» – all taps of that kind on that day (never sales from orders, MG9). */

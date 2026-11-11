@@ -2,14 +2,15 @@
 
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { useMemo, useOptimistic, useState, useTransition } from "react";
+import { useMemo, useOptimistic, useRef, useState, useTransition } from "react";
 import { card, pill, ui } from "@/app/components/ui";
 import { formatIsoDate } from "@/logic/rules/dates";
 import { matchesShopFilter, shopStockSections, type ShopMovementKind } from "@/logic/rules/shop";
 import type { ShopLine } from "@/logic/usecases/shop";
 import { matchesBuyer, type ShopBuyer, type WaitingLine } from "@/logic/rules/shop-orders";
-import { giveReceiptAction, sellToBuyerAction } from "./order-actions";
-import { deleteShopHistoryAction, tapShopAction, toggleShopFavoriteAction } from "./actions";
+import { giveReceiptAction, sellToBuyerAction, undoSaleToBuyerAction } from "./order-actions";
+import { useToast } from "@/app/components/Toast";
+import { deleteShopHistoryAction, tapShopAction, toggleShopFavoriteAction, undoTapAction } from "./actions";
 
 type Props = { mode: "catalog" | "stock"; lines: ShopLine[]; brands: string[]; locale: string; waiting?: Record<string, WaitingLine[]>; buyers?: ShopBuyer[] };
 
@@ -39,10 +40,24 @@ export function ShopList({ mode, lines, brands, locale, waiting = {}, buyers = [
   const sellTo = (line: ShopLine, buyer: { buyerId?: string; name: string; phone?: string; instagram?: string }) =>
     startTransition(async () => {
       addOptimistic({ id: line.id, delta: -1 });
-      const { ok, reason } = await sellToBuyerAction(line.id, buyer);
-      if (ok) closeSelling();
+      const { ok, reason, orderId } = await sellToBuyerAction(line.id, buyer);
+      if (ok) {
+        closeSelling();
+        // UX3: done at once – «Отменить» for 5 seconds.
+        if (orderId) toast(tt("soldTo", { buyer: buyer.name, name: line.name }), () => undo(() => undoSaleToBuyerAction(orderId)));
+      }
       else setWhoFailed(reason ?? "failed");
     });
+  const toast = useToast();
+  const tt = useTranslations("toast");
+  const undo = async (run: () => Promise<{ ok: boolean }>) => {
+    const { ok } = await run();
+    toast(tt(ok ? "undone" : "undoFailed"));
+  };
+  // UX6: a long press on «+» asks «Сколько пришло?».
+  const [receivingMany, setReceivingMany] = useState<ShopLine | null>(null);
+  const [many, setMany] = useState("2");
+  const press = useRef<{ timer: ReturnType<typeof setTimeout> | null; long: boolean }>({ timer: null, long: false });
   // MG10: «+» on a product orders wait for → «Для какого заказа?».
   const [receiving, setReceiving] = useState<ShopLine | null>(null);
   const [pending, startTransition] = useTransition();
@@ -62,10 +77,15 @@ export function ShopList({ mode, lines, brands, locale, waiting = {}, buyers = [
     groups.set(key, [...(groups.get(key) ?? []), l]);
   }
 
-  const tap = (line: ShopLine, kind: ShopMovementKind) =>
+  const tap = (line: ShopLine, kind: ShopMovementKind, quantity = 1) =>
     startTransition(async () => {
-      addOptimistic({ id: line.id, delta: kind === "receipt" ? 1 : -1 });
-      await tapShopAction(line.id, kind);
+      addOptimistic({ id: line.id, delta: kind === "receipt" ? quantity : -1 });
+      const { ok, id } = await tapShopAction(line.id, kind, quantity);
+      // UX3: done at once – «Отменить» for 5 seconds.
+      if (ok && id) {
+        const message = kind === "sale" ? tt("sold", { name: line.name }) : kind === "correction" ? tt("corrected", { name: line.name }) : tt("received", { name: line.name, count: quantity });
+        toast(message, () => undo(() => undoTapAction(id)));
+      } else if (!ok) toast(t("failed"));
     });
   const star = (line: ShopLine) =>
     startTransition(async () => {
@@ -99,7 +119,27 @@ export function ShopList({ mode, lines, brands, locale, waiting = {}, buyers = [
               −
             </button>
             <span className="w-10 text-center text-lg font-semibold tabular-nums text-ink">{Math.max(0, l.stock)}</span>
-            <button type="button" onClick={() => (waiting[l.id]?.length ? setReceiving(l) : tap(l, "receipt"))} aria-label={t("receive", { name: l.name })} className="flex size-11 items-center justify-center rounded-full bg-primary text-xl text-on-primary">
+            <button
+              type="button"
+              onPointerDown={() => {
+                press.current.long = false;
+                press.current.timer = setTimeout(() => {
+                  press.current.long = true;
+                  setMany("2");
+                  setReceivingMany(l);
+                }, 500);
+              }}
+              onPointerUp={() => press.current.timer && clearTimeout(press.current.timer)}
+              onPointerLeave={() => press.current.timer && clearTimeout(press.current.timer)}
+              onContextMenu={(e) => e.preventDefault()}
+              onClick={() => {
+                if (press.current.long) return;
+                if (waiting[l.id]?.length) setReceiving(l);
+                else tap(l, "receipt");
+              }}
+              aria-label={t("receive", { name: l.name })}
+              className="flex size-11 touch-manipulation select-none items-center justify-center rounded-full bg-primary text-xl text-on-primary"
+            >
               +
             </button>
           </div>
@@ -174,6 +214,30 @@ export function ShopList({ mode, lines, brands, locale, waiting = {}, buyers = [
           <ul className={`${card.surface} flex flex-col`}>{items.map(row)}</ul>
         </section>
       ))}
+      {receivingMany && (
+        <div role="alertdialog" aria-label={t("howMany")} className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-w-2xl flex-col gap-3 rounded-t-[18px] border-t border-line bg-surface p-4 pb-[calc(1rem+var(--safe-bottom))] text-ink shadow-lg">
+          <p className="text-base">
+            <span className="font-semibold">{t("howMany")}</span>
+            <br />
+            <span className="text-muted">{receivingMany.name}</span>
+          </p>
+          <input value={many} onChange={(e) => setMany(e.target.value)} inputMode="numeric" aria-label={t("howMany")} className={ui.input} />
+          <button
+            type="button"
+            disabled={!(Number(many) >= 1 && Number(many) <= 100 && Number.isInteger(Number(many)))}
+            onClick={() => {
+              tap(receivingMany, "receipt", Number(many));
+              setReceivingMany(null);
+            }}
+            className={ui.button}
+          >
+            {t("addMany", { count: Number(many) || 0 })}
+          </button>
+          <button type="button" onClick={() => setReceivingMany(null)} className={`${ui.textButton} justify-center`}>
+            {t("cancel")}
+          </button>
+        </div>
+      )}
       {receiving && (
         <div role="alertdialog" aria-label={t("forWhichOrder")} className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-w-2xl flex-col gap-2 rounded-t-[18px] border-t border-line bg-surface p-4 pb-[calc(1rem+var(--safe-bottom))] text-ink shadow-lg">
           <p className="text-base">
@@ -226,6 +290,9 @@ export function ShopList({ mode, lines, brands, locale, waiting = {}, buyers = [
             </>
           ) : (
             <>
+              <button type="button" onClick={() => { tap(selling, "sale"); closeSelling(); }} className={ui.button}>
+                {t("noName")}
+              </button>
               <input
                 value={who.name}
                 onChange={(e) => setWho({ ...who, name: e.target.value })}
@@ -260,9 +327,6 @@ export function ShopList({ mode, lines, brands, locale, waiting = {}, buyers = [
                 </ul>
               )}
               {whoFailed && <p className={ui.error}>{t(whoFailed === "empty" ? "whoEmpty" : whoFailed === "noRate" ? "whoNoRate" : "failed")}</p>}
-              <button type="button" onClick={() => { tap(selling, "sale"); closeSelling(); }} className="min-h-11 rounded-[14px] border border-field px-3 text-base text-ink">
-                {t("noName")}
-              </button>
             </>
           )}
           <button type="button" onClick={closeSelling} className={`${ui.textButton} justify-center`}>

@@ -654,7 +654,14 @@
     "empty": "Nothing waiting today.",
     "due": "⏰ Due",
     "agenda": "Appointments",
-    "birthdays": "Birthdays"
+    "birthdays": "Birthdays",
+    "unpaid": "💳 Not paid ({count}) · {left} left",
+    "stockMinus": "⚠ Preparations stock below zero ({count})",
+    "handOver": "📦 Waiting for hand-over ({count})",
+    "needToOrder": "⚠ To order ({count})",
+    "waitsForStock": "waiting for stock",
+    "units": "{count} U",
+    "pieces": "{count} pcs"
   },
   "settings": {
     "title": "Settings",
@@ -924,6 +931,21 @@
     "saveSale": "Save sale",
     "noName": "No name",
     "whoEmpty": "Not in stock.",
-    "whoNoRate": "€ rate unknown – sell via «+ Order» and enter the price in zł."
+    "whoNoRate": "€ rate unknown – sell via «+ Order» and enter the price in zł.",
+    "howMany": "How many came in?",
+    "addMany": "Add to stock: {count} pcs"
+  },
+  "toast": {
+    "undo": "Undo",
+    "saved": "Saved ✓",
+    "sold": "Sold: {name}",
+    "soldTo": "Sold to {buyer}: {name}",
+    "corrected": "Corrected: {name} −1",
+    "received": "Came in: {name} +{count}",
+    "handedOver": "Handed over ✓",
+    "handedBack": "Waiting again",
+    "paid": "Payment {amount}",
+    "undone": "Undone",
+    "undoFailed": "Could not undo"
   }
 }

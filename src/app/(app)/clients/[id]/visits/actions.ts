@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { withSaved } from "@/logic/rules/saved";
 import { practiceTimeZone } from "@/config/time";
 import { todayIn } from "@/logic/rules/dates";
 import type { VisitForm, VisitInputErrors, VisitItemForm } from "@/logic/rules/visits";
@@ -54,7 +55,7 @@ function backToCard(clientId: string): never {
   revalidatePath(`/clients/${clientId}`);
   // SK1: «Склад» and «Расход» are worked out from the visits – show the new numbers at once.
   revalidatePath("/catalog");
-  redirect(`/clients/${clientId}`);
+  redirect(withSaved(`/clients/${clientId}`));
 }
 
 export async function saveVisitAction(
