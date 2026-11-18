@@ -25,6 +25,10 @@
   --warn: #fff4cc;
   --on-warn: #6b4e00;
   --warn-line: #a67c00;
+  /* «Сегодня»: green only for «ready» (Готовы к выдаче). */
+  --ok: #e6f4e4;
+  --on-ok: #1e5b2a;
+  --ok-line: #3c8a4a;
   /* Z5: the face scheme is always on light paper (also in dark mode), so the pens stay the same:
      near-black, bright red and bright blue – clearly visible on skin, never gold or beige. */
   --face-paper: #fbf7f2;
@@ -52,6 +56,9 @@
     --warn: #3d3210;
     --on-warn: #f5d76e;
     --warn-line: #d4ac2b;
+    --ok: #1f3324;
+    --on-ok: #a8e0b0;
+    --ok-line: #5faf6e;
   }
 }
 
@@ -71,6 +78,9 @@
   --color-warn: var(--warn);
   --color-on-warn: var(--on-warn);
   --color-warn-line: var(--warn-line);
+  --color-ok: var(--ok);
+  --color-on-ok: var(--on-ok);
+  --color-ok-line: var(--ok-line);
   --color-face-paper: var(--face-paper);
   --font-serif: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
   --font-sans: var(--font-montserrat), Montserrat, -apple-system, BlinkMacSystemFont, sans-serif;

@@ -8,11 +8,12 @@ import type { IsoDate } from "@/logic/client";
 import { formatIsoDate } from "@/logic/rules/dates";
 import { dueByType } from "@/logic/rules/reminders";
 import type { ClientSummary } from "@/logic/usecases/clients";
-import type { TodayTasks } from "@/logic/rules/today-tasks";
+import { tabCounts, type TodayTasks } from "@/logic/rules/today-tasks";
+import { TodayTabs } from "./TodayTabs";
 
 /**
- * TD1 «Сегодня»: everything that waits – «⏰ Пора» by procedure type (N7 ✏️), appointments today and
- * tomorrow (N13 part) and birthdays (BD1). Every name opens the client's card.
+ * TD1/TD2 «Сегодня»: three tabs – «⏰ Пора» (clients: «⏰ Пора» by type, appointments, birthdays),
+ * «📦 Выдача» (🟢 ready, 🟡 partial, 🔴 not paid) and «🛒 Закупка» (what to buy, preparations below zero).
  */
 export async function TodayView({ clients, tasks, today }: { clients: ClientSummary[]; tasks: TodayTasks; today: IsoDate }) {
   const t = await getTranslations();
@@ -22,15 +23,16 @@ export async function TodayView({ clients, tasks, today }: { clients: ClientSumm
     .map((day) => ({ day, clients: clients.filter((c) => c.agenda === day) }))
     .filter((g) => g.clients.length > 0);
   const birthdays = clients.filter((c) => c.birthday);
-  const empty =
-    due.length === 0 && agenda.length === 0 && birthdays.length === 0 &&
-    tasks.unpaid.length + tasks.handOver.length + tasks.needToOrder.length + tasks.stockMinus.length === 0;
+  const counts = tabCounts(tasks);
+  const clientCount = due.reduce((n, g) => n + g.clients.length, 0) + agenda.reduce((n, g) => n + g.clients.length, 0) + birthdays.length;
+  const done = (text: string) => <p className={`${card.surface} px-5 py-10 text-center ${ui.muted}`}>{text}</p>;
   const zl = (v: number) => new Intl.NumberFormat(locale, { style: "currency", currency: "PLN", currencyDisplay: "narrowSymbol", maximumFractionDigits: 2 }).format(v);
   // UX1/UX2: red – wrong or urgent; yellow – something to do.
-  const box = (tone: "red" | "yellow") =>
-    `flex flex-col gap-1 rounded-[18px] border-2 p-4 ${tone === "red" ? "border-on-alert bg-alert text-on-alert" : "border-warn-line bg-warn text-on-warn"}`;
+  // UX2/TD2: red – wrong or urgent; yellow – something to do; green – ready.
+  const box = (tone: "red" | "yellow" | "green") =>
+    `flex flex-col gap-1 rounded-[18px] border-2 p-4 ${tone === "red" ? "border-on-alert bg-alert text-on-alert" : tone === "green" ? "border-ok-line bg-ok text-on-ok" : "border-warn-line bg-warn text-on-warn"}`;
   const row = "flex min-h-11 items-center justify-between gap-3 border-t border-current/20 py-2 text-base first-of-type:border-t-0";
-  const taskBox = (key: string, tone: "red" | "yellow", title: string, items: { key: string; href: string; label: string; value: string }[]) =>
+  const taskBox = (key: string, tone: "red" | "yellow" | "green", title: string, items: { key: string; href: string; label: string; value: string; note?: string; noteRed?: boolean }[]) =>
     items.length > 0 && (
       <section key={key} aria-label={title} className={box(tone)}>
         <h2 className="text-lg font-semibold">{title}</h2>
@@ -38,7 +40,10 @@ export async function TodayView({ clients, tasks, today }: { clients: ClientSumm
           {items.map((i) => (
             <li key={i.key}>
               <Link href={i.href} className={row}>
-                <span className="min-w-0 break-words">{i.label}</span>
+                <span className="flex min-w-0 flex-col">
+                  <span className="break-words">{i.label}</span>
+                  {i.note && <span className={`text-sm ${i.noteRed ? "font-semibold text-on-alert" : ""}`}>{i.note}</span>}
+                </span>
                 <span className="shrink-0 font-semibold">{i.value} ›</span>
               </Link>
             </li>
@@ -72,34 +77,16 @@ export async function TodayView({ clients, tasks, today }: { clients: ClientSumm
         <p className={ui.muted}>{formatIsoDate(today)}</p>
       </div>
 
-      {empty && <p className={`${card.surface} px-5 py-10 text-center ${ui.muted}`}>{t("today.empty")}</p>}
-
-      {/* UX1: what needs doing in «Магазин» and «Склад препаратов» – each line opens the order or the stock. */}
-      {taskBox(
-        "unpaid",
-        "red",
-        t("today.unpaid", { count: tasks.unpaid.length, left: zl(tasks.unpaid.reduce((s, u) => s + u.left, 0)) }),
-        tasks.unpaid.map((u) => ({ key: u.orderId, href: `/shop?view=orders&new=${u.orderId}`, label: u.buyerName, value: zl(u.left) })),
-      )}
-      {taskBox(
-        "minus",
-        "red",
-        t("today.stockMinus", { count: tasks.stockMinus.length }),
-        tasks.stockMinus.map((s) => ({ key: s.itemId, href: "/catalog?view=stock", label: s.name, value: t(s.unit === "units" ? "today.units" : "today.pieces", { count: s.available }) })),
-      )}
-      {taskBox(
-        "handover",
-        "yellow",
-        t("today.handOver", { count: tasks.handOver.length }),
-        tasks.handOver.map((h) => ({ key: h.orderId, href: `/shop?view=orders&new=${h.orderId}`, label: `${h.buyerName} · ${h.ready ? t("shop.readyToHandOver") : t("today.waitsForStock")}`, value: t("today.pieces", { count: h.pieces }) })),
-      )}
-      {taskBox(
-        "order",
-        "yellow",
-        t("today.needToOrder", { count: tasks.needToOrder.length }),
-        tasks.needToOrder.map((n) => ({ key: n.productId, href: "/shop?view=stock", label: `${n.name} · ${n.buyers.join(", ")}`, value: t("today.pieces", { count: n.missing }) })),
-      )}
-
+      <TodayTabs
+        label={t("today.title")}
+        tabs={[
+          {
+            key: "pora",
+            label: t("today.tabPora"),
+            count: clientCount,
+            urgent: false,
+            content: clientCount === 0 ? done(t("today.empty")) : (
+              <>
       {/* N7 ✏️: «⏰ Ботокс · 2» – names, by procedure type; «Готово» is pressed in the card. UX2: yellow – something to do. */}
       {due.length > 0 && (
         <section aria-labelledby="today-due" className="flex flex-col gap-3 rounded-[18px] border-2 border-warn-line bg-warn p-4 text-on-warn">
@@ -131,6 +118,74 @@ export async function TodayView({ clients, tasks, today }: { clients: ClientSumm
           {group("birthdays", t("birthday.group"), birthdays)}
         </section>
       )}
+              </>
+            ),
+          },
+          {
+            key: "handover",
+            label: t("today.tabHandOver"),
+            count: counts.handOver,
+            urgent: counts.handOverUrgent,
+            content: counts.handOver === 0 ? done(t("today.allDone")) : (
+              <>
+                {taskBox(
+                  "ready",
+                  "green",
+                  t("today.ready", { count: tasks.ready.length }),
+                  tasks.ready.map((r) => ({
+                    key: r.orderId,
+                    href: `/shop?view=orders&new=${r.orderId}`,
+                    label: r.buyerName,
+                    value: t("today.pieces", { count: r.pieces }),
+                    note: r.left > 0 ? t("today.notPaidLeft", { left: zl(r.left) }) : t("today.paid"),
+                    noteRed: r.left > 0,
+                  })),
+                )}
+                {taskBox(
+                  "partial",
+                  "yellow",
+                  t("today.partial", { count: tasks.partial.length }),
+                  tasks.partial.map((p) => ({
+                    key: p.orderId,
+                    href: `/shop?view=orders&new=${p.orderId}`,
+                    label: p.buyerName,
+                    value: t("today.ofPieces", { reserved: p.reserved, count: p.pieces }),
+                    note: t("today.waitsFor", { items: p.waitsFor.map((w) => `${w.name} ${t("today.pieces", { count: w.missing })}`).join(", ") }),
+                  })),
+                )}
+                {taskBox(
+                  "unpaid",
+                  "red",
+                  t("today.unpaid", { count: tasks.unpaid.length, left: zl(tasks.unpaid.reduce((n, u) => n + u.left, 0)) }),
+                  tasks.unpaid.map((u) => ({ key: u.orderId, href: `/shop?view=orders&new=${u.orderId}`, label: u.buyerName, value: zl(u.left) })),
+                )}
+              </>
+            ),
+          },
+          {
+            key: "buy",
+            label: t("today.tabBuy"),
+            count: counts.buy,
+            urgent: counts.buyUrgent,
+            content: counts.buy === 0 ? done(t("today.allDone")) : (
+              <>
+                {taskBox(
+                  "order",
+                  "yellow",
+                  t("today.needToOrder", { count: tasks.needToOrder.length }),
+                  tasks.needToOrder.map((n) => ({ key: n.productId, href: "/shop?view=stock", label: n.name, value: t("today.pieces", { count: n.missing }), note: t("today.forWhom", { names: n.buyers.join(", ") }) })),
+                )}
+                {taskBox(
+                  "minus",
+                  "red",
+                  t("today.stockMinus", { count: tasks.stockMinus.length }),
+                  tasks.stockMinus.map((m) => ({ key: m.itemId, href: "/catalog?view=stock", label: m.name, value: t(m.unit === "units" ? "today.units" : "today.pieces", { count: m.available }) })),
+                )}
+              </>
+            ),
+          },
+        ]}
+      />
     </main>
   );
 }
