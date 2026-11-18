@@ -91,7 +91,7 @@ export async function TodayView({ clients, tasks, today }: { clients: ClientSumm
         "handover",
         "yellow",
         t("today.handOver", { count: tasks.handOver.length }),
-        tasks.handOver.map((h) => ({ key: h.orderId, href: `/shop?view=orders&new=${h.orderId}`, label: h.ready ? h.buyerName : `${h.buyerName} · ${t("today.waitsForStock")}`, value: t("today.pieces", { count: h.pieces }) })),
+        tasks.handOver.map((h) => ({ key: h.orderId, href: `/shop?view=orders&new=${h.orderId}`, label: `${h.buyerName} · ${h.ready ? t("shop.readyToHandOver") : t("today.waitsForStock")}`, value: t("today.pieces", { count: h.pieces }) })),
       )}
       {taskBox(
         "order",

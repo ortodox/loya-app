@@ -13,6 +13,8 @@ import {
   orderTotal,
   paymentState,
   waitingForStock,
+  whoWaits,
+  type WaitEntry,
   type EurRate,
   type PaymentState,
   type ShopBuyer,
@@ -273,4 +275,67 @@ export async function undoSaleToBuyer(orders: ShopOrdersRepository, orderId: str
   if (!uuid.test(orderId)) return false;
   await orders.setHandedOver(orderId, null);
   return orders.deleteOrder(orderId);
+}
+
+/** MG16 «Кто ждёт»: per product, the orders not handed over yet – put aside and still missing, oldest first. */
+export async function getWhoWaits(orders: ShopOrdersRepository): Promise<Record<string, WaitEntry[]>> {
+  const [list, buyers] = await Promise.all([orders.listOrders(), orders.listBuyers()]);
+  const names = new Map(buyers.map((b) => [b.id, b.name]));
+  return Object.fromEntries(whoWaits(list.map((o) => ({ ...o, buyerName: names.get(o.buyerId) ?? "—" }))));
+}
+
+/**
+ * MG16 «Отдать ей»: one piece for this order line – a free one when there is one, else taken from the order
+ * line Loya picked («У кого взять?»), which then waits for the next delivery.
+ */
+export async function giveToOrder(
+  shop: ShopRepository,
+  orders: ShopOrdersRepository,
+  toItemId: string,
+  fromItemId: string | null,
+  today: IsoDate,
+): Promise<boolean> {
+  if (!uuid.test(toItemId) || (fromItemId !== null && !uuid.test(fromItemId))) return false;
+  if (fromItemId) return orders.moveReservation(fromItemId, toItemId, today);
+  const order = (await orders.listOrders()).find((o) => o.items.some((i) => i.id === toItemId));
+  const item = order?.items.find((i) => i.id === toItemId);
+  if (!item || order?.handedOverOn || item.missing <= 0) return false;
+  if ((shopStock(await shop.listMovements()).get(item.productId) ?? 0) <= 0) return false;
+  return orders.reserveItem(toItemId, today);
+}
+
+/** MG16: a reserved piece goes back to free stock (to sell it to someone else); the order waits again. */
+export async function releaseReservation(orders: ShopOrdersRepository, itemId: string): Promise<boolean> {
+  if (!uuid.test(itemId)) return false;
+  return orders.releaseReservation(itemId);
+}
+
+/**
+ * MG16 «Кому отложить?»: «count» pieces came in – the ticked order lines get theirs straight away, the rest
+ * goes to stock as free.
+ */
+export async function receiveFor(
+  shop: ShopRepository,
+  orders: ShopOrdersRepository,
+  productId: string,
+  count: number,
+  picked: Record<string, number>,
+  today: IsoDate,
+): Promise<boolean> {
+  if (!uuid.test(productId) || !Number.isInteger(count) || count < 1 || count > 100) return false;
+  const entries = (await getWhoWaits(orders))[productId] ?? [];
+  let given = 0;
+  for (const [itemId, pieces] of Object.entries(picked)) {
+    const entry = entries.find((e) => e.itemId === itemId);
+    if (!entry || !Number.isInteger(pieces) || pieces < 1) continue;
+    const take = Math.min(pieces, entry.missing, count - given);
+    for (let n = 0; n < take; n++) if (await orders.giveReceiptToOrder(itemId, today)) given++;
+  }
+  const rest = count - given;
+  if (rest > 0) {
+    const product = await shop.getProduct(productId);
+    if (!product) return given > 0;
+    await shop.addMovement({ productId, happenedOn: today, kind: "receipt", quantity: rest, price: null, currency: null });
+  }
+  return true;
 }

@@ -933,7 +933,19 @@
     "whoEmpty": "Brak produktu na stanie.",
     "whoNoRate": "Kurs € nieznany – sprzedaj przez «+ Zamówienie» i wpisz cenę w zł.",
     "howMany": "Ile przyszło?",
-    "addMany": "Dodaj na stan: {count} szt."
+    "addMany": "Dodaj na stan: {count} szt.",
+    "reservedChip": "{count} odłożone",
+    "waitingChip": "{count} czeka",
+    "whoWaits": "Kto czeka",
+    "giveHer": "Daj jej",
+    "takeFromWhom": "Od kogo wziąć?",
+    "allPutAside": "Wszystko odłożone. Od kogo wziąć?",
+    "waitsNextDelivery": "Dostanie z następnej dostawy – w jej zamówieniu będzie «Do zamówienia».",
+    "whomToPutAside": "Komu odłożyć?",
+    "restToStock": "Reszta – wolna na stanie.",
+    "done": "Gotowe",
+    "putAsideFor": "Jest na stanie – odłożyć dla {buyer}?",
+    "readyToHandOver": "✓ Gotowe do wydania"
   },
   "toast": {
     "undo": "Cofnij",
@@ -946,6 +958,7 @@
     "handedBack": "Znowu czeka na wydanie",
     "paid": "Płatność {amount}",
     "undone": "Cofnięto",
-    "undoFailed": "Nie udało się cofnąć"
+    "undoFailed": "Nie udało się cofnąć",
+    "putAside": "Odłożone dla {buyer}: {name}"
   }
 }

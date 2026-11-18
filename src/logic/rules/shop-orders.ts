@@ -149,3 +149,42 @@ export function matchesBuyer(buyer: ShopBuyer, query: string): boolean {
     (digits.length >= 3 && buyer.phone.replace(/\D/g, "").includes(digits))
   );
 }
+
+/** MG16 «Кто ждёт»: one order that waits for a product – how many are put aside for it and how many are still missing. */
+export type WaitEntry = {
+  orderId: string;
+  itemId: string;
+  buyerName: string;
+  orderedOn: IsoDate;
+  paid: PaymentState["status"];
+  reserved: number;
+  missing: number;
+};
+
+/** MG16: per product, every order not handed over yet (paid or not), oldest first. */
+export function whoWaits(orders: readonly (ShopOrder & { buyerName: string })[]): Map<string, WaitEntry[]> {
+  const result = new Map<string, WaitEntry[]>();
+  const open = orders.filter((o) => !o.handedOverOn).sort((a, b) => a.orderedOn.localeCompare(b.orderedOn) || a.createdAt.localeCompare(b.createdAt));
+  for (const o of open) {
+    const paid = paymentState(orderTotal(o.items).value, o.payments).status;
+    for (const i of o.items) {
+      const entry: WaitEntry = { orderId: o.id, itemId: i.id, buyerName: o.buyerName, orderedOn: o.orderedOn, paid, reserved: i.quantity - i.missing, missing: i.missing };
+      result.set(i.productId, [...(result.get(i.productId) ?? []), entry]);
+    }
+  }
+  return result;
+}
+
+/** MG16 «Кому отложить?»: the oldest orders that wait are ticked first, as many pieces as came in. */
+export function preselect(entries: readonly WaitEntry[], count: number): Record<string, number> {
+  const picked: Record<string, number> = {};
+  let left = count;
+  for (const e of entries) {
+    if (left <= 0) break;
+    if (e.missing <= 0) continue;
+    const take = Math.min(e.missing, left);
+    picked[e.itemId] = take;
+    left -= take;
+  }
+  return picked;
+}

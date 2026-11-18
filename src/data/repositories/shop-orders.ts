@@ -27,6 +27,12 @@ export interface ShopOrdersRepository {
   deleteOrder(id: string): Promise<boolean>;
   /** MG10: one delivered piece goes to this order line (delivery +1 and the order's sale +1, missing −1). */
   giveReceiptToOrder(orderItemId: string, on: IsoDate): Promise<boolean>;
+  /** MG16: a reserved piece of an order line goes back to free stock. */
+  releaseReservation(orderItemId: string): Promise<boolean>;
+  /** MG16: a free piece is put aside for an order line that waits. */
+  reserveItem(orderItemId: string, on: IsoDate): Promise<boolean>;
+  /** MG16 «Отдать ей»: one reserved piece moves from one order line to another. */
+  moveReservation(fromItemId: string, toItemId: string, on: IsoDate): Promise<boolean>;
   /** MG11 «Оплата». */
   addPayment(orderId: string, amount: number, on: IsoDate): Promise<{ id: string }>;
   deletePayment(paymentId: string): Promise<boolean>;

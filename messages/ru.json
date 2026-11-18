@@ -933,7 +933,19 @@
     "whoEmpty": "Товара нет на складе.",
     "whoNoRate": "Курс € неизвестен – продай через «+ Заказ» и впиши цену в zł.",
     "howMany": "Сколько пришло?",
-    "addMany": "Добавить на склад: {count} шт"
+    "addMany": "Добавить на склад: {count} шт",
+    "reservedChip": "{count} отложено",
+    "waitingChip": "{count} ждёт",
+    "whoWaits": "Кто ждёт",
+    "giveHer": "Отдать ей",
+    "takeFromWhom": "У кого взять?",
+    "allPutAside": "Всё отложено. У кого взять?",
+    "waitsNextDelivery": "Она получит из следующей поставки – в её заказе будет «Нужно заказать».",
+    "whomToPutAside": "Кому отложить?",
+    "restToStock": "Остальное – свободно на складе.",
+    "done": "Готово",
+    "putAsideFor": "На складе есть – отложить для {buyer}?",
+    "readyToHandOver": "✓ Готов к выдаче"
   },
   "toast": {
     "undo": "Отменить",
@@ -946,6 +958,7 @@
     "handedBack": "Снова ждёт выдачи",
     "paid": "Оплата {amount}",
     "undone": "Отменено",
-    "undoFailed": "Отменить не получилось"
+    "undoFailed": "Отменить не получилось",
+    "putAside": "Отложено для {buyer}: {name}"
   }
 }

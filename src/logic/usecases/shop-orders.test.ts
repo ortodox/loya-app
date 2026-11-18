@@ -5,7 +5,7 @@ import type { ShopMovement, ShopProduct } from "@/logic/rules/shop";
 import { shopStock } from "@/logic/rules/shop";
 import { getShopSales } from "./shop";
 import type { ShopBuyer, ShopOrder } from "@/logic/rules/shop-orders";
-import { addPayment, cancelOrder, deletePayment, getEurRate, getOrders, getWaitingForStock, giveReceiptToOrder, saveOrder, sellToBuyer, setOrderHandedOver, setOwnEurRate, undoSaleToBuyer } from "./shop-orders";
+import { getWhoWaits, giveToOrder, receiveFor, releaseReservation, addPayment, cancelOrder, deletePayment, getEurRate, getOrders, getWaitingForStock, giveReceiptToOrder, saveOrder, sellToBuyer, setOrderHandedOver, setOwnEurRate, undoSaleToBuyer } from "./shop-orders";
 
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const today = "2026-11-11";
@@ -23,7 +23,16 @@ function setup() {
   const buyers: ShopBuyer[] = [];
   const orders: ShopOrder[] = [];
   const settings: ShopSettings = { ownEurRate: null, nbpEurRate: 4.2, nbpRateDate: "2026-11-10" };
-  const shop = { listProducts: async () => products, getProduct: async (pid: string) => products.find((p) => p.id === pid) ?? null, listMovements: async () => movements.map((m) => ({ ...m })) } as unknown as ShopRepository;
+  const shop = {
+    listProducts: async () => products,
+    getProduct: async (pid: string) => products.find((p) => p.id === pid) ?? null,
+    listMovements: async () => movements.map((m) => ({ ...m })),
+    addMovement: async (input: Omit<ShopMovement, "id" | "createdAt">) => {
+      const mid = `m${n++}`;
+      movements.push({ ...input, id: mid, createdAt: `${input.happenedOn}T15:00:${String(n).padStart(2, "0")}Z` });
+      return { id: mid };
+    },
+  } as unknown as ShopRepository;
   const repo: ShopOrdersRepository = {
     listBuyers: async () => buyers.map((b) => ({ ...b })),
     listOrders: async () => orders.map((o) => ({ ...o, items: [...o.items] })),
@@ -71,6 +80,29 @@ function setup() {
       movements.push({ id: `m${n++}`, productId: item.productId, happenedOn: on, kind: "receipt", quantity: 1, price: null, currency: null, createdAt: `${on}T13:00:${String(n).padStart(2, "0")}Z` });
       movements.push({ id: `m${n++}`, productId: item.productId, happenedOn: on, kind: "sale", quantity: 1, price: item.price, currency: "PLN", createdAt: `${on}T13:00:${String(n).padStart(2, "0")}Z`, orderItemId: itemId });
       return true;
+    },
+    async releaseReservation(itemId) {
+      const order = orders.find((o) => !o.handedOverOn && o.items.some((i) => i.id === itemId && i.missing < i.quantity));
+      if (!order) return false;
+      order.items.find((i) => i.id === itemId)!.missing += 1;
+      const k = movements.map((m) => m.orderItemId).lastIndexOf(itemId);
+      if (movements[k].quantity > 1) movements[k].quantity -= 1;
+      else movements.splice(k, 1);
+      return true;
+    },
+    async reserveItem(itemId, on) {
+      const order = orders.find((o) => !o.handedOverOn && o.items.some((i) => i.id === itemId && i.missing > 0));
+      if (!order) return false;
+      const item = order.items.find((i) => i.id === itemId)!;
+      item.missing -= 1;
+      movements.push({ id: `m${n++}`, productId: item.productId, happenedOn: on, kind: "sale", quantity: 1, price: item.price, currency: "PLN", createdAt: `${on}T14:00:${String(n).padStart(2, "0")}Z`, orderItemId: itemId });
+      return true;
+    },
+    async moveReservation(from, to, on) {
+      if (!(await this.releaseReservation(from))) return false;
+      if (await this.reserveItem(to, on)) return true;
+      await this.reserveItem(from, on);
+      return false;
     },
     async addPayment(orderId, amount, on) {
       const pid = id(n++);
@@ -237,5 +269,48 @@ describe("UX3: отменить продажу покупателю", () => {
     expect(await undoSaleToBuyer(repo, orderId!)).toBe(true);
     expect(orders).toHaveLength(0);
     expect(shopStock(movements).get(id(1))).toBe(3);
+  });
+});
+
+describe("MG16: отложенный товар – ты решаешь, кому", () => {
+  async function twoOrders() {
+    const ctx = setup();
+    // 3 × Crystal Retinal 10 in stock: Анна takes 2 (put aside), Ольга wants 2 more than there are.
+    const a = (await saveOrder(ctx.shop, ctx.repo, null, { buyerName: "Анна", items: [{ productId: id(1), quantity: "2", price: "530" }] }, "2026-11-11", null)) as { id: string };
+    const o = (await saveOrder(ctx.shop, ctx.repo, null, { buyerName: "Ольга", items: [{ productId: id(1), quantity: "2", price: "530" }] }, "2026-11-12", null)) as { id: string };
+    const anna = (await ctx.repo.getOrder(a.id))!.items[0].id;
+    const olga = (await ctx.repo.getOrder(o.id))!.items[0].id;
+    return { ...ctx, anna, olga };
+  }
+
+  it("MG16: «Кто ждёт» shows who has what put aside and who waits", async () => {
+    const { repo, anna, olga } = await twoOrders();
+    const waits = (await getWhoWaits(repo))[id(1)];
+    expect(waits.map((w) => [w.itemId, w.reserved, w.missing])).toEqual([[anna, 2, 0], [olga, 1, 1]]);
+  });
+
+  it("MG16: «Отдать ей» from another order – Анна waits again, payments untouched", async () => {
+    const { shop, repo, movements, anna, olga } = await twoOrders();
+    expect(await giveToOrder(shop, repo, olga, null, today)).toBe(false); // nothing free
+    expect(await giveToOrder(shop, repo, olga, anna, today)).toBe(true);
+    const waits = (await getWhoWaits(repo))[id(1)];
+    expect(waits.map((w) => [w.reserved, w.missing])).toEqual([[1, 1], [2, 0]]);
+    expect(shopStock(movements).get(id(1))).toBe(0);
+  });
+
+  it("MG16: a reserved piece goes back to free (to sell it), and «Отложить» gives a free piece to an order", async () => {
+    const { shop, repo, movements, anna, olga } = await twoOrders();
+    expect(await releaseReservation(repo, anna)).toBe(true);
+    expect(shopStock(movements).get(id(1))).toBe(1);
+    expect(await giveToOrder(shop, repo, olga, null, today)).toBe(true);
+    expect(shopStock(movements).get(id(1))).toBe(0);
+    expect((await getWhoWaits(repo))[id(1)].map((w) => w.missing)).toEqual([1, 0]);
+  });
+
+  it("MG16: «Кому отложить?» – the ticked orders get theirs, the rest is free in stock", async () => {
+    const { shop, repo, movements, olga } = await twoOrders();
+    expect(await receiveFor(shop, repo, id(1), 3, { [olga]: 1 }, today)).toBe(true);
+    expect((await getWhoWaits(repo))[id(1)].map((w) => w.missing)).toEqual([0, 0]);
+    expect(shopStock(movements).get(id(1))).toBe(2);
   });
 });

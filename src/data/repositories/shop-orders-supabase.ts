@@ -86,6 +86,24 @@ export function supabaseShopOrdersRepository(supabase: SupabaseClient): ShopOrde
       return data === true;
     },
 
+    async releaseReservation(orderItemId) {
+      const { data, error } = await supabase.rpc("release_shop_reservation", { p_order_item_id: orderItemId });
+      if (error) throw error;
+      return data === true;
+    },
+
+    async reserveItem(orderItemId, on) {
+      const { data, error } = await supabase.rpc("reserve_shop_item", { p_order_item_id: orderItemId, p_on: on });
+      if (error) throw error;
+      return data === true;
+    },
+
+    async moveReservation(fromItemId, toItemId, on) {
+      const { data, error } = await supabase.rpc("move_shop_reservation", { p_from_item_id: fromItemId, p_to_item_id: toItemId, p_on: on });
+      if (error) throw error;
+      return data === true;
+    },
+
     async addPayment(orderId, amount, on) {
       const { data, error } = await supabase.from("shop_payments").insert({ order_id: orderId, amount, paid_on: on }).select("id").single();
       if (error) throw error;

@@ -7,7 +7,7 @@ import { practiceTimeZone } from "@/config/time";
 import { fetchNbpEurRate } from "@/data/nbp";
 import { shopOrdersRepository, shopRepository } from "@/data/repositories/server";
 import { todayIn } from "@/logic/rules/dates";
-import { sellToBuyer, undoSaleToBuyer } from "@/logic/usecases/shop-orders";
+import { giveToOrder, receiveFor, releaseReservation, sellToBuyer, undoSaleToBuyer } from "@/logic/usecases/shop-orders";
 import { addPayment, cancelOrder, deletePayment, getEurRate, giveReceiptToOrder, saveOrder, setOrderHandedOver, setOwnEurRate, type OrderErrors, type OrderFormInput } from "@/logic/usecases/shop-orders";
 
 /** MG9: «Сохранить» a new or changed order; back to «Заказы» when saved. */
@@ -113,6 +113,39 @@ export async function sellToBuyerAction(
 export async function undoSaleToBuyerAction(orderId: string): Promise<{ ok: boolean }> {
   try {
     const ok = await undoSaleToBuyer(await shopOrdersRepository(), orderId);
+    if (ok) revalidatePath("/shop");
+    return { ok };
+  } catch {
+    return { ok: false };
+  }
+}
+
+/** MG16 «Отдать ей» (fromItemId null = a free piece) – also «Отложить» in an order. */
+export async function giveToOrderAction(toItemId: string, fromItemId: string | null): Promise<{ ok: boolean }> {
+  try {
+    const ok = await giveToOrder(await shopRepository(), await shopOrdersRepository(), toItemId, fromItemId, todayIn(practiceTimeZone));
+    if (ok) revalidatePath("/shop");
+    return { ok };
+  } catch {
+    return { ok: false };
+  }
+}
+
+/** MG16: a reserved piece back to free stock (to sell it, or «Отменить»). */
+export async function releaseReservationAction(itemId: string): Promise<{ ok: boolean }> {
+  try {
+    const ok = await releaseReservation(await shopOrdersRepository(), itemId);
+    if (ok) revalidatePath("/shop");
+    return { ok };
+  } catch {
+    return { ok: false };
+  }
+}
+
+/** MG16 «Кому отложить?» → «Готово». */
+export async function receiveForAction(productId: string, count: number, picked: Record<string, number>): Promise<{ ok: boolean }> {
+  try {
+    const ok = await receiveFor(await shopRepository(), await shopOrdersRepository(), productId, count, picked, todayIn(practiceTimeZone));
     if (ok) revalidatePath("/shop");
     return { ok };
   } catch {
