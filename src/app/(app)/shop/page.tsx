@@ -49,9 +49,9 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
           return <OrdersView {...list} rate={rate} free={free} locale={locale} today={today} highlight={created && /^[0-9a-f-]{36}$/i.test(created) ? created : null} />;
         })()
       ) : view === "sales" ? (
-        <ShopSalesView {...(await getShopSales(repo, month, today, await shopOrdersRepository()))} current={monthOf(today)} />
+        <ShopSalesView {...(await getShopSales(repo, month, today, await shopOrdersRepository()))} current={monthOf(today)} eurRate={(await getEurRate(await shopOrdersRepository(), fetchNbpEurRate)).rate?.rate ?? null} />
       ) : (
-        <ShopList mode={view} locale={locale} {...(await getShop(repo))} waits={view === "stock" ? await getWhoWaits(await shopOrdersRepository()) : {}} buyers={view === "stock" ? await listBuyers(await shopOrdersRepository()) : []} />
+        <ShopList mode={view} locale={locale} {...(await getShop(repo))} waits={view === "stock" ? await getWhoWaits(await shopOrdersRepository()) : {}} buyers={view === "stock" ? await listBuyers(await shopOrdersRepository()) : []} eurRate={(await getEurRate(await shopOrdersRepository(), fetchNbpEurRate)).rate?.rate ?? null} />
       )}
     </main>
   );

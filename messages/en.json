@@ -956,7 +956,9 @@
     "restToStock": "The rest is free in stock.",
     "done": "Done",
     "putAsideFor": "In stock – put aside for {buyer}?",
-    "readyToHandOver": "✓ Ready to hand over"
+    "readyToHandOver": "✓ Ready to hand over",
+    "approxTotal": "≈ total {amount}",
+    "catalogPrice": "catalogue {price}"
   },
   "toast": {
     "undo": "Undo",

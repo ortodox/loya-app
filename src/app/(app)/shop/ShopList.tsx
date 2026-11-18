@@ -7,20 +7,20 @@ import { card, pill, ui } from "@/app/components/ui";
 import { formatIsoDate } from "@/logic/rules/dates";
 import { matchesShopFilter, shopStockSections, type ShopMovementKind } from "@/logic/rules/shop";
 import type { ShopLine } from "@/logic/usecases/shop";
-import { matchesBuyer, preselect, type ShopBuyer, type WaitEntry } from "@/logic/rules/shop-orders";
+import { eurInZl, matchesBuyer, preselect, type ShopBuyer, type WaitEntry } from "@/logic/rules/shop-orders";
 import { giveToOrderAction, receiveForAction, releaseReservationAction, sellToBuyerAction, undoSaleToBuyerAction } from "./order-actions";
 import { useToast } from "@/app/components/Toast";
 import { deleteShopHistoryAction, tapShopAction, toggleShopFavoriteAction, undoTapAction } from "./actions";
 
 type Row = ShopLine & { free: number };
-type Props = { mode: "catalog" | "stock"; lines: ShopLine[]; brands: string[]; locale: string; waits?: Record<string, WaitEntry[]>; buyers?: ShopBuyer[] };
+type Props = { mode: "catalog" | "stock"; lines: ShopLine[]; brands: string[]; locale: string; waits?: Record<string, WaitEntry[]>; buyers?: ShopBuyer[]; eurRate?: number | null };
 
 /**
  * MG1/MG2: «Каталог» and «Склад» of «Магазин» – search, a filter per brand, ⭐ first, grouped by
  * brand and category. Catalogue: price, ⭐ and «Изменить». Stock (MG5): what is in stock first, most
  * first; «−» asks «Товар продан?» (MG6) and is off at 0 (MG7); «+» (came in); «История ▾» per product.
  */
-export function ShopList({ mode, lines, brands, locale, waits = {}, buyers = [] }: Props) {
+export function ShopList({ mode, lines, brands, locale, waits = {}, buyers = [], eurRate = null }: Props) {
   // MG16: what is put aside for orders («🔖 отложено») and what orders still wait for («⏳ ждёт»).
   const reservedOf = (id: string) => (waits[id] ?? []).reduce((s, w) => s + w.reserved, 0);
   const waitingOf = (id: string) => (waits[id] ?? []).reduce((s, w) => s + w.missing, 0);
@@ -114,6 +114,11 @@ export function ShopList({ mode, lines, brands, locale, waits = {}, buyers = [] 
       );
     });
   const freeOf = (l: Row) => l.free;
+  // MG17: Instytutum (priced in €) also in zł – «79,00 € · ≈ 340 zł», by the same rate as orders.
+  const priceText = (l: Pick<ShopLine, "price" | "currency">) => {
+    const zl = l.currency === "EUR" ? eurInZl(l.price, eurRate) : null;
+    return zl === null ? money(l.price, l.currency) : `${money(l.price, l.currency)} · ≈ ${money(zl, "PLN")}`;
+  };
   const star = (line: ShopLine) =>
     startTransition(async () => {
       addOptimistic({ id: line.id, favorite: !line.favorite });
@@ -134,7 +139,7 @@ export function ShopList({ mode, lines, brands, locale, waits = {}, buyers = [] 
         </button>
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="break-words text-base font-semibold text-ink">{l.name}</span>
-          <span className="text-sm text-muted">{[l.size, money(l.price, l.currency)].filter(Boolean).join(" · ")}</span>
+          <span className="text-sm text-muted">{[l.size, priceText(l)].filter(Boolean).join(" · ")}</span>
         </div>
         {mode === "catalog" ? (
           <Link href={`/shop/products/${l.id}/edit`} className={`${ui.textButton} shrink-0 text-sm`}>
@@ -425,7 +430,9 @@ export function ShopList({ mode, lines, brands, locale, waits = {}, buyers = [] 
           <p className="text-base">
             <span className="font-semibold">{askWho ? t("whoQuestion") : t("soldQuestion")}</span>
             <br />
-            <span className="text-muted">{selling.name}</span>
+            <span className="text-muted">
+              {selling.name} · {priceText(selling)}
+            </span>
           </p>
           {!askWho ? (
             <>

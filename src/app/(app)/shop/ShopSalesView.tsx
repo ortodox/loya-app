@@ -4,6 +4,7 @@ import { card, ui } from "@/app/components/ui";
 import { nextMonth, previousMonth } from "@/logic/rules/consumption";
 import type { ShopProduct, ShopSales } from "@/logic/rules/shop";
 import { ReturnSaleButton } from "./ReturnSaleButton";
+import { eurInZl } from "@/logic/rules/shop-orders";
 
 /** MG3 «Продажи»: a month – pieces and value per currency, per brand and product. */
 export async function ShopSalesView({
@@ -11,11 +12,13 @@ export async function ShopSalesView({
   products,
   orders,
   current,
+  eurRate = null,
 }: {
   sales: ShopSales;
   products: ShopProduct[];
   orders: Record<string, { buyerId: string; buyerName: string; handed: boolean }>;
   current: string;
+  eurRate?: number | null;
 }) {
   const t = await getTranslations("shop");
   const locale = await getLocale();
@@ -52,8 +55,12 @@ export async function ShopSalesView({
         <span className={ui.muted}>{t("sold")}</span>
         <span className="text-xl font-semibold text-ink">
           {t("pieces", { count: sales.pieces })}
-          {totals.length > 0 && ` · ${totals.join(" / ")}`}
+          {totals.length > 0 && ` · ${totals.join(" + ")}`}
         </span>
+        {/* MG17: € sales (Instytutum) also in zł – by today's rate, so «≈». */}
+        {sales.value.EUR > 0 && eurInZl(sales.value.EUR, eurRate) !== null && (
+          <span className="text-base text-ink">{t("approxTotal", { amount: money(sales.value.PLN + eurInZl(sales.value.EUR, eurRate)!, "PLN") })}</span>
+        )}
         {(sales.unpaid ?? 0) > 0 && (
           <span className="mt-2 rounded-[14px] border-2 border-on-alert bg-alert px-3 py-2 text-base font-semibold text-on-alert">💳 {t("unpaidOf", { amount: money(sales.unpaid ?? 0, "PLN") })}</span>
         )}
@@ -75,6 +82,7 @@ export async function ShopSalesView({
                     </span>
                     <span className="shrink-0 text-right text-base text-ink">
                       {t("pieces", { count: r.quantity })} · {money(r.value, r.currency)}
+                      {r.currency === "EUR" && eurInZl(r.value, eurRate) !== null && ` · ≈ ${money(eurInZl(r.value, eurRate)!, "PLN")}`}
                     </span>
                   </div>
                   {r.orderId ? (

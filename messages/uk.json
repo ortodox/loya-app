@@ -956,7 +956,9 @@
     "restToStock": "Решта – вільна на складі.",
     "done": "Готово",
     "putAsideFor": "На складі є – відкласти для {buyer}?",
-    "readyToHandOver": "✓ Готово до видачі"
+    "readyToHandOver": "✓ Готово до видачі",
+    "approxTotal": "≈ усього {amount}",
+    "catalogPrice": "каталог {price}"
   },
   "toast": {
     "undo": "Скасувати",

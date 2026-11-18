@@ -59,7 +59,7 @@ export async function setOwnEurRate(orders: ShopOrdersRepository, input: string)
 /** MG9–MG12: one order as shown – buyer, lines with product names and what is missing, total and payment in zł. */
 export type OrderView = ShopOrder & {
   buyer: ShopBuyer;
-  lines: { id: string; productId: string; name: string; size: string; brand: string; quantity: number; price: number; missing: number }[];
+  lines: { id: string; productId: string; name: string; size: string; brand: string; quantity: number; price: number; missing: number; catalogPrice: number | null; catalogCurrency: "PLN" | "EUR" | null }[];
   total: { pieces: number; value: number };
   payment: PaymentState;
   canHandOver: boolean;
@@ -81,7 +81,7 @@ export async function getOrders(
       buyer: buyerById.get(o.buyerId) ?? { id: o.buyerId, name: "—", phone: "", instagram: "" },
       lines: o.items.map((i) => {
         const p = productById.get(i.productId);
-        return { id: i.id, productId: i.productId, name: p?.name ?? "—", size: p?.size ?? "", brand: p?.brand ?? "", quantity: i.quantity, price: i.price, missing: i.missing };
+        return { id: i.id, productId: i.productId, name: p?.name ?? "—", size: p?.size ?? "", brand: p?.brand ?? "", quantity: i.quantity, price: i.price, missing: i.missing, catalogPrice: p?.price ?? null, catalogCurrency: p?.currency ?? null };
       }),
       total: orderTotal(o.items),
       payment: paymentState(orderTotal(o.items).value, o.payments),

@@ -956,7 +956,9 @@
     "restToStock": "Остальное – свободно на складе.",
     "done": "Готово",
     "putAsideFor": "На складе есть – отложить для {buyer}?",
-    "readyToHandOver": "✓ Готов к выдаче"
+    "readyToHandOver": "✓ Готов к выдаче",
+    "approxTotal": "≈ всего {amount}",
+    "catalogPrice": "каталог {price}"
   },
   "toast": {
     "undo": "Отменить",

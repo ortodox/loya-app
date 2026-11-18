@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ShopMovement } from "./shop";
 import { shopSales } from "./shop";
-import { preselect, whoWaits, canHandOver, effectiveRate, instagramHandle, matchesBuyer, orderMissing, orderPrice, orderSales, orderSections, orderTotal, paymentState, waitingForStock, type ShopOrder } from "./shop-orders";
+import { eurInZl, preselect, whoWaits, canHandOver, effectiveRate, instagramHandle, matchesBuyer, orderMissing, orderPrice, orderSales, orderSections, orderTotal, paymentState, waitingForStock, type ShopOrder } from "./shop-orders";
 
 const move = (id: string, productId: string, kind: ShopMovement["kind"], quantity: number, orderItemId: string | null = null, extra: Partial<ShopMovement> = {}): ShopMovement => ({
   id,
@@ -118,5 +118,14 @@ describe("MG16: отложенный товар", () => {
     expect(preselect(waits, 1)).toEqual({ "o1-1": 1 });
     expect(preselect(waits, 3)).toEqual({ "o1-1": 2, "o2-1": 1 });
     expect(preselect(waits, 9)).toEqual({ "o1-1": 2, "o2-1": 1 });
+  });
+});
+
+describe("MG17: Instytutum – цена в злотых", () => {
+  it("MG17: € to whole zł by the rate, the same as an order would price it; nothing without a rate", () => {
+    expect(eurInZl(78.75, 4.2836)).toBe(337);
+    expect(eurInZl(78.75, 4.2836)).toBe(orderPrice({ price: 78.75, currency: "EUR" }, { rate: 4.2836, source: "nbp", date: "2026-11-18" }));
+    expect(eurInZl(79, null)).toBeNull();
+    expect(eurInZl(79, 0)).toBeNull();
   });
 });
