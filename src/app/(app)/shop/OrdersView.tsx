@@ -16,10 +16,11 @@ type Props = {
   locale: string;
   today: string;
   highlight?: string | null;
+  free?: Record<string, number>;
 };
 
 /** MG9–MG12 «Заказы»: waiting for hand-over, handed over but not paid, done; one buyer's orders when chosen. */
-export async function OrdersView({ waiting, unpaid, done, buyer, rate, locale, today, highlight = null }: Props) {
+export async function OrdersView({ waiting, unpaid, done, buyer, rate, locale, today, highlight = null, free = {} }: Props) {
   const t = await getTranslations("shop.orders");
   const zl = (v: number) => new Intl.NumberFormat(locale, { style: "currency", currency: "PLN", currencyDisplay: "narrowSymbol", maximumFractionDigits: 2 }).format(v);
   const sum = (list: OrderView[], pick: (o: OrderView) => number) => zl(list.reduce((s, o) => s + pick(o), 0));
@@ -44,7 +45,7 @@ export async function OrdersView({ waiting, unpaid, done, buyer, rate, locale, t
         {waiting.length === 0 ? (
           <p className={`${card.surface} px-5 py-6 text-center ${ui.muted}`}>{t("noneWaiting")}</p>
         ) : (
-          waiting.map((o) => <OrderCard key={o.id} order={o} locale={locale} today={today} highlight={o.id === highlight} />)
+          waiting.map((o) => <OrderCard key={o.id} order={o} locale={locale} today={today} highlight={o.id === highlight} free={free} />)
         )}
       </section>
       {[["unpaid", unpaid] as const, ["done", done] as const].map(([key, list]) =>
@@ -54,7 +55,7 @@ export async function OrdersView({ waiting, unpaid, done, buyer, rate, locale, t
               {t(key)} ({list.length}){key === "unpaid" && ` · ${t("leftShort", { left: sum(list, (o) => o.payment.left) })}`}
             </h2>
             {list.slice(0, 50).map((o) => (
-              <OrderCard key={o.id} order={o} locale={locale} today={today} highlight={o.id === highlight} />
+              <OrderCard key={o.id} order={o} locale={locale} today={today} highlight={o.id === highlight} free={free} />
             ))}
           </section>
         ) : null,

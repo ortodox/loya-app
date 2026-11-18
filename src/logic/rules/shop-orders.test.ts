@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ShopMovement } from "./shop";
 import { shopSales } from "./shop";
-import { canHandOver, effectiveRate, instagramHandle, matchesBuyer, orderMissing, orderPrice, orderSales, orderSections, orderTotal, paymentState, waitingForStock, type ShopOrder } from "./shop-orders";
+import { preselect, whoWaits, canHandOver, effectiveRate, instagramHandle, matchesBuyer, orderMissing, orderPrice, orderSales, orderSections, orderTotal, paymentState, waitingForStock, type ShopOrder } from "./shop-orders";
 
 const move = (id: string, productId: string, kind: ShopMovement["kind"], quantity: number, orderItemId: string | null = null, extra: Partial<ShopMovement> = {}): ShopMovement => ({
   id,
@@ -95,5 +95,28 @@ describe("MG11/MG12: оплата и выдача", () => {
     expect(canHandOver(order("x", "2026-11-01", 0))).toBe(true);
     const waiting = waitingForStock([order("o2", "2026-11-10", 1), order("o1", "2026-11-02", 2), order("o3", "2026-11-01", 0), order("o4", "2026-11-01", 1, "2026-11-03")]);
     expect(waiting.get("a")?.map((w) => [w.orderId, w.missing])).toEqual([["o1", 2], ["o2", 1]]);
+  });
+});
+
+describe("MG16: отложенный товар", () => {
+  const order = (id: string, orderedOn: string, quantity: number, missing: number, paid: number[] = [], handedOverOn: string | null = null) => ({
+    id, buyerId: "b", buyerName: `Покупатель ${id}`, orderedOn, eurRate: null, rateSource: null, handedOverOn, createdAt: `${orderedOn}T10:00:00Z`,
+    items: [{ id: `${id}-1`, productId: "a", quantity, price: 100, missing }],
+    payments: paid.map((amount, n) => ({ id: `${id}-p${n}`, amount, paidOn: orderedOn })),
+  });
+
+  it("MG16: «Кто ждёт» – every open order, paid or not, oldest first, put aside and missing", () => {
+    const waits = whoWaits([order("o2", "2026-11-15", 1, 1), order("o1", "2026-11-11", 2, 0, [200]), order("o3", "2026-11-01", 1, 0, [], "2026-11-02")]);
+    expect(waits.get("a")?.map((w) => [w.orderId, w.paid, w.reserved, w.missing])).toEqual([
+      ["o1", "paid", 2, 0],
+      ["o2", "unpaid", 0, 1],
+    ]);
+  });
+
+  it("MG16: «Кому отложить?» – the oldest waiting are ticked first, as many as came in", () => {
+    const waits = whoWaits([order("o1", "2026-11-11", 2, 2), order("o2", "2026-11-12", 1, 1), order("o3", "2026-11-13", 1, 0)]).get("a")!;
+    expect(preselect(waits, 1)).toEqual({ "o1-1": 1 });
+    expect(preselect(waits, 3)).toEqual({ "o1-1": 2, "o2-1": 1 });
+    expect(preselect(waits, 9)).toEqual({ "o1-1": 2, "o2-1": 1 });
   });
 });

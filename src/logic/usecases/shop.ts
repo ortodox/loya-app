@@ -140,3 +140,8 @@ export async function saveShopProduct(
   if (!uuid.test(id) || !(await repo.updateProduct(id, input))) return { ok: false, notFound: true };
   return { ok: true, id };
 }
+
+/** MG16: what is free (not put aside for an order) per product – for «На складе есть – отложить?». */
+export async function getFreeStock(repo: ShopRepository): Promise<Record<string, number>> {
+  return Object.fromEntries(shopStock(await repo.listMovements()));
+}

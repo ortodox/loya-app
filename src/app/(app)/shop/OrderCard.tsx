@@ -6,12 +6,12 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { card, ui } from "@/app/components/ui";
 import { formatIsoDate } from "@/logic/rules/dates";
 import type { OrderView } from "@/logic/usecases/shop-orders";
-import { addPaymentAction, deletePaymentAction, handOverOrderAction } from "./order-actions";
+import { addPaymentAction, deletePaymentAction, giveToOrderAction, handOverOrderAction } from "./order-actions";
 import { BuyerContacts } from "./BuyerContacts";
 import { useToast } from "@/app/components/Toast";
 
 /** MG9/MG12: one order – buyer, all products together, total in zł, «Выдан ✓» / «Изменить». */
-export function OrderCard({ order, locale, today, highlight = false }: { order: OrderView; locale: string; today: string; highlight?: boolean }) {
+export function OrderCard({ order, locale, today, highlight = false, free = {} }: { order: OrderView; locale: string; today: string; highlight?: boolean; free?: Record<string, number> }) {
   const t = useTranslations("shop.orders");
   const [pending, startTransition] = useTransition();
   const [failed, setFailed] = useState(false);
@@ -33,6 +33,7 @@ export function OrderCard({ order, locale, today, highlight = false }: { order: 
         : "border border-line";
   const badge = "inline-flex min-h-8 items-center rounded-full px-3 text-sm font-semibold";
   const zl = (v: number) => new Intl.NumberFormat(locale, { style: "currency", currency: "PLN", currencyDisplay: "narrowSymbol", maximumFractionDigits: 2 }).format(v);
+  const ts = useTranslations("shop");
   const toast = useToast();
   const tt = useTranslations("toast");
   const undo = async (run: () => Promise<{ ok: boolean }>) => toast(tt((await run()).ok ? "undone" : "undoFailed"));
@@ -78,6 +79,22 @@ export function OrderCard({ order, locale, today, highlight = false }: { order: 
             <span className="shrink-0 text-right text-ink">
               {t("pieces", { count: l.quantity })} · {zl(l.price * l.quantity)}
               {l.missing > 0 && <span className="mt-1 block rounded-[10px] border-2 border-warn-line bg-warn px-2 py-0.5 text-sm font-semibold text-on-warn">{t("needToOrder", { count: l.missing })}</span>}
+              {/* MG16: a free piece is in stock – put it aside for this buyer with one tap. */}
+              {l.missing > 0 && !order.handedOverOn && (free[l.productId] ?? 0) > 0 && (
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() =>
+                    startTransition(async () => {
+                      const { ok } = await giveToOrderAction(l.id, null);
+                      toast(ok ? tt("putAside", { name: l.name, buyer: order.buyer.name }) : ts("failed"));
+                    })
+                  }
+                  className="mt-1 block min-h-11 rounded-[10px] bg-primary px-3 text-left text-sm font-semibold text-on-primary"
+                >
+                  {ts("putAsideFor", { buyer: order.buyer.name })}
+                </button>
+              )}
             </span>
           </li>
         ))}

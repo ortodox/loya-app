@@ -933,7 +933,19 @@
     "whoEmpty": "Not in stock.",
     "whoNoRate": "€ rate unknown – sell via «+ Order» and enter the price in zł.",
     "howMany": "How many came in?",
-    "addMany": "Add to stock: {count} pcs"
+    "addMany": "Add to stock: {count} pcs",
+    "reservedChip": "{count} put aside",
+    "waitingChip": "{count} waiting",
+    "whoWaits": "Who is waiting",
+    "giveHer": "Give to her",
+    "takeFromWhom": "Take from whom?",
+    "allPutAside": "All put aside. Take from whom?",
+    "waitsNextDelivery": "She gets one from the next delivery – her order will say «To order».",
+    "whomToPutAside": "Put aside for whom?",
+    "restToStock": "The rest is free in stock.",
+    "done": "Done",
+    "putAsideFor": "In stock – put aside for {buyer}?",
+    "readyToHandOver": "✓ Ready to hand over"
   },
   "toast": {
     "undo": "Undo",
@@ -946,6 +958,7 @@
     "handedBack": "Waiting again",
     "paid": "Payment {amount}",
     "undone": "Undone",
-    "undoFailed": "Could not undo"
+    "undoFailed": "Could not undo",
+    "putAside": "Put aside for {buyer}: {name}"
   }
 }

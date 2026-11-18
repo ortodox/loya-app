@@ -6,10 +6,10 @@ import { practiceTimeZone } from "@/config/time";
 import { shopRepository } from "@/data/repositories/server";
 import { monthOf } from "@/logic/rules/consumption";
 import { todayIn } from "@/logic/rules/dates";
-import { getShop, getShopSales } from "@/logic/usecases/shop";
+import { getFreeStock, getShop, getShopSales } from "@/logic/usecases/shop";
 import { fetchNbpEurRate } from "@/data/nbp";
 import { shopOrdersRepository } from "@/data/repositories/server";
-import { getEurRate, getOrders, getWaitingForStock, listBuyers } from "@/logic/usecases/shop-orders";
+import { getEurRate, getOrders, getWhoWaits, listBuyers } from "@/logic/usecases/shop-orders";
 import { OrdersView } from "./OrdersView";
 import { ShopList } from "./ShopList";
 import { ShopSalesView } from "./ShopSalesView";
@@ -45,13 +45,13 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
       {view === "orders" ? (
         await (async () => {
           const orders = await shopOrdersRepository();
-          const [list, rate] = await Promise.all([getOrders(repo, orders, buyer && /^[0-9a-f-]{36}$/i.test(buyer) ? buyer : null), getEurRate(orders, fetchNbpEurRate)]);
-          return <OrdersView {...list} rate={rate} locale={locale} today={today} highlight={created && /^[0-9a-f-]{36}$/i.test(created) ? created : null} />;
+          const [list, rate, free] = await Promise.all([getOrders(repo, orders, buyer && /^[0-9a-f-]{36}$/i.test(buyer) ? buyer : null), getEurRate(orders, fetchNbpEurRate), getFreeStock(repo)]);
+          return <OrdersView {...list} rate={rate} free={free} locale={locale} today={today} highlight={created && /^[0-9a-f-]{36}$/i.test(created) ? created : null} />;
         })()
       ) : view === "sales" ? (
         <ShopSalesView {...(await getShopSales(repo, month, today, await shopOrdersRepository()))} current={monthOf(today)} />
       ) : (
-        <ShopList mode={view} locale={locale} {...(await getShop(repo))} waiting={view === "stock" ? await getWaitingForStock(await shopOrdersRepository()) : {}} buyers={view === "stock" ? await listBuyers(await shopOrdersRepository()) : []} />
+        <ShopList mode={view} locale={locale} {...(await getShop(repo))} waits={view === "stock" ? await getWhoWaits(await shopOrdersRepository()) : {}} buyers={view === "stock" ? await listBuyers(await shopOrdersRepository()) : []} />
       )}
     </main>
   );
