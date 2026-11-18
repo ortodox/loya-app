@@ -956,7 +956,9 @@
     "restToStock": "Reszta – wolna na stanie.",
     "done": "Gotowe",
     "putAsideFor": "Jest na stanie – odłożyć dla {buyer}?",
-    "readyToHandOver": "✓ Gotowe do wydania"
+    "readyToHandOver": "✓ Gotowe do wydania",
+    "approxTotal": "≈ razem {amount}",
+    "catalogPrice": "katalog {price}"
   },
   "toast": {
     "undo": "Cofnij",

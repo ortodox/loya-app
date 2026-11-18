@@ -78,6 +78,12 @@ export function OrderCard({ order, locale, today, highlight = false, free = {} }
             </span>
             <span className="shrink-0 text-right text-ink">
               {t("pieces", { count: l.quantity })} · {zl(l.price * l.quantity)}
+              {/* MG17: Instytutum – the catalogue price in € next to the zł price of the order. */}
+              {l.catalogCurrency === "EUR" && l.catalogPrice !== null && (
+                <span className="block text-sm text-muted">
+                  {ts("catalogPrice", { price: new Intl.NumberFormat(locale, { style: "currency", currency: "EUR", currencyDisplay: "narrowSymbol", maximumFractionDigits: 2 }).format(l.catalogPrice) })}
+                </span>
+              )}
               {l.missing > 0 && <span className="mt-1 block rounded-[10px] border-2 border-warn-line bg-warn px-2 py-0.5 text-sm font-semibold text-on-warn">{t("needToOrder", { count: l.missing })}</span>}
               {/* MG16: a free piece is in stock – put it aside for this buyer with one tap. */}
               {l.missing > 0 && !order.handedOverOn && (free[l.productId] ?? 0) > 0 && (

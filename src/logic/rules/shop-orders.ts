@@ -188,3 +188,8 @@ export function preselect(entries: readonly WaitEntry[], count: number): Record<
   }
   return picked;
 }
+
+/** MG17: a € amount in zł by the € rate, rounded to whole zł (as an order would price it); null without a rate. */
+export function eurInZl(eur: number, rate: number | null): number | null {
+  return rate && rate > 0 ? Math.round(eur * rate) : null;
+}
