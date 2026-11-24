@@ -838,13 +838,16 @@
     "category": "Kategoria",
     "size": "Pojemność",
     "price": "Cena sprzedaży",
+    "purchasePrice": "Cena zakupu",
+    "purchasePriceHint": "W walucie produktu. Widzisz tylko ty. Można zostawić puste.",
     "currency": "Waluta",
     "hide": "Ukryj produkt (już nie sprzedaję)",
     "errors": {
       "name": "Podaj nazwę.",
       "brand": "Podaj firmę.",
       "price": "Sprawdź cenę: liczba od 0.",
-      "currency": "Wybierz walutę."
+      "currency": "Wybierz walutę.",
+      "purchasePrice": "Sprawdź cenę zakupu: liczba od 0 lub puste."
     },
     "inStock": "Na stanie",
     "soldQuestion": "Produkt sprzedany?",
@@ -958,7 +961,10 @@
     "putAsideFor": "Jest na stanie – odłożyć dla {buyer}?",
     "readyToHandOver": "✓ Gotowe do wydania",
     "approxTotal": "≈ razem {amount}",
-    "catalogPrice": "katalog {price}"
+    "catalogPrice": "katalog {price}",
+    "receivedToday": "✓ +{count} dzisiaj",
+    "countLess": "Mniej",
+    "countMore": "Więcej"
   },
   "toast": {
     "undo": "Cofnij",

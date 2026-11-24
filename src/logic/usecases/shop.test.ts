@@ -136,6 +136,17 @@ describe("MG3/MG4/MG1: продажи, избранное, товар", () => {
     expect(await saveShopProduct(repo, id(1), { brand: "Medik8", name: "C-Tetra", price: "240", currency: "PLN", hidden: "on" })).toEqual({ ok: true, id: id(1) });
     expect(products[0]).toMatchObject({ price: 240, active: false });
   });
+
+  it("MG19: «Закупочная цена» – empty is allowed, otherwise a number from 0", async () => {
+    const { repo, products } = setup();
+    const base = { brand: "Medik8", name: "C-Tetra", price: "240", currency: "PLN" };
+    expect(await saveShopProduct(repo, id(1), { ...base, purchasePrice: "" })).toEqual({ ok: true, id: id(1) });
+    expect(products[0].purchasePrice).toBeNull();
+    expect(await saveShopProduct(repo, id(1), { ...base, purchasePrice: "147,47" })).toEqual({ ok: true, id: id(1) });
+    expect(products[0].purchasePrice).toBe(147.47);
+    expect(await saveShopProduct(repo, id(1), { ...base, purchasePrice: "-1" })).toEqual({ ok: false, errors: { purchasePrice: "invalid" } });
+    expect(await saveShopProduct(repo, id(1), { ...base, purchasePrice: "abc" })).toEqual({ ok: false, errors: { purchasePrice: "invalid" } });
+  });
 });
 
 describe("MG13: исправить продажу", () => {

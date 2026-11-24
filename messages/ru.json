@@ -838,13 +838,16 @@
     "category": "Категория",
     "size": "Объём",
     "price": "Цена продажи",
+    "purchasePrice": "Закупочная цена",
+    "purchasePriceHint": "В валюте товара. Видишь только ты. Можно оставить пустым.",
     "currency": "Валюта",
     "hide": "Скрыть товар (больше не продаю)",
     "errors": {
       "name": "Укажи название.",
       "brand": "Укажи фирму.",
       "price": "Проверь цену: число от 0.",
-      "currency": "Выбери валюту."
+      "currency": "Выбери валюту.",
+      "purchasePrice": "Проверь закупочную цену: число от 0 или пусто."
     },
     "inStock": "В наличии",
     "soldQuestion": "Товар продан?",
@@ -958,7 +961,10 @@
     "putAsideFor": "На складе есть – отложить для {buyer}?",
     "readyToHandOver": "✓ Готов к выдаче",
     "approxTotal": "≈ всего {amount}",
-    "catalogPrice": "каталог {price}"
+    "catalogPrice": "каталог {price}",
+    "receivedToday": "✓ +{count} сегодня",
+    "countLess": "Меньше",
+    "countMore": "Больше"
   },
   "toast": {
     "undo": "Отменить",

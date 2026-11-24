@@ -61,7 +61,7 @@ export type ShopProductState = { values: ShopProductForm; errors?: ShopProductEr
 /** MG1: «+ Товар» / «Изменить». */
 export async function saveShopProductAction(id: string | null, _: ShopProductState, fd: FormData): Promise<ShopProductState> {
   const values: ShopProductForm = Object.fromEntries(
-    (["brand", "category", "name", "size", "currency", "price", "favorite", "hidden"] as const).map((k) => [k, str(fd.get(k))]),
+    (["brand", "category", "name", "size", "currency", "price", "purchasePrice", "favorite", "hidden"] as const).map((k) => [k, str(fd.get(k))]),
   );
   let result;
   try {

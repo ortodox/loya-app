@@ -9,7 +9,7 @@ import type { ShopProductState } from "./actions";
 
 type Props = { title: string; initial: FormValues; brands: string[]; action: (s: ShopProductState, fd: FormData) => Promise<ShopProductState> };
 
-/** MG1 «+ Товар» / «Изменить»: brand, category, name, size, price (Loya's own) and currency; ⭐ and hide. */
+/** MG1 «+ Товар» / «Изменить»: brand, category, name, size, price (Loya's own) and currency; MG19 «Закупочная цена» (optional, only Loya sees it); ⭐ and hide. */
 export function ShopProductForm({ title, initial, brands, action }: Props) {
   const t = useTranslations();
   const [state, formAction, pending] = useActionState(action, { values: initial });
@@ -59,6 +59,12 @@ export function ShopProductForm({ title, initial, brands, action }: Props) {
           </label>
         </div>
         {error("price")}
+        <label className="flex flex-col gap-2">
+          <span className={card.label}>{t("shop.purchasePrice")}</span>
+          <input name="purchasePrice" inputMode="decimal" defaultValue={v.purchasePrice} placeholder="—" className={ui.input} />
+          <span className="text-sm text-muted">{t("shop.purchasePriceHint")}</span>
+        </label>
+        {error("purchasePrice")}
         {error("currency")}
         <label className="flex min-h-11 items-center gap-3 text-base text-ink">
           <input type="checkbox" name="favorite" defaultChecked={v.favorite === "on"} className="size-5 accent-[var(--accent)]" />

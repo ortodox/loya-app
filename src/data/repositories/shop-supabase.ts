@@ -10,6 +10,7 @@ type ProductRow = {
   size: string;
   currency: "PLN" | "EUR";
   price: number | string;
+  purchase_price: number | string | null;
   favorite: boolean;
   active: boolean;
   sort_order: number;
@@ -28,7 +29,7 @@ type MovementRow = {
   returned_at: string | null;
 };
 
-const productColumns = "id, brand, category, name, size, currency, price, favorite, active, sort_order";
+const productColumns = "id, brand, category, name, size, currency, price, purchase_price, favorite, active, sort_order";
 const toProduct = (r: ProductRow): ShopProduct => ({
   id: r.id,
   brand: r.brand,
@@ -37,6 +38,7 @@ const toProduct = (r: ProductRow): ShopProduct => ({
   size: r.size,
   currency: r.currency,
   price: Number(r.price),
+  purchasePrice: r.purchase_price === null ? null : Number(r.purchase_price),
   favorite: r.favorite,
   active: r.active,
   sortOrder: r.sort_order,
@@ -48,6 +50,7 @@ const toRow = (i: ShopProductInput) => ({
   size: i.size,
   currency: i.currency,
   price: i.price,
+  purchase_price: i.purchasePrice ?? null,
   favorite: i.favorite,
   active: i.active,
 });

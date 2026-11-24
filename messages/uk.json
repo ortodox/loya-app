@@ -838,13 +838,16 @@
     "category": "Категорія",
     "size": "Об'єм",
     "price": "Ціна продажу",
+    "purchasePrice": "Закупівельна ціна",
+    "purchasePriceHint": "У валюті товару. Бачиш лише ти. Можна залишити порожнім.",
     "currency": "Валюта",
     "hide": "Приховати товар (більше не продаю)",
     "errors": {
       "name": "Вкажи назву.",
       "brand": "Вкажи фірму.",
       "price": "Перевір ціну: число від 0.",
-      "currency": "Обери валюту."
+      "currency": "Обери валюту.",
+      "purchasePrice": "Перевір закупівельну ціну: число від 0 або порожньо."
     },
     "inStock": "У наявності",
     "soldQuestion": "Товар продано?",
@@ -958,7 +961,10 @@
     "putAsideFor": "На складі є – відкласти для {buyer}?",
     "readyToHandOver": "✓ Готово до видачі",
     "approxTotal": "≈ усього {amount}",
-    "catalogPrice": "каталог {price}"
+    "catalogPrice": "каталог {price}",
+    "receivedToday": "✓ +{count} сьогодні",
+    "countLess": "Менше",
+    "countMore": "Більше"
   },
   "toast": {
     "undo": "Скасувати",
