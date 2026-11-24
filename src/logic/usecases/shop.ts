@@ -107,8 +107,8 @@ export async function returnShopSale(repo: ShopRepository, productId: string, mo
   return repo.markReturned(sale.id, today);
 }
 
-export type ShopProductForm = { brand?: string; category?: string; name?: string; size?: string; currency?: string; price?: string; favorite?: string; hidden?: string };
-export type ShopProductErrors = Partial<Record<"brand" | "name" | "price" | "currency", "required" | "invalid">>;
+export type ShopProductForm = { brand?: string; category?: string; name?: string; size?: string; currency?: string; price?: string; purchasePrice?: string; favorite?: string; hidden?: string };
+export type ShopProductErrors = Partial<Record<"brand" | "name" | "price" | "purchasePrice" | "currency", "required" | "invalid">>;
 
 /** MG1 «+ Товар» / «Изменить»: name and brand required; the price is Loya's own (≥ 0). */
 export async function saveShopProduct(
@@ -120,6 +120,10 @@ export async function saveShopProduct(
   const brand = (form.brand ?? "").trim().slice(0, 80);
   const name = (form.name ?? "").trim().slice(0, 200);
   const price = Number((form.price ?? "").trim().replace(",", ".").replace(/\s/g, ""));
+  // MG19: «Закупочная цена» may stay empty; filled in, it is a number from 0.
+  const purchaseText = (form.purchasePrice ?? "").trim();
+  const purchase = Number(purchaseText.replace(",", ".").replace(/\s/g, ""));
+  if (purchaseText !== "" && (!Number.isFinite(purchase) || purchase < 0 || purchase > 1_000_000)) errors.purchasePrice = "invalid";
   const currency = form.currency === "EUR" ? "EUR" : form.currency === "PLN" ? "PLN" : null;
   if (!brand) errors.brand = "required";
   if (!name) errors.name = "required";
@@ -133,6 +137,7 @@ export async function saveShopProduct(
     size: (form.size ?? "").trim().slice(0, 40),
     currency: currency!,
     price: Math.round(price * 100) / 100,
+    purchasePrice: purchaseText === "" ? null : Math.round(purchase * 100) / 100,
     favorite: form.favorite === "on",
     active: form.hidden !== "on",
   };

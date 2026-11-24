@@ -23,6 +23,7 @@ export default async function EditShopProductPage({ params }: { params: Promise<
           category: product.category,
           size: product.size,
           price: String(product.price).replace(".", ","),
+          purchasePrice: product.purchasePrice == null ? "" : String(product.purchasePrice).replace(".", ","),
           currency: product.currency,
           favorite: product.favorite ? "on" : "",
           hidden: product.active ? "" : "on",

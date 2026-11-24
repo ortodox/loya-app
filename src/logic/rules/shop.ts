@@ -9,6 +9,8 @@ export type ShopProduct = {
   size: string;
   currency: "PLN" | "EUR";
   price: number;
+  /** MG19 «Закупочная цена» – in the product's currency; null = not filled in yet. Only Loya sees it. */
+  purchasePrice?: number | null;
   favorite: boolean;
   active: boolean;
   sortOrder: number;
@@ -133,12 +135,22 @@ export function sortShopProducts<T extends ShopProduct>(products: readonly T[]):
  * MG5 «Склад»: first one list of what is in stock – most first, then brand and name; below it ⭐ (not in
  * stock), then the rest in the catalogue order.
  */
-export function shopStockSections<T extends ShopProduct & { stock: number }>(lines: readonly T[]): { inStock: T[]; favorites: T[]; rest: T[] } {
+export function shopStockSections<T extends ShopProduct & { stock: number }>(
+  lines: readonly T[],
+  placedBy?: ReadonlyMap<string, number>,
+): { inStock: T[]; favorites: T[]; rest: T[] } {
+  // MG18: while Loya is on the page, a product keeps its place – placed by the stock it had when she opened it.
+  const placed = (l: T) => placedBy?.get(l.id) ?? l.stock;
   const inStock = lines
-    .filter((l) => l.stock > 0)
-    .sort((a, b) => b.stock - a.stock || a.brand.localeCompare(b.brand) || a.name.localeCompare(b.name));
-  const others = lines.filter((l) => l.stock <= 0);
+    .filter((l) => placed(l) > 0)
+    .sort((a, b) => placed(b) - placed(a) || a.brand.localeCompare(b.brand) || a.name.localeCompare(b.name));
+  const others = lines.filter((l) => placed(l) <= 0);
   return { inStock, favorites: others.filter((l) => l.favorite), rest: others.filter((l) => !l.favorite) };
+}
+
+/** MG18: what came in on this day – «✓ +4 сегодня» (deliveries, also those given to an order). */
+export function receivedOn(history: readonly ShopHistoryLine[], date: IsoDate): number {
+  return history.filter((h) => h.date === date && h.kind === "receipt").reduce((s, h) => s + h.quantity, 0);
 }
 
 /** MG1: search in name, size, category and brand; brand filter («Все» = null). */

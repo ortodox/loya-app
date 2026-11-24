@@ -838,13 +838,16 @@
     "category": "Category",
     "size": "Size",
     "price": "Selling price",
+    "purchasePrice": "Purchase price",
+    "purchasePriceHint": "In the product currency. Only you see it. Can be left empty.",
     "currency": "Currency",
     "hide": "Hide product (no longer sold)",
     "errors": {
       "name": "Enter a name.",
       "brand": "Enter a brand.",
       "price": "Check the price: a number from 0.",
-      "currency": "Choose a currency."
+      "currency": "Choose a currency.",
+      "purchasePrice": "Check the purchase price: a number from 0 or empty."
     },
     "inStock": "In stock",
     "soldQuestion": "Was it sold?",
@@ -958,7 +961,10 @@
     "putAsideFor": "In stock – put aside for {buyer}?",
     "readyToHandOver": "✓ Ready to hand over",
     "approxTotal": "≈ total {amount}",
-    "catalogPrice": "catalogue {price}"
+    "catalogPrice": "catalogue {price}",
+    "receivedToday": "✓ +{count} today",
+    "countLess": "Fewer",
+    "countMore": "More"
   },
   "toast": {
     "undo": "Undo",

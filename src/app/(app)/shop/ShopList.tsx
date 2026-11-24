@@ -5,25 +5,28 @@ import Link from "next/link";
 import { useMemo, useOptimistic, useRef, useState, useTransition } from "react";
 import { card, pill, ui } from "@/app/components/ui";
 import { formatIsoDate } from "@/logic/rules/dates";
-import { matchesShopFilter, shopStockSections, type ShopMovementKind } from "@/logic/rules/shop";
+import { matchesShopFilter, receivedOn, shopStockSections, type ShopMovementKind } from "@/logic/rules/shop";
 import type { ShopLine } from "@/logic/usecases/shop";
 import { eurInZl, matchesBuyer, preselect, type ShopBuyer, type WaitEntry } from "@/logic/rules/shop-orders";
 import { giveToOrderAction, receiveForAction, releaseReservationAction, sellToBuyerAction, undoSaleToBuyerAction } from "./order-actions";
 import { useToast } from "@/app/components/Toast";
 import { deleteShopHistoryAction, tapShopAction, toggleShopFavoriteAction, undoTapAction } from "./actions";
 
-type Row = ShopLine & { free: number };
-type Props = { mode: "catalog" | "stock"; lines: ShopLine[]; brands: string[]; locale: string; waits?: Record<string, WaitEntry[]>; buyers?: ShopBuyer[]; eurRate?: number | null };
+type Row = ShopLine & { free: number; receivedToday: number };
+type Props = { mode: "catalog" | "stock"; lines: ShopLine[]; brands: string[]; locale: string; today: string; waits?: Record<string, WaitEntry[]>; buyers?: ShopBuyer[]; eurRate?: number | null };
 
 /**
  * MG1/MG2: «Каталог» and «Склад» of «Магазин» – search, a filter per brand, ⭐ first, grouped by
  * brand and category. Catalogue: price, ⭐ and «Изменить». Stock (MG5): what is in stock first, most
- * first; «−» asks «Товар продан?» (MG6) and is off at 0 (MG7); «+» (came in); «История ▾» per product.
+ * first; «−» asks «Товар продан?» (MG6) and is off at 0 (MG7); «+» asks «Сколько пришло?» (MG18) and the
+ * product keeps its place while Loya is on the page, with «✓ +N сегодня»; «История ▾» per product.
  */
-export function ShopList({ mode, lines, brands, locale, waits = {}, buyers = [], eurRate = null }: Props) {
+export function ShopList({ mode, lines: serverLines, brands, locale, today, waits = {}, buyers = [], eurRate = null }: Props) {
   // MG16: what is put aside for orders («🔖 отложено») and what orders still wait for («⏳ ждёт»).
   const reservedOf = (id: string) => (waits[id] ?? []).reduce((s, w) => s + w.reserved, 0);
   const waitingOf = (id: string) => (waits[id] ?? []).reduce((s, w) => s + w.missing, 0);
+  // MG18: «✓ +4 сегодня» – what came in today, so Loya sees what she has already put in.
+  const lines = useMemo(() => serverLines.map((l) => ({ ...l, receivedToday: receivedOn(l.history, today) })), [serverLines, today]);
   const [whoOpen, setWhoOpen] = useState<string | null>(null);
   // MG16: «Отдать ей» without a free piece → «У кого взять?»; «−» when all is put aside → the same question.
   const [takeFrom, setTakeFrom] = useState<{ line: ShopLine; to: WaitEntry | null } | null>(null);
@@ -68,14 +71,31 @@ export function ShopList({ mode, lines, brands, locale, waits = {}, buyers = [],
     const { ok } = await run();
     toast(tt(ok ? "undone" : "undoFailed"));
   };
-  // UX6: a long press on «+» asks «Сколько пришло?».
+  // MG18: «+» always asks «Сколько пришло?» (1 to begin with).
   const [receivingMany, setReceivingMany] = useState<ShopLine | null>(null);
-  const [many, setMany] = useState("2");
-  const press = useRef<{ timer: ReturnType<typeof setTimeout> | null; long: boolean }>({ timer: null, long: false });
+  const [many, setMany] = useState("1");
   const [pending, startTransition] = useTransition();
   // MG2: a tap shows at once; the server's number replaces it when saved.
-  const [optimistic, addOptimistic] = useOptimistic(lines, (state, change: { id: string; delta?: number; favorite?: boolean }) =>
-    state.map((l) => (l.id === change.id ? { ...l, stock: l.stock + (change.delta ?? 0), favorite: change.favorite ?? l.favorite } : l)),
+  const [optimistic, addOptimistic] = useOptimistic(lines, (state, change: { id: string; delta?: number; received?: number; favorite?: boolean }) =>
+    state.map((l) =>
+      l.id === change.id
+        ? { ...l, stock: l.stock + (change.delta ?? 0), receivedToday: l.receivedToday + (change.received ?? 0), favorite: change.favorite ?? l.favorite }
+        : l,
+    ),
+  );
+  // MG18: where each product stood when the page was opened – it stays there until «Склад» is opened again.
+  const [placedBy] = useState(() => new Map(serverLines.map((l) => [l.id, Math.max(0, l.stock) + reservedOf(l.id)])));
+  const validCount = (s: string) => Number.isInteger(Number(s)) && Number(s) >= 1 && Number(s) <= 100;
+  const counter = (value: string, onChange: (next: string) => void) => (
+    <div className="flex items-center gap-2">
+      <button type="button" onClick={() => onChange(String(Math.max(1, (Number(value) || 1) - 1)))} aria-label={t("countLess")} className="flex size-11 shrink-0 items-center justify-center rounded-full border border-field text-xl text-ink">
+        −
+      </button>
+      <input value={value} onChange={(e) => onChange(e.target.value)} onFocus={(e) => e.target.select()} inputMode="numeric" aria-label={t("howMany")} className={`${ui.input} text-center text-lg font-semibold tabular-nums`} />
+      <button type="button" onClick={() => onChange(String(Math.min(100, (Number(value) || 0) + 1)))} aria-label={t("countMore")} className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-xl text-on-primary">
+        +
+      </button>
+    </div>
   );
   const money = (value: number, currency: string) => new Intl.NumberFormat(locale, { style: "currency", currency, currencyDisplay: "narrowSymbol", maximumFractionDigits: 2 }).format(value);
 
@@ -84,7 +104,7 @@ export function ShopList({ mode, lines, brands, locale, waits = {}, buyers = [],
   // MG5: in «Склад» one list of what is in stock comes first; the catalogue keeps ⭐ first.
   // «stock» becomes what lies in the cabinet (sorting, the big number); «free» is what can be sold without asking.
   const withAside = shown.map((l) => ({ ...l, free: Math.max(0, l.stock), stock: Math.max(0, l.stock) + reservedOf(l.id) }));
-  const sections = mode === "stock" ? shopStockSections(withAside) : { inStock: [], favorites: withAside.filter((l) => l.favorite), rest: withAside.filter((l) => !l.favorite) };
+  const sections = mode === "stock" ? shopStockSections(withAside, placedBy) : { inStock: [], favorites: withAside.filter((l) => l.favorite), rest: withAside.filter((l) => !l.favorite) };
   const favorites = sections.favorites;
   const groups = new Map<string, Row[]>();
   for (const l of sections.rest) {
@@ -94,7 +114,7 @@ export function ShopList({ mode, lines, brands, locale, waits = {}, buyers = [],
 
   const tap = (line: ShopLine, kind: ShopMovementKind, quantity = 1) =>
     startTransition(async () => {
-      addOptimistic({ id: line.id, delta: kind === "receipt" ? quantity : -1 });
+      addOptimistic({ id: line.id, delta: kind === "receipt" ? quantity : -1, received: kind === "receipt" ? quantity : 0 });
       const { ok, id } = await tapShopAction(line.id, kind, quantity);
       // UX3: done at once – «Отменить» for 5 seconds.
       if (ok && id) {
@@ -159,24 +179,12 @@ export function ShopList({ mode, lines, brands, locale, waits = {}, buyers = [],
             <span className="w-10 text-center text-lg font-semibold tabular-nums text-ink">{l.stock}</span>
             <button
               type="button"
-              onPointerDown={() => {
-                press.current.long = false;
-                press.current.timer = setTimeout(() => {
-                  press.current.long = true;
-                  if (waitingOf(l.id) > 0) setIncoming({ line: l, count: "1", picked: preselect(waits[l.id] ?? [], 1) });
-                  else {
-                    setMany("2");
-                    setReceivingMany(l);
-                  }
-                }, 500);
-              }}
-              onPointerUp={() => press.current.timer && clearTimeout(press.current.timer)}
-              onPointerLeave={() => press.current.timer && clearTimeout(press.current.timer)}
-              onContextMenu={(e) => e.preventDefault()}
               onClick={() => {
-                if (press.current.long) return;
                 if (waitingOf(l.id) > 0) setIncoming({ line: l, count: "1", picked: preselect(waits[l.id] ?? [], 1) });
-                else tap(l, "receipt");
+                else {
+                  setMany("1");
+                  setReceivingMany(l);
+                }
               }}
               aria-label={t("receive", { name: l.name })}
               className="flex size-11 touch-manipulation select-none items-center justify-center rounded-full bg-primary text-xl text-on-primary"
@@ -186,6 +194,9 @@ export function ShopList({ mode, lines, brands, locale, waits = {}, buyers = [],
           </div>
         )}
       </div>
+      {mode === "stock" && l.receivedToday > 0 && (
+        <span className="ml-12 self-start rounded-full border border-ok-line bg-ok px-3 py-1 text-sm font-semibold text-on-ok">{t("receivedToday", { count: l.receivedToday })}</span>
+      )}
       {mode === "stock" && (reservedOf(l.id) > 0 || waitingOf(l.id) > 0) && (
         <button type="button" onClick={() => setWhoOpen(whoOpen === l.id ? null : l.id)} aria-expanded={whoOpen === l.id} className="ml-12 flex min-h-11 flex-wrap items-center gap-2 self-start">
           {reservedOf(l.id) > 0 && <span className="rounded-full border border-warn-line bg-warn px-3 py-1 text-sm font-semibold text-on-warn">🔖 {t("reservedChip", { count: reservedOf(l.id) })}</span>}
@@ -298,10 +309,10 @@ export function ShopList({ mode, lines, brands, locale, waits = {}, buyers = [],
             <br />
             <span className="text-muted">{receivingMany.name}</span>
           </p>
-          <input value={many} onChange={(e) => setMany(e.target.value)} inputMode="numeric" aria-label={t("howMany")} className={ui.input} />
+          {counter(many, setMany)}
           <button
             type="button"
-            disabled={!(Number(many) >= 1 && Number(many) <= 100 && Number.isInteger(Number(many)))}
+            disabled={!validCount(many)}
             onClick={() => {
               tap(receivingMany, "receipt", Number(many));
               setReceivingMany(null);
@@ -322,18 +333,13 @@ export function ShopList({ mode, lines, brands, locale, waits = {}, buyers = [],
             <br />
             <span className="text-muted">{incoming.line.name}</span>
           </p>
-          <label className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1">
             <span className="text-sm text-muted">{t("howMany")}</span>
-            <input
-              value={incoming.count}
-              onChange={(e) => {
-                const n = Number(e.target.value);
-                setIncoming({ ...incoming, count: e.target.value, picked: Number.isInteger(n) && n > 0 ? preselect(waits[incoming.line.id] ?? [], n) : {} });
-              }}
-              inputMode="numeric"
-              className={ui.input}
-            />
-          </label>
+            {counter(incoming.count, (count) => {
+              const n = Number(count);
+              setIncoming({ ...incoming, count, picked: Number.isInteger(n) && n > 0 ? preselect(waits[incoming.line.id] ?? [], n) : {} });
+            })}
+          </div>
           <ul className="flex flex-col rounded-[14px] border border-field">
             {(waits[incoming.line.id] ?? []).filter((w) => w.missing > 0).map((w) => {
               const on = (incoming.picked[w.itemId] ?? 0) > 0;
@@ -365,7 +371,7 @@ export function ShopList({ mode, lines, brands, locale, waits = {}, buyers = [],
           <p className="text-sm text-muted">{t("restToStock")}</p>
           <button
             type="button"
-            disabled={pending || !(Number(incoming.count) >= 1 && Number(incoming.count) <= 100 && Number.isInteger(Number(incoming.count)))}
+            disabled={pending || !validCount(incoming.count)}
             onClick={() =>
               startTransition(async () => {
                 const { ok } = await receiveForAction(incoming.line.id, Number(incoming.count), incoming.picked);
@@ -375,7 +381,7 @@ export function ShopList({ mode, lines, brands, locale, waits = {}, buyers = [],
             }
             className={ui.button}
           >
-            {t("done")}
+            {t("addMany", { count: Number(incoming.count) || 0 })}
           </button>
           <button type="button" onClick={() => setIncoming(null)} className={`${ui.textButton} justify-center`}>
             {t("cancel")}

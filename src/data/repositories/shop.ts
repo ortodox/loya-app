@@ -1,7 +1,7 @@
 import type { IsoDate } from "@/logic/client";
 import type { ShopMovement, ShopProduct } from "@/logic/rules/shop";
 
-export type ShopProductInput = Pick<ShopProduct, "brand" | "category" | "name" | "size" | "currency" | "price" | "favorite" | "active">;
+export type ShopProductInput = Pick<ShopProduct, "brand" | "category" | "name" | "size" | "currency" | "price" | "purchasePrice" | "favorite" | "active">;
 export type ShopMovementInput = Omit<ShopMovement, "id" | "createdAt">;
 
 /** MG1–MG4 «Магазин»; Supabase implementation in ./shop-supabase, faked in tests. */

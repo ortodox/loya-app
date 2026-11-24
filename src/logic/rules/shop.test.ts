@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { matchesShopFilter, shopGoesNegative, shopHistory, shopSales, shopStock, shopStockSections, sortShopProducts, type ShopMovement, type ShopProduct } from "./shop";
+import { matchesShopFilter, receivedOn, shopGoesNegative, shopHistory, shopSales, shopStock, shopStockSections, sortShopProducts, type ShopMovement, type ShopProduct } from "./shop";
 
 const product = (id: string, extra: Partial<ShopProduct> = {}): ShopProduct => ({
   id,
@@ -46,6 +46,27 @@ describe("MG2: склад магазина", () => {
     expect(inStock.map((l) => l.id)).toEqual(["c", "b", "e"]);
     expect(favorites.map((l) => l.id)).toEqual(["d"]);
     expect(rest.map((l) => l.id)).toEqual(["a"]);
+  });
+
+  it("MG18: while Loya is on the page, a product keeps its place – placed by the stock it had when she opened it", () => {
+    const line = (id: string, stock: number, extra: Partial<ShopProduct> = {}) => ({ ...product(id, extra), stock });
+    // She opened «Склад» with c = 5, b = 2 and a = 0; then 4 came in of «a» and 6 of «b».
+    const placedBy = new Map([["a", 0], ["b", 2], ["c", 5]]);
+    const { inStock, rest } = shopStockSections([line("a", 4), line("b", 8), line("c", 5)], placedBy);
+    expect(inStock.map((l) => l.id)).toEqual(["c", "b"]);
+    expect(rest.map((l) => l.id)).toEqual(["a"]);
+    expect(rest[0].stock).toBe(4);
+    // Opened again, the list is sorted by what is there now.
+    expect(shopStockSections([line("a", 4), line("b", 8), line("c", 5)]).inStock.map((l) => l.id)).toEqual(["b", "c", "a"]);
+  });
+
+  it("MG18: «✓ +N сегодня» – everything that came in today, not sales or other days", () => {
+    const history = shopHistory(
+      [move("a", "2026-11-23", "receipt", { quantity: 9 }), move("a", "2026-11-24", "receipt", { quantity: 4 }), move("a", "2026-11-24", "sale"), move("a", "2026-11-24", "receipt", { quantity: 2 })],
+      "a",
+    );
+    expect(receivedOn(history, "2026-11-24")).toBe(6);
+    expect(receivedOn(history, "2026-11-25")).toBe(0);
   });
 
   it("MG2: history – taps of the same kind on the same day are one line, newest first", () => {
