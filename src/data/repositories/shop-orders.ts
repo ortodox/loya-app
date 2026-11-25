@@ -10,6 +10,8 @@ export type ShopOrderInput = {
   orderedOn: IsoDate;
   eurRate: number | null;
   rateSource: "nbp" | "own" | null;
+  /** MG21: «−10 %» … «−40 %» on the whole order; null = none. */
+  discountPercent: number | null;
   items: { productId: string; quantity: number; price: number; missing: number }[];
 };
 

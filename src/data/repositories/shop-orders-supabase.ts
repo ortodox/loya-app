@@ -10,11 +10,21 @@ type OrderRow = {
   rate_source: "nbp" | "own" | null;
   handed_over_on: string | null;
   created_at: string;
-  shop_order_items: { id: string; product_id: string; quantity: number; price: number | string; sort_order: number; missing: number }[];
+  discount_percent: number | null;
+  shop_order_items: {
+    id: string;
+    product_id: string;
+    quantity: number;
+    price: number | string;
+    sort_order: number;
+    missing: number;
+    purchase_price: number | string | null;
+    purchase_currency: "PLN" | "EUR" | null;
+  }[];
   shop_payments: { id: string; amount: number | string; paid_on: string; created_at: string }[];
 };
 
-const orderColumns = "id, buyer_id, ordered_on, eur_rate, rate_source, handed_over_on, created_at, shop_order_items(id, product_id, quantity, price, sort_order, missing), shop_payments(id, amount, paid_on, created_at)";
+const orderColumns = "id, buyer_id, ordered_on, eur_rate, rate_source, handed_over_on, created_at, discount_percent, shop_order_items(id, product_id, quantity, price, sort_order, missing, purchase_price, purchase_currency), shop_payments(id, amount, paid_on, created_at)";
 const toOrder = (r: OrderRow): ShopOrder => ({
   id: r.id,
   buyerId: r.buyer_id,
@@ -23,9 +33,18 @@ const toOrder = (r: OrderRow): ShopOrder => ({
   rateSource: r.rate_source,
   handedOverOn: r.handed_over_on,
   createdAt: r.created_at,
+  discountPercent: r.discount_percent,
   items: [...r.shop_order_items]
     .sort((a, b) => a.sort_order - b.sort_order)
-    .map((i) => ({ id: i.id, productId: i.product_id, quantity: i.quantity, price: Number(i.price), missing: i.missing ?? 0 })),
+    .map((i) => ({
+      id: i.id,
+      productId: i.product_id,
+      quantity: i.quantity,
+      price: Number(i.price),
+      missing: i.missing ?? 0,
+      purchasePrice: i.purchase_price === null ? null : Number(i.purchase_price),
+      purchaseCurrency: i.purchase_currency,
+    })),
   payments: [...(r.shop_payments ?? [])]
     .sort((a, b) => a.paid_on.localeCompare(b.paid_on) || a.created_at.localeCompare(b.created_at))
     .map((p) => ({ id: p.id, amount: Number(p.amount), paidOn: p.paid_on })),
@@ -65,6 +84,9 @@ export function supabaseShopOrdersRepository(supabase: SupabaseClient): ShopOrde
         p_items: input.items.map((i) => ({ product_id: i.productId, quantity: i.quantity, price: i.price, missing: i.missing })),
       });
       if (error) throw error;
+      // MG21: the discount is kept on the order (null = none).
+      const saved = await supabase.from("shop_orders").update({ discount_percent: input.discountPercent }).eq("id", data as string);
+      if (saved.error) throw saved.error;
       return { id: data as string };
     },
 

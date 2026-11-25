@@ -4,21 +4,24 @@ import { card, ui } from "@/app/components/ui";
 import { nextMonth, previousMonth } from "@/logic/rules/consumption";
 import type { ShopProduct, ShopSales } from "@/logic/rules/shop";
 import { ReturnSaleButton } from "./ReturnSaleButton";
-import { eurInZl } from "@/logic/rules/shop-orders";
+import { eurInZl, type ProfitSplit } from "@/logic/rules/shop-orders";
+import { ProfitBlock } from "./ProfitBlock";
 
-/** MG3 «Продажи»: a month – pieces and value per currency, per brand and product. */
+/** MG3 «Продажи»: a month – pieces and value per currency, per brand and product; MG20 «Итог» at the end. */
 export async function ShopSalesView({
   sales,
   products,
   orders,
   current,
   eurRate = null,
+  money: split,
 }: {
   sales: ShopSales;
   products: ShopProduct[];
   orders: Record<string, { buyerId: string; buyerName: string; handed: boolean }>;
   current: string;
   eurRate?: number | null;
+  money?: ProfitSplit;
 }) {
   const t = await getTranslations("shop");
   const locale = await getLocale();
@@ -101,6 +104,13 @@ export async function ShopSalesView({
           </ul>
         </section>
       ))}
+      {/* MG20: «Итог» – what to put aside for buying again and what is Loya's own; only she sees it. */}
+      {split && sales.pieces > 0 && (
+        <section className={`${card.surface} flex flex-col gap-2 p-4`}>
+          <h3 className={card.heading}>{t("money.total")}</h3>
+          <ProfitBlock money={split} locale={locale} />
+        </section>
+      )}
     </div>
   );
 }

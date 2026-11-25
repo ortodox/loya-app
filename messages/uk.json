@@ -922,7 +922,9 @@
       "badgeUnpaid": "Не оплачено · залишилось {left}",
       "badgePartial": "Частково · залишилось {left}",
       "leftToPay": "Залишилось оплатити: {left}",
-      "leftShort": "залишилось {left}"
+      "leftShort": "залишилось {left}",
+      "discount": "Знижка на замовлення",
+      "discountShort": "−{percent} %"
     },
     "historyOrder": "Замовлення −{count}",
     "historyReturn": "Повернення +{count}",
@@ -964,7 +966,13 @@
     "catalogPrice": "каталог {price}",
     "receivedToday": "✓ +{count} сьогодні",
     "countLess": "Менше",
-    "countMore": "Більше"
+    "countMore": "Більше",
+    "money": {
+      "total": "Підсумок",
+      "putAside": "Відкласти на закупівлю",
+      "profit": "Твій прибуток",
+      "uncounted": "Не пораховано: {count} шт без закупівельної ціни"
+    }
   },
   "toast": {
     "undo": "Скасувати",

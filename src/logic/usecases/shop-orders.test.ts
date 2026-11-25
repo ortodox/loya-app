@@ -47,13 +47,17 @@ function setup() {
       if (order) {
         const old = new Set(order.items.map((i) => i.id));
         for (let i = movements.length - 1; i >= 0; i--) if (movements[i].orderItemId && old.has(movements[i].orderItemId!)) movements.splice(i, 1);
-        Object.assign(order, { buyerId, eurRate: input.eurRate, rateSource: input.rateSource });
+        Object.assign(order, { buyerId, eurRate: input.eurRate, rateSource: input.rateSource, discountPercent: input.discountPercent });
       } else {
-        order = { id: id(n++), buyerId, orderedOn: input.orderedOn, eurRate: input.eurRate, rateSource: input.rateSource, handedOverOn: null, createdAt: `${input.orderedOn}T12:00:00Z`, items: [], payments: [] };
+        order = { id: id(n++), buyerId, orderedOn: input.orderedOn, eurRate: input.eurRate, rateSource: input.rateSource, handedOverOn: null, createdAt: `${input.orderedOn}T12:00:00Z`, discountPercent: input.discountPercent, items: [], payments: [] };
         orders.push(order);
       }
       const saved = order;
-      saved.items = input.items.map((i) => ({ id: id(n++), ...i }));
+      saved.items = input.items.map((i) => {
+        // MG22: like the database trigger – the line keeps the purchase price of the day.
+        const p = products.find((x) => x.id === i.productId);
+        return { id: id(n++), ...i, purchasePrice: p?.purchasePrice ?? null, purchaseCurrency: p?.purchasePrice == null ? null : p.currency };
+      });
       for (const i of saved.items)
         if (i.quantity - i.missing > 0)
           movements.push({ id: `m${n++}`, productId: i.productId, happenedOn: input.orderedOn, kind: "sale", quantity: i.quantity - i.missing, price: i.price, currency: "PLN", createdAt: `${input.orderedOn}T12:00:${String(n).padStart(2, "0")}Z`, orderItemId: i.id });
@@ -127,7 +131,7 @@ function setup() {
       settings.ownEurRate = rate;
     },
   };
-  return { shop, repo, movements, orders, buyers, settings };
+  return { shop, repo, movements, orders, buyers, settings, products };
 }
 
 describe("MG9: заказ", () => {
@@ -153,6 +157,23 @@ describe("MG9: заказ", () => {
     const { waiting } = await getOrders(shop, repo, null);
     expect(waiting[0]).toMatchObject({ eurRate: 4.31, rateSource: "nbp", total: { pieces: 3, value: 1340 } });
     expect(waiting[0].lines.map((l) => [l.name, l.quantity, l.price])).toEqual([["Crystal Retinal 10", 2, 500], ["Retinol Cream", 1, 340]]);
+  });
+
+  it("MG21/MG22: «−20 %» on the whole order – total, payment and the money split use the total after it", async () => {
+    const { shop, repo, products } = setup();
+    // Crystal Retinal 10 costs Loya 300 zł, Retinol Cream 40 € (by the order's rate 4).
+    products[0].purchasePrice = 300;
+    products[1].purchasePrice = 40;
+    const rate = { rate: 4, source: "nbp" as const, date: today };
+    const result = await saveOrder(shop, repo, null, { buyerName: "Анна", discountPercent: 20, items: [{ productId: id(1), quantity: "1", price: "530" }, { productId: id(2), quantity: "1", price: "340" }] }, today, rate);
+    expect(result).toMatchObject({ ok: true });
+    const { waiting } = await getOrders(shop, repo, null);
+    expect(waiting[0].total).toEqual({ pieces: 2, value: 696, before: 870 });
+    expect(waiting[0].payment).toMatchObject({ left: 696, status: "unpaid" });
+    expect(waiting[0].money).toEqual({ cost: 460, profit: 236, uncounted: 0 });
+    // Anything but a number 1–99 is no discount.
+    await saveOrder(shop, repo, waiting[0].id, { buyerName: "Анна", discountPercent: 150, items: [{ productId: id(1), quantity: "1", price: "530" }] }, today, rate);
+    expect((await getOrders(shop, repo, null)).waiting[0].total).toEqual({ pieces: 1, value: 530, before: 530 });
   });
 
   it("MG9: buyer name and a product are needed; bad lines and too many pieces are refused", async () => {

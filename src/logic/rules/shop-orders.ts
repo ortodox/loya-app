@@ -4,8 +4,19 @@ import { shopStock, type ShopMovement, type ShopProduct } from "./shop";
 /** MG9: someone who buys cosmetics – kept apart from clients. Phone and Instagram are optional. */
 export type ShopBuyer = { id: string; name: string; phone: string; instagram: string };
 
-/** MG9: one product in an order, price per piece in zł; MG10: «missing» pieces wait for a delivery. */
-export type ShopOrderItem = { id: string; productId: string; quantity: number; price: number; missing: number };
+/**
+ * MG9: one product in an order, price per piece in zł; MG10: «missing» pieces wait for a delivery.
+ * MG22: the purchase price of the day the line was saved, in the product's currency (null = not known).
+ */
+export type ShopOrderItem = {
+  id: string;
+  productId: string;
+  quantity: number;
+  price: number;
+  missing: number;
+  purchasePrice?: number | null;
+  purchaseCurrency?: "PLN" | "EUR" | null;
+};
 
 /** MG11: money received for an order, in zł. */
 export type ShopPayment = { id: string; amount: number; paidOn: IsoDate };
@@ -19,6 +30,8 @@ export type ShopOrder = {
   rateSource: "nbp" | "own" | null;
   handedOverOn: IsoDate | null;
   createdAt: string;
+  /** MG21: «−10 %» … «−40 %» on the whole order (null = none). */
+  discountPercent?: number | null;
   items: ShopOrderItem[];
   payments: ShopPayment[];
 };
@@ -38,15 +51,77 @@ export function orderPrice(product: Pick<ShopProduct, "price" | "currency">, rat
   return rate ? Math.round(product.price * rate.rate) : null;
 }
 
-/** MG9: pieces and value (zł) of an order. */
-export function orderTotal(items: readonly Pick<ShopOrderItem, "quantity" | "price">[]): { pieces: number; value: number } {
+/** MG21: the discount buttons on an order. */
+export const discountChoices = [10, 20, 30, 40] as const;
+
+/** MG21: a discount the order may keep – 1–99 %; anything else is no discount. */
+export const validDiscount = (p: unknown): number | null => (typeof p === "number" && Number.isInteger(p) && p >= 1 && p <= 99 ? p : null);
+
+/**
+ * MG9: pieces and value (zł) of an order. MG21: with a discount, «value» is the total after it, rounded to
+ * whole zł (530 → −20 % → 424), and «before» the total before it.
+ */
+export function orderTotal(items: readonly Pick<ShopOrderItem, "quantity" | "price">[], discountPercent?: number | null): { pieces: number; value: number; before: number } {
   let pieces = 0;
   let value = 0;
   for (const i of items) {
     pieces += i.quantity;
     value += i.quantity * i.price;
   }
-  return { pieces, value: Math.round(value * 100) / 100 };
+  const before = Math.round(value * 100) / 100;
+  const discount = validDiscount(discountPercent);
+  return { pieces, value: discount ? Math.round((before * (100 - discount)) / 100) : before, before };
+}
+
+/**
+ * MG20/MG22: what of the money goes back into buying the products again («Отложить на закупку») and what is
+ * Loya's own («Твоя прибыль»), in zł. Only pieces with a purchase price kept at the time of the sale are
+ * counted; the others are «uncounted» (pieces). € (Instytutum) by the rate given.
+ */
+export type ProfitSplit = { cost: number; profit: number; uncounted: number };
+
+const round2 = (v: number) => Math.round(v * 100) / 100;
+const inZl = (amount: number, currency: "PLN" | "EUR" | null | undefined, rate: number | null) =>
+  currency === "EUR" ? (rate && rate > 0 ? amount * rate : null) : amount;
+
+function addSplit(a: ProfitSplit, b: ProfitSplit): ProfitSplit {
+  return { cost: round2(a.cost + b.cost), profit: round2(a.profit + b.profit), uncounted: a.uncounted + b.uncounted };
+}
+
+/** MG22: one order – the discount lowers the profit only; the purchase price of € products by the order's rate. */
+export function orderProfit(order: Pick<ShopOrder, "items" | "discountPercent" | "eurRate">): ProfitSplit {
+  const total = orderTotal(order.items, order.discountPercent);
+  const share = total.before > 0 ? total.value / total.before : 1;
+  let cost = 0;
+  let income = 0;
+  let uncounted = 0;
+  for (const i of order.items) {
+    const unit = i.purchasePrice == null ? null : inZl(i.purchasePrice, i.purchaseCurrency, order.eurRate);
+    if (unit === null) {
+      uncounted += i.quantity;
+      continue;
+    }
+    cost += i.quantity * unit;
+    income += i.quantity * i.price * share;
+  }
+  return { cost: round2(cost), profit: round2(income - cost), uncounted };
+}
+
+/**
+ * MG20 «Итог» in «Продажи»: the month's sales in «Склад» (not returned; € by today's rate) and the month's
+ * orders (on the order day, as orderSales counts them).
+ */
+export function monthProfit(movements: readonly ShopMovement[], orders: readonly ShopOrder[], month: string, eurRate: number | null): ProfitSplit {
+  let split: ProfitSplit = { cost: 0, profit: 0, uncounted: 0 };
+  for (const m of movements) {
+    if (m.kind !== "sale" || m.orderItemId || m.returnedOn || m.happenedOn.slice(0, 7) !== month) continue;
+    const unit = m.purchasePrice == null ? null : inZl(m.purchasePrice, m.purchaseCurrency, eurRate);
+    const price = m.price === null ? null : inZl(m.price, m.currency, eurRate);
+    if (unit === null || price === null) split = addSplit(split, { cost: 0, profit: 0, uncounted: m.quantity });
+    else split = addSplit(split, { cost: m.quantity * unit, profit: m.quantity * (price - unit), uncounted: 0 });
+  }
+  for (const o of orders) if (o.orderedOn.slice(0, 7) === month) split = addSplit(split, orderProfit(o));
+  return split;
 }
 
 /** MG11: how much is paid of the total – «Не оплачен», «Частично» or «Оплачен» (more than the total counts as paid). */
@@ -115,14 +190,16 @@ export function orderSales(orders: readonly ShopOrder[], month: string): { rows:
   let unpaid = 0;
   for (const o of orders) {
     if (o.orderedOn.slice(0, 7) !== month) continue;
+    // MG21: a discount lowers every product of the order by the same share.
+    const total = orderTotal(o.items, o.discountPercent);
+    const share = total.before > 0 ? total.value / total.before : 1;
     for (const i of o.items) {
       const row = rows.find((r) => r.orderId === o.id && r.productId === i.productId);
       if (row) {
         row.quantity += i.quantity;
-        row.value = Math.round((row.value + i.quantity * i.price) * 100) / 100;
-      } else rows.push({ productId: i.productId, orderId: o.id, quantity: i.quantity, value: Math.round(i.quantity * i.price * 100) / 100 });
+        row.value = Math.round((row.value + i.quantity * i.price * share) * 100) / 100;
+      } else rows.push({ productId: i.productId, orderId: o.id, quantity: i.quantity, value: Math.round(i.quantity * i.price * share * 100) / 100 });
     }
-    const total = orderTotal(o.items);
     pieces += total.pieces;
     value += total.value;
     unpaid += paymentState(total.value, o.payments).left;
@@ -166,7 +243,7 @@ export function whoWaits(orders: readonly (ShopOrder & { buyerName: string })[])
   const result = new Map<string, WaitEntry[]>();
   const open = orders.filter((o) => !o.handedOverOn).sort((a, b) => a.orderedOn.localeCompare(b.orderedOn) || a.createdAt.localeCompare(b.createdAt));
   for (const o of open) {
-    const paid = paymentState(orderTotal(o.items).value, o.payments).status;
+    const paid = paymentState(orderTotal(o.items, o.discountPercent).value, o.payments).status;
     for (const i of o.items) {
       const entry: WaitEntry = { orderId: o.id, itemId: i.id, buyerName: o.buyerName, orderedOn: o.orderedOn, paid, reserved: i.quantity - i.missing, missing: i.missing };
       result.set(i.productId, [...(result.get(i.productId) ?? []), entry]);

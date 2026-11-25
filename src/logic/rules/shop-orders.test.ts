@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ShopMovement } from "./shop";
 import { shopSales } from "./shop";
-import { eurInZl, preselect, whoWaits, canHandOver, effectiveRate, instagramHandle, matchesBuyer, orderMissing, orderPrice, orderSales, orderSections, orderTotal, paymentState, waitingForStock, type ShopOrder } from "./shop-orders";
+import { monthProfit, orderProfit, eurInZl, preselect, whoWaits, canHandOver, effectiveRate, instagramHandle, matchesBuyer, orderMissing, orderPrice, orderSales, orderSections, orderTotal, paymentState, waitingForStock, type ShopOrder } from "./shop-orders";
 
 const move = (id: string, productId: string, kind: ShopMovement["kind"], quantity: number, orderItemId: string | null = null, extra: Partial<ShopMovement> = {}): ShopMovement => ({
   id,
@@ -31,7 +31,7 @@ describe("MG9: заказы в злотых", () => {
   });
 
   it("MG9: total of an order in zł", () => {
-    expect(orderTotal([{ quantity: 2, price: 230.41 }, { quantity: 1, price: 337 }])).toEqual({ pieces: 3, value: 797.82 });
+    expect(orderTotal([{ quantity: 2, price: 230.41 }, { quantity: 1, price: 337 }])).toEqual({ pieces: 3, value: 797.82, before: 797.82 });
   });
 
   it("MG10: what is not in stock is «Нужно заказать»; the order's own sales count as available when it is changed", () => {
@@ -127,5 +127,90 @@ describe("MG17: Instytutum – цена в злотых", () => {
     expect(eurInZl(78.75, 4.2836)).toBe(orderPrice({ price: 78.75, currency: "EUR" }, { rate: 4.2836, source: "nbp", date: "2026-11-18" }));
     expect(eurInZl(79, null)).toBeNull();
     expect(eurInZl(79, 0)).toBeNull();
+  });
+});
+
+describe("MG20–MG22: скидка и прибыль", () => {
+  const item = (productId: string, quantity: number, price: number, purchasePrice: number | null, purchaseCurrency: "PLN" | "EUR" | null = "PLN") => ({
+    id: `i-${productId}`,
+    productId,
+    quantity,
+    price,
+    missing: 0,
+    purchasePrice,
+    purchaseCurrency: purchasePrice === null ? null : purchaseCurrency,
+  });
+  const order = (extra: Partial<ShopOrder>): ShopOrder => ({
+    id: "o1",
+    buyerId: "b1",
+    orderedOn: "2026-11-20",
+    eurRate: 4.3,
+    rateSource: "nbp",
+    handedOverOn: null,
+    createdAt: "2026-11-20T10:00:00Z",
+    items: [],
+    payments: [],
+    ...extra,
+  });
+
+  it("MG21: a discount on the whole order – rounded to whole zł; none, or anything but 1–99 %, keeps the total", () => {
+    const items = [{ quantity: 1, price: 530 }, { quantity: 2, price: 149.99 }];
+    expect(orderTotal(items)).toEqual({ pieces: 3, value: 829.98, before: 829.98 });
+    expect(orderTotal(items, 20)).toEqual({ pieces: 3, value: 664, before: 829.98 });
+    expect(orderTotal(items, 40).value).toBe(498);
+    expect(orderTotal(items, 0).value).toBe(829.98);
+    expect(orderTotal(items, 100).value).toBe(829.98);
+  });
+
+  it("MG22: put aside the purchase price, the rest is Loya's – € by the order's rate; the discount lowers the profit only", () => {
+    const o = order({ items: [item("a", 2, 200, 120), item("b", 1, 300, 40, "EUR")] });
+    // 2 × 120 + 40 € × 4,3 = 412; 700 − 412 = 288.
+    expect(orderProfit(o)).toEqual({ cost: 412, profit: 288, uncounted: 0 });
+    // −20 %: 560 zł, the same to put aside.
+    expect(orderProfit({ ...o, discountPercent: 20 })).toEqual({ cost: 412, profit: 148, uncounted: 0 });
+  });
+
+  it("MG22: lines without a purchase price kept – «не посчитано», left out of both sums", () => {
+    const o = order({ items: [item("a", 2, 200, 120), item("b", 3, 300, null)] });
+    expect(orderProfit(o)).toEqual({ cost: 240, profit: 160, uncounted: 3 });
+    // An € purchase price without the order's rate cannot be counted either.
+    expect(orderProfit(order({ eurRate: null, items: [item("b", 1, 300, 40, "EUR")] }))).toEqual({ cost: 0, profit: 0, uncounted: 1 });
+  });
+
+  it("MG20: «Итог» of the month – «Склад» sales (not returned, € by today's rate) and the month's orders", () => {
+    const sale = (id: string, extra: Partial<ShopMovement>): ShopMovement => ({
+      id,
+      productId: "a",
+      happenedOn: "2026-11-05",
+      kind: "sale",
+      quantity: 1,
+      price: 200,
+      currency: "PLN",
+      createdAt: "2026-11-05T10:00:00Z",
+      purchasePrice: 120,
+      purchaseCurrency: "PLN",
+      ...extra,
+    });
+    const movements = [
+      sale("s1", {}),
+      sale("s2", { price: 79, currency: "EUR", purchasePrice: 30, purchaseCurrency: "EUR" }),
+      sale("s3", { purchasePrice: null, purchaseCurrency: null }),
+      sale("s4", { returnedOn: "2026-11-06" }),
+      sale("s5", { happenedOn: "2026-10-31" }),
+      sale("s6", { orderItemId: "i-a" }),
+      sale("s7", { kind: "receipt" }),
+    ];
+    const orders = [order({ discountPercent: 20, items: [item("a", 2, 200, 120)] }), order({ id: "o2", orderedOn: "2026-10-20", items: [item("a", 1, 200, 120)] })];
+    // s1: 120 / 80; s2: 30 € = 120 / 49 € = 196; order: 240 / 320 − 240 = 80; s3 not counted.
+    expect(monthProfit(movements, orders, "2026-11", 4)).toEqual({ cost: 480, profit: 356, uncounted: 1 });
+    // Without a rate the € sale is not counted.
+    expect(monthProfit(movements, orders, "2026-11", null)).toEqual({ cost: 360, profit: 160, uncounted: 2 });
+  });
+
+  it("MG21: «Продажи» – a discounted order counts what was asked, every product by the same share", () => {
+    const o = order({ discountPercent: 20, items: [item("a", 1, 500, null), item("b", 1, 300, null)] });
+    const { rows, value } = orderSales([o], "2026-11");
+    expect(value).toBe(640);
+    expect(rows.map((r) => r.value)).toEqual([400, 240]);
   });
 });

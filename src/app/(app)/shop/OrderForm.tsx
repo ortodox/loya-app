@@ -6,7 +6,7 @@ import { useMemo, useState, useTransition } from "react";
 import { card, ui } from "@/app/components/ui";
 import { formatIsoDate } from "@/logic/rules/dates";
 import { matchesShopFilter } from "@/logic/rules/shop";
-import { matchesBuyer, orderTotal, type EurRate, type ShopBuyer, type ShopOrder } from "@/logic/rules/shop-orders";
+import { discountChoices, matchesBuyer, orderTotal, type EurRate, type ShopBuyer, type ShopOrder } from "@/logic/rules/shop-orders";
 import type { OrderErrors, OrderFormProduct } from "@/logic/usecases/shop-orders";
 import { cancelOrderAction, saveOrderAction } from "./order-actions";
 
@@ -26,6 +26,8 @@ export function OrderForm({ products, buyers, order, buyer, rate, locale }: Prop
   const [lines, setLines] = useState<Line[]>(
     order?.items.map((i, n) => ({ key: n, productId: i.productId, quantity: String(i.quantity), price: String(i.price).replace(".", ",") })) ?? [],
   );
+  // MG21: one discount on the whole order; the same button again takes it off.
+  const [discount, setDiscount] = useState<number | null>(order?.discountPercent ?? null);
   const [query, setQuery] = useState("");
   const [errors, setErrors] = useState<OrderErrors & { failed?: boolean }>({});
   const [confirmCancel, setConfirmCancel] = useState(false);
@@ -36,7 +38,7 @@ export function OrderForm({ products, buyers, order, buyer, rate, locale }: Prop
 
   const buyerSuggestions = !buyerId && name.trim().length > 0 ? buyers.filter((b) => matchesBuyer(b, name)).slice(0, 5) : [];
   const productResults = query.trim().length > 0 ? products.filter((p) => matchesShopFilter({ ...p, category: "", favorite: false, active: true, sortOrder: 0 }, query, null)).slice(0, 8) : [];
-  const total = orderTotal(lines.map((l) => ({ quantity: Number(l.quantity) || 0, price: Number(l.price.replace(",", ".")) || 0 })));
+  const total = orderTotal(lines.map((l) => ({ quantity: Number(l.quantity) || 0, price: Number(l.price.replace(",", ".")) || 0 })), discount);
 
   const add = (p: OrderFormProduct) => {
     setLines((ls) => {
@@ -61,6 +63,7 @@ export function OrderForm({ products, buyers, order, buyer, rate, locale }: Prop
         buyerPhone: phone,
         buyerInstagram: instagram,
         items: lines.map((l) => ({ productId: l.productId, quantity: l.quantity, price: l.price })),
+        discountPercent: discount,
       });
       setErrors(result.errors ? { ...result.errors } : result.failed ? { failed: true } : {});
     });
@@ -189,8 +192,29 @@ export function OrderForm({ products, buyers, order, buyer, rate, locale }: Prop
           </ul>
         )}
         <p className="border-t border-line pt-3 text-lg font-semibold text-ink">
-          {t("total")}: {t("pieces", { count: total.pieces })} · {zl(total.value)}
+          {t("total")}: {t("pieces", { count: total.pieces })} ·{" "}
+          {discount ? (
+            <>
+              <span className="font-normal text-muted line-through">{zl(total.before)}</span> → {zl(total.value)} ({t("discountShort", { percent: discount })})
+            </>
+          ) : (
+            zl(total.value)
+          )}
         </p>
+        {/* MG21: «−10 %» … «−40 %» on the whole order; pressed again – no discount. */}
+        <div className="grid grid-cols-4 gap-2" role="group" aria-label={t("discount")}>
+          {discountChoices.map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => setDiscount(discount === p ? null : p)}
+              aria-pressed={discount === p}
+              className={`min-h-11 rounded-full border text-base font-semibold ${discount === p ? "border-primary bg-primary text-on-primary" : "border-field text-ink"}`}
+            >
+              {t("discountShort", { percent: p })}
+            </button>
+          ))}
+        </div>
       </section>
 
       {errors.failed && <p className={ui.error}>{t("failed")}</p>}
