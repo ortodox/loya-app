@@ -1,7 +1,7 @@
 import type { IsoDate } from "@/logic/client";
 import { isIsoDate } from "@/logic/rules/dates";
 import { isMonth, monthOf } from "@/logic/rules/consumption";
-import { orderSales, type ShopOrder } from "@/logic/rules/shop-orders";
+import { monthProfit, orderSales, type ProfitSplit, type ShopOrder } from "@/logic/rules/shop-orders";
 import { shopGoesNegative, shopHistory, shopMovementKinds, shopSales, shopStock, sortShopProducts, type ShopHistoryLine, type ShopMovementKind, type ShopProduct, type ShopSales } from "@/logic/rules/shop";
 import type { ShopProductInput, ShopRepository } from "@/data/repositories/shop";
 
@@ -76,7 +76,8 @@ export async function getShopSales(
   month: string | undefined,
   today: IsoDate,
   orders?: { listOrders(): Promise<ShopOrder[]>; listBuyers(): Promise<{ id: string; name: string }[]> },
-): Promise<{ sales: ShopSales; products: ShopProduct[]; orders: Record<string, { buyerId: string; buyerName: string; handed: boolean }> }> {
+  eurRate: number | null = null,
+): Promise<{ sales: ShopSales; products: ShopProduct[]; orders: Record<string, { buyerId: string; buyerName: string; handed: boolean }>; money: ProfitSplit }> {
   const [products, movements, list, buyers] = await Promise.all([repo.listProducts(), repo.listMovements(), orders?.listOrders() ?? [], orders?.listBuyers() ?? []]);
   const current = monthOf(today);
   const chosen = month && isMonth(month) && month <= current ? month : current;
@@ -91,7 +92,8 @@ export async function getShopSales(
     rows: [...taps.rows, ...fromOrders.rows.map((r) => ({ ...r, currency: "PLN" as const }))].sort((a, b) => b.quantity - a.quantity),
     unpaid: fromOrders.unpaid,
   };
-  return { sales, products, orders: info };
+  // MG20 «Итог»: what to put aside for buying again and what is Loya's own.
+  return { sales, products, orders: info, money: monthProfit(movements, list, chosen, eurRate) };
 }
 
 /**

@@ -922,7 +922,9 @@
       "badgeUnpaid": "Не оплачен · осталось {left}",
       "badgePartial": "Частично · осталось {left}",
       "leftToPay": "Осталось оплатить: {left}",
-      "leftShort": "осталось {left}"
+      "leftShort": "осталось {left}",
+      "discount": "Скидка на заказ",
+      "discountShort": "−{percent} %"
     },
     "historyOrder": "Заказ −{count}",
     "historyReturn": "Возврат +{count}",
@@ -964,7 +966,13 @@
     "catalogPrice": "каталог {price}",
     "receivedToday": "✓ +{count} сегодня",
     "countLess": "Меньше",
-    "countMore": "Больше"
+    "countMore": "Больше",
+    "money": {
+      "total": "Итог",
+      "putAside": "Отложить на закупку",
+      "profit": "Твоя прибыль",
+      "uncounted": "Не посчитано: {count} шт без закупочной цены"
+    }
   },
   "toast": {
     "undo": "Отменить",

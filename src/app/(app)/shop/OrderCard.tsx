@@ -8,6 +8,7 @@ import { formatIsoDate } from "@/logic/rules/dates";
 import type { OrderView } from "@/logic/usecases/shop-orders";
 import { addPaymentAction, deletePaymentAction, giveToOrderAction, handOverOrderAction } from "./order-actions";
 import { BuyerContacts } from "./BuyerContacts";
+import { ProfitBlock } from "./ProfitBlock";
 import { useToast } from "@/app/components/Toast";
 
 /** MG9/MG12: one order – buyer, all products together, total in zł, «Выдан ✓» / «Изменить». */
@@ -106,8 +107,18 @@ export function OrderCard({ order, locale, today, highlight = false, free = {} }
         ))}
       </ul>
       <p className="border-t border-line pt-2 text-base font-semibold text-ink">
-        {t("total")}: {t("pieces", { count: order.total.pieces })} · {zl(order.total.value)}
+        {t("total")}: {t("pieces", { count: order.total.pieces })} ·{" "}
+        {/* MG21: «870 zł → 696 zł (−20 %)». */}
+        {order.discountPercent ? (
+          <>
+            <span className="font-normal text-muted line-through">{zl(order.total.before)}</span> → {zl(order.total.value)} ({t("discountShort", { percent: order.discountPercent })})
+          </>
+        ) : (
+          zl(order.total.value)
+        )}
       </p>
+      {/* MG22: what to put aside for buying again and what is Loya's own. */}
+      <ProfitBlock money={order.money} locale={locale} />
       {/* MG11: payments – «Оплачено 500 zł из 1 330 zł», each can be taken back. */}
       <div className="flex flex-col gap-1">
         {order.payment.status !== "unpaid" && <span className="text-sm text-ink">{t("paidOf", { paid: zl(order.payment.paid), total: zl(order.total.value) })}</span>}

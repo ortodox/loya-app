@@ -49,7 +49,11 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
           return <OrdersView {...list} rate={rate} free={free} locale={locale} today={today} highlight={created && /^[0-9a-f-]{36}$/i.test(created) ? created : null} />;
         })()
       ) : view === "sales" ? (
-        <ShopSalesView {...(await getShopSales(repo, month, today, await shopOrdersRepository()))} current={monthOf(today)} eurRate={(await getEurRate(await shopOrdersRepository(), fetchNbpEurRate)).rate?.rate ?? null} />
+        await (async () => {
+          const orders = await shopOrdersRepository();
+          const eurRate = (await getEurRate(orders, fetchNbpEurRate)).rate?.rate ?? null;
+          return <ShopSalesView {...(await getShopSales(repo, month, today, orders, eurRate))} current={monthOf(today)} eurRate={eurRate} />;
+        })()
       ) : (
         <ShopList key={view} mode={view} locale={locale} today={today} {...(await getShop(repo))} waits={view === "stock" ? await getWhoWaits(await shopOrdersRepository()) : {}} buyers={view === "stock" ? await listBuyers(await shopOrdersRepository()) : []} eurRate={(await getEurRate(await shopOrdersRepository(), fetchNbpEurRate)).rate?.rate ?? null} />
       )}

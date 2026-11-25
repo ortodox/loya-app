@@ -922,7 +922,9 @@
       "badgeUnpaid": "Not paid · {left} left",
       "badgePartial": "Partly paid · {left} left",
       "leftToPay": "Left to pay: {left}",
-      "leftShort": "{left} left"
+      "leftShort": "{left} left",
+      "discount": "Discount on the order",
+      "discountShort": "−{percent} %"
     },
     "historyOrder": "Order −{count}",
     "historyReturn": "Return +{count}",
@@ -964,7 +966,13 @@
     "catalogPrice": "catalogue {price}",
     "receivedToday": "✓ +{count} today",
     "countLess": "Fewer",
-    "countMore": "More"
+    "countMore": "More",
+    "money": {
+      "total": "Summary",
+      "putAside": "Put aside for buying",
+      "profit": "Your profit",
+      "uncounted": "Not counted: {count} pcs without a purchase price"
+    }
   },
   "toast": {
     "undo": "Undo",

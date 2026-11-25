@@ -10,8 +10,11 @@ import {
   orderMissing,
   orderPrice,
   orderSections,
+  orderProfit,
   orderTotal,
   paymentState,
+  validDiscount,
+  type ProfitSplit,
   waitingForStock,
   whoWaits,
   type WaitEntry,
@@ -60,8 +63,10 @@ export async function setOwnEurRate(orders: ShopOrdersRepository, input: string)
 export type OrderView = ShopOrder & {
   buyer: ShopBuyer;
   lines: { id: string; productId: string; name: string; size: string; brand: string; quantity: number; price: number; missing: number; catalogPrice: number | null; catalogCurrency: "PLN" | "EUR" | null }[];
-  total: { pieces: number; value: number };
+  total: { pieces: number; value: number; before: number };
   payment: PaymentState;
+  /** MG22: «Отложить на закупку» and «Твоя прибыль». */
+  money: ProfitSplit;
   canHandOver: boolean;
 };
 
@@ -83,8 +88,9 @@ export async function getOrders(
         const p = productById.get(i.productId);
         return { id: i.id, productId: i.productId, name: p?.name ?? "—", size: p?.size ?? "", brand: p?.brand ?? "", quantity: i.quantity, price: i.price, missing: i.missing, catalogPrice: p?.price ?? null, catalogCurrency: p?.currency ?? null };
       }),
-      total: orderTotal(o.items),
-      payment: paymentState(orderTotal(o.items).value, o.payments),
+      total: orderTotal(o.items, o.discountPercent),
+      payment: paymentState(orderTotal(o.items, o.discountPercent).value, o.payments),
+      money: orderProfit(o),
       canHandOver: canHandOver(o),
     }));
   return { ...orderSections(views), buyer: buyerId ? (buyerById.get(buyerId) ?? null) : null };
@@ -129,6 +135,8 @@ export type OrderFormInput = {
   buyerPhone?: string;
   buyerInstagram?: string;
   items?: { productId?: string; quantity?: number | string; price?: number | string }[];
+  /** MG21: 10, 20, 30 or 40; anything else = no discount. */
+  discountPercent?: number | null;
 };
 export type OrderErrors = {
   buyerName?: "required";
@@ -180,6 +188,7 @@ export async function saveOrder(
     orderedOn: today, // a new order's day; when changed, its sales are taken out today
     eurRate: rate?.rate ?? null,
     rateSource: rate?.source ?? null,
+    discountPercent: validDiscount(input.discountPercent),
     items: items.map((i, n) => ({ ...i, missing: missing[n] })),
   });
   return { ok: true, id: result.id };
@@ -261,6 +270,7 @@ export async function sellToBuyer(
     buyerName: name,
     buyerPhone: (buyer.phone ?? "").trim().slice(0, 40),
     buyerInstagram: instagramHandle(buyer.instagram ?? ""),
+    discountPercent: null,
     orderedOn: today,
     eurRate: product.currency === "EUR" ? (rate?.rate ?? null) : null,
     rateSource: product.currency === "EUR" ? (rate?.source ?? null) : null,

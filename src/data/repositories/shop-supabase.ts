@@ -27,6 +27,8 @@ type MovementRow = {
   order_item_id: string | null;
   returned_on: string | null;
   returned_at: string | null;
+  purchase_price: number | string | null;
+  purchase_currency: "PLN" | "EUR" | null;
 };
 
 const productColumns = "id, brand, category, name, size, currency, price, purchase_price, favorite, active, sort_order";
@@ -92,7 +94,7 @@ export function supabaseShopRepository(supabase: SupabaseClient): ShopRepository
     },
 
     async listMovements() {
-      const { data, error } = await supabase.from("shop_movements").select("id, product_id, happened_on, kind, quantity, price, currency, created_at, order_item_id, returned_on, returned_at");
+      const { data, error } = await supabase.from("shop_movements").select("id, product_id, happened_on, kind, quantity, price, currency, created_at, order_item_id, returned_on, returned_at, purchase_price, purchase_currency");
       if (error) throw error;
       return (data as MovementRow[]).map(
         (m): ShopMovement => ({
@@ -107,6 +109,8 @@ export function supabaseShopRepository(supabase: SupabaseClient): ShopRepository
           orderItemId: m.order_item_id,
           returnedOn: m.returned_on,
           returnedAt: m.returned_at,
+          purchasePrice: m.purchase_price === null ? null : Number(m.purchase_price),
+          purchaseCurrency: m.purchase_currency,
         }),
       );
     },

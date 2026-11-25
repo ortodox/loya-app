@@ -922,7 +922,9 @@
       "badgeUnpaid": "Nieopłacone · zostało {left}",
       "badgePartial": "Częściowo · zostało {left}",
       "leftToPay": "Pozostało do zapłaty: {left}",
-      "leftShort": "zostało {left}"
+      "leftShort": "zostało {left}",
+      "discount": "Rabat na zamówienie",
+      "discountShort": "−{percent} %"
     },
     "historyOrder": "Zamówienie −{count}",
     "historyReturn": "Zwrot +{count}",
@@ -964,7 +966,13 @@
     "catalogPrice": "katalog {price}",
     "receivedToday": "✓ +{count} dzisiaj",
     "countLess": "Mniej",
-    "countMore": "Więcej"
+    "countMore": "Więcej",
+    "money": {
+      "total": "Podsumowanie",
+      "putAside": "Odłożyć na zakup",
+      "profit": "Twój zysk",
+      "uncounted": "Nie policzono: {count} szt. bez ceny zakupu"
+    }
   },
   "toast": {
     "undo": "Cofnij",

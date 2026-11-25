@@ -35,6 +35,9 @@ export type ShopMovement = {
   /** MG13: «Исправить» in «Продажи» – the sale was given back to stock on this day (null = not returned). */
   returnedOn?: IsoDate | null;
   returnedAt?: string | null;
+  /** MG19: the purchase price on the day of the sale, in the product's currency (null = not known). */
+  purchasePrice?: number | null;
+  purchaseCurrency?: "PLN" | "EUR" | null;
 };
 
 /** What happened to a product, in order: a movement, and for a returned sale also «Возврат +N» later. */
